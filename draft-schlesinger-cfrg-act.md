@@ -10,10 +10,10 @@ date:
 v: 3
 venue:
   group: "Crypto Forum"
-  type: Research Group
-  mail: cfrg@ietf.org
+  type: "Research Group"
+  mail: "cfrg@ietf.org"
   arch: "https://mailarchive.ietf.org/arch/browse/cfrg"
-  github: SamuelSchelsinger/act-standards
+  github: "SamuelSchlesinger/act-standards"
   latest: "https://SamuelSchlesinger.github.io/act-standards/draft-schlesinger-cfrg-act.html"
 
 
