@@ -19,35 +19,31 @@
 # Change the file extension to match the format (.xml for XML, etc...)
 #
 ###
-title: "TODO - Your title"
-abbrev: "TODO - Abbreviation"
+title: "Anonymous Credit Tokens"
+abbrev: "ACT"
 category: info
 
 docname: draft-todo-yourname-protocol-latest
-submissiontype: IETF  # also: "independent", "editorial", "IAB", or "IRTF"
+submissiontype: IRTF
 number:
 date:
-consensus: true
 v: 3
-area: AREA
-workgroup: WG Working Group
-keyword:
- - next generation
- - unicorn
- - sparkling distributed ledger
 venue:
-  group: WG
-  type: Working Group
-  mail: WG@example.com
-  arch: https://example.com/WG
-  github: USER/REPO
-  latest: https://example.com/LATEST
+  group: "Crypto Forum"
+  type: Research Group
+  mail: cfrg@ietf.org
+  arch: "https://mailarchive.ietf.org/arch/browse/cfrg"
+  github: SamuelSchelsinger/act-standards
+  latest: "https://SamuelSchlesinger.github.io/act-standards/draft-schlesinger-cfrg-act.html"
+
+
 
 author:
  -
-    fullname: Your Name Here
-    organization: Your Organization Here
-    email: your.email@example.com
+    ins: S. Schlesinger
+    fullname: Samuel Schlesinger
+    organization: Google, LLC
+    email: samschlesinger@google.com
 
 normative:
 
