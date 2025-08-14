@@ -1,0 +1,166 @@
+{
+  "magic": "E!vIA5L86J2I",
+  "timestamp": "2025-08-14T00:05:17.856367+00:00",
+  "repo": "SamuelSchlesinger/draft-act",
+  "labels": [
+    {
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "name": "duplicate",
+      "description": "This issue or pull request already exists",
+      "color": "cfd3d7"
+    },
+    {
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "name": "good first issue",
+      "description": "Good for newcomers",
+      "color": "7057ff"
+    },
+    {
+      "name": "help wanted",
+      "description": "Extra attention is needed",
+      "color": "008672"
+    },
+    {
+      "name": "invalid",
+      "description": "This doesn't seem right",
+      "color": "e4e669"
+    },
+    {
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    },
+    {
+      "name": "wontfix",
+      "description": "This will not be worked on",
+      "color": "ffffff"
+    }
+  ],
+  "issues": [
+    {
+      "number": 1,
+      "id": "I_kwDOPc24Mc7FnraH",
+      "title": "Use CFRG boiler plate for prime order groups",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/issues/1",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Ristretto255 will work great for many, but some will likely need NIST curves like P-256 or P-384. The simplest thing would be to use a generic prime order group. Many CFRG drafts use the same boiler plate API for this, [as does ARC](https://chris-wood.github.io/draft-arc/draft-yun-cfrg-arc.html#name-prime-order-group). I suggest adopting this API here as well. Not only will this make it easier to adopt new curves, it also aligns the draft closer to what IETF WGs are used to.",
+      "createdAt": "2025-08-12T19:08:47Z",
+      "updatedAt": "2025-08-12T19:09:35Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 2,
+      "id": "I_kwDOPc24Mc7Fn6Gj",
+      "title": "Replace BLAKE3 with SHAKE128 or TurboSHAKE128",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/issues/2",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "BLAKE3 is not \"standard\" in the sense that no standards organizations has endorsed a specification of it (at least not to my knowledge). This may be a deal breaker for some deployment scenarios.\n\nBoth SHAKE128 as specified in [FIPS 202](https://csrc.nist.gov/pubs/fips/202/final) and TurboSHAKE128 as specified in [draft-irtf-cfrg-kangaroo-twelve](https://datatracker.ietf.org/doc/draft-irtf-cfrg-kangarootwelve/) are viable options. As of writing, [draft-irtf-cfrg-fiat-shamir](https://www.ietf.org/archive/id/draft-irtf-cfrg-fiat-shamir-00) uses SHAKE128.\n\nAn alternative would be to try and get [BLAKE3 at CFRG](https://mailarchive.ietf.org/arch/msg/cfrg/ZSbnJbI1JUkf_VHO4A97TYFFmTQ/). However, my preference would be to not make this a blocker unless there is a compelling reason, e.g., we need the performance benefit.",
+      "createdAt": "2025-08-12T19:23:23Z",
+      "updatedAt": "2025-08-13T14:31:19Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "We should benchmark this change in the prototype before attempting to get BLAKE3 at CFRG. Either way, making the scheme modular with a hash function as an input seems reasonable as well.",
+          "createdAt": "2025-08-13T09:05:56Z",
+          "updatedAt": "2025-08-13T09:05:56Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "NONE",
+          "body": "Ah, that's a good idea in any case!",
+          "createdAt": "2025-08-13T14:31:19Z",
+          "updatedAt": "2025-08-13T14:31:19Z"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "id": "I_kwDOPc24Mc7Fn8Mu",
+      "title": "Adopt RFC 9380 for hashing to Ristretto255",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/issues/3",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "As specified in [Appendix B](https://www.rfc-editor.org/rfc/rfc9380.html#appendix-B). The same RFC specifies algorithms for NIST curves as well (#1).",
+      "createdAt": "2025-08-12T19:25:48Z",
+      "updatedAt": "2025-08-12T19:25:48Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 4,
+      "id": "I_kwDOPc24Mc7Fn_g-",
+      "title": "Align terminology with draft-yun-cfrg-arc as much as possible",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/issues/4",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "[ARC](datatracker.ietf.org/doc/draft-yun-cfrg-arc/) and ACT are useful for similar, though not identical use cases. I would expect that many who want to adopt ACT would also want to adopt ARC. In order to improve communication, it would be useful to align terminology between the two drafts wherever possible.",
+      "createdAt": "2025-08-12T19:29:19Z",
+      "updatedAt": "2025-08-13T09:04:12Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "Sounds great insofar as they have shared concepts or primitives. For instance, once we implement the range proof in ARC, we should align on that.",
+          "createdAt": "2025-08-13T09:04:04Z",
+          "updatedAt": "2025-08-13T09:04:12Z"
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "id": "I_kwDOPc24Mc7FoELi",
+      "title": "Adopt draft-irtf-cfrg-fiat-shamir and draft-irtf-cfrg-sigma-protocols",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/issues/5",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "CFRG recently signed up to work out [Sigma protocols](https://datatracker.ietf.org/doc/draft-irtf-cfrg-sigma-protocols/) and the [Fiat-Shamir transform](https://datatracker.ietf.org/doc/draft-irtf-cfrg-fiat-shamir/). To the extent that is possible, ACT should be built on top of them so that there is less for the draft to specify. Note that it may be necessary to add support for $\\vee$-proofs.",
+      "createdAt": "2025-08-12T19:34:24Z",
+      "updatedAt": "2025-08-12T23:47:34Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "Totally agree with this, though I don't have the bandwidth to prioritize this myself at this point. I will happily review text to this end.",
+          "createdAt": "2025-08-12T23:47:34Z",
+          "updatedAt": "2025-08-12T23:47:34Z"
+        }
+      ]
+    }
+  ],
+  "pulls": []
+}
