@@ -1,4 +1,4 @@
 # License
 
 See the
-[guidelines for contributions](https://github.com/SamuelSchlesinger/act-standards/blob/main/CONTRIBUTING.md).
+[guidelines for contributions](https://github.com/SamuelSchlesinger/draft-act/blob/main/CONTRIBUTING.md).

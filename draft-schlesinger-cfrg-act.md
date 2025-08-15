@@ -13,8 +13,8 @@ venue:
   type: "Research Group"
   mail: "cfrg@ietf.org"
   arch: "https://mailarchive.ietf.org/arch/browse/cfrg"
-  github: "SamuelSchlesinger/act-standards"
-  latest: "https://SamuelSchlesinger.github.io/act-standards/draft-schlesinger-cfrg-act.html"
+  github: "SamuelSchlesinger/draft-act"
+  latest: "https://SamuelSchlesinger.github.io/draft-act/draft-schlesinger-cfrg-act.html"
 
 author:
  -
