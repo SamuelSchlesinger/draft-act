@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-08-14T00:05:17.856367+00:00",
+  "timestamp": "2025-08-17T00:05:57.619827+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -162,5 +162,48 @@
       ]
     }
   ],
-  "pulls": []
+  "pulls": [
+    {
+      "number": 6,
+      "id": "PR_kwDOPc24Mc6j4QmL",
+      "title": "Update references to github repo",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/pull/6",
+      "state": "MERGED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The new name is \"draft-act\".",
+      "createdAt": "2025-08-15T18:49:41Z",
+      "updatedAt": "2025-08-15T18:58:08Z",
+      "baseRepository": "SamuelSchlesinger/draft-act",
+      "baseRefName": "main",
+      "baseRefOid": "837050a15f183bba998e3a95badf53a101ec6fef",
+      "headRepository": "SamuelSchlesinger/draft-act",
+      "headRefName": "cjpatton/update-repo-name",
+      "headRefOid": "f2458b30f77a253c4203034475360549d6a6791e",
+      "closedAt": "2025-08-15T18:58:07Z",
+      "mergedAt": "2025-08-15T18:58:07Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "a71be413158b134b432228d028719fd56543663f"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOPc24Mc66QYH0",
+          "commit": {
+            "abbreviatedOid": "f2458b3"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2025-08-15T18:58:03Z",
+          "updatedAt": "2025-08-15T18:58:03Z",
+          "comments": []
+        }
+      ]
+    }
+  ]
 }
