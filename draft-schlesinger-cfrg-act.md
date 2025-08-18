@@ -20,7 +20,7 @@ author:
  -
     fullname: Samuel Schlesinger
     organization: Google
-    email: sgschlesinger@gmail.com
+    email: samschlesinger@google.com
  -
     fullname: Jonathan Katz
     organization: Google
