@@ -1795,7 +1795,7 @@ Authors' Addresses
 
    Samuel Schlesinger
    Google
-   Email: sgschlesinger@gmail.com
+   Email: samschlesinger@google.com
 
 
    Jonathan Katz
