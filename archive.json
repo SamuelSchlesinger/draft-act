@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-08-17T00:05:57.619827+00:00",
+  "timestamp": "2025-08-19T00:05:35.234927+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -158,6 +158,54 @@
           "body": "Totally agree with this, though I don't have the bandwidth to prioritize this myself at this point. I will happily review text to this end.",
           "createdAt": "2025-08-12T23:47:34Z",
           "updatedAt": "2025-08-12T23:47:34Z"
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "id": "I_kwDOPc24Mc7GlytP",
+      "title": "Use case for request context: expiry",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/issues/7",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "ACT credentials should expire, for two reasons:\n\n1. Security: The server may want to rate-limit clients over time, say, to $c$ requests/day, where $c$ is the number of credits for each credential issued. Unless credentials expire, issuing one credential/day per client would not be sufficient to enforce the rate limit, since the client could hoard credentials issued over multiple days.\n\n2. Operational: Preventing double spends requires storing all nullifiers accepted for a given server key. This means the cost of the double spending check increases over time as the number of stored nullifiers increases. Once a credential expires, it's no longer necessary to track its nullifiers.\n\nThe draft currently envisions implementing expiry by frequently rotating the server's key. Time would be divided into discrete epochs, say 00:00-23:59 UTC, and each epoch would have its own server key. Clients would need to be configured out-of-band with the corresponding public key for each epoch.\n\nThis imposes an operational burden that may be untenable for some deployments. For example, suppose the clients are operated by company X and credentials are issued by (and presented to) company Y. Suppose further that X requests issuance from Y on behalf of its clients. (This prevents Y from being able to fingerprint clients. It also makes it possible to separate issuance from attestation of who is a \"legitimate\" client, which is helpful in many scenarios. See [RFC 9576](https://datatracker.ietf.org/doc/rfc9576/).)\n\nTo implement this feature, Y would expose an API to X for pulling epoch public keys; X would periodically ping this API and push keys down to its clients. How \"doable\" this is in practice depends on the length of the epoch window. Rotating every day may not be so bad, but rotating every hour would require a lot of coordination.\n\nOne way around this would be to support something like ARC's [request context](https://chris-wood.github.io/draft-arc/draft-yun-cfrg-arc.html#section-4.2.1). Roughly speaking, the request context is some string that the client and server must agree on in order for issuance or presentation to succeed. The context might encode the epoch in which the credential was issued. During presentation, the server would use the _current epoch_ as the request context, thereby rejecting credentials issued too far in the past.\n",
+      "createdAt": "2025-08-18T19:09:59Z",
+      "updatedAt": "2025-08-18T20:15:29Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "A few thoughts on how we might implement request context.\n\n1. We're already deriving the generators $h_1, h_2, h_3$ (using the notation of the [write up](https://github.com/SamuelSchlesinger/anonymous-credit-tokens/blob/main/docs/design.pdf)) by hashing fixed strings. What about simply incorporating the request context into the hash? \n\n2. The BBS MAC the client gets from the server is over a commitment to a vector that includes the current budget $c$ and the next nullifier $k$. We could either this vector with an additional scalar $w$ that includes the hash of the request context so that the MAC becomes:\n\n    $$A = \\left(g \\cdot h_1^c \\cdot h_2^k \\cdot h_3^w \\cdot  h_4^r \\right)^{1/(x+e)}$$\n\n3. We could tack on a fresh commitment to $w$ to the signed message:\n\n    $$A = \\left(g \\cdot (h_1^c \\cdot h_2^k \\cdot h_3^{r_0}) \\cdot (h_4^w \\cdot h_5^{r_1})\\right)^{1/(x+e)}$$\n\n    where $r_0, r_1$ are random scalars.\n\nThe first one seems like the least invasive, but I'm not sure how it would impact security analysis. In terms of performance, it would be more expensive, since we have to compute the generators at issuance/presentation time rather than at setup time. @armfazh ball parks the cost of each hash to curve to be about 1/4 the cost of scalar multiplication.\n\nThe second one seems pretty natural to me, but I'm not sure how this would impact the ZKPs. Likewise for the third option. Both would cost a bit more in performance.",
+          "createdAt": "2025-08-18T19:24:56Z",
+          "updatedAt": "2025-08-18T20:15:29Z"
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "id": "I_kwDOPc24Mc7GmHPU",
+      "title": "Use case for presentation context: bind presentation to origin",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/issues/8",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "ACT could be used to rate limit HTTP requests from clients to an HTTP server. In many such cases, the server will operate multiple \"origins\". For example, the same content delivery network might serve HTTP requests for multiple websites.\n\nIn this deployment scenario, it's useful to be able to enforce the rate limit on a per-origin basis. That is, when the client is issued a token with $c$ credits, it gets to make at most $c$ requests to each origin operated by the server.\n\nI see two ways to do this with ACT as it is, neither of which is ideal:\n\n1. The server could issue $c\\cdot N$ credits, where $N$ is the number of origins. However, the client could just spend all of its token at one origin and thereby bypass the per-origin rate-limit.\n\n2. The server could use separate keys for each origin, but this would require the client to reveal to the issuer which origin it wants to reach.\n\nWhat we really want is something like ARC's [presentation context](https://chris-wood.github.io/draft-arc/draft-yun-cfrg-arc.html#section-4.3-3.1.1) string. For our use case, this string would encode the origin, e.g., $\\mathit{ctx} = \\texttt{example.com}$. It would be great to provide ACT with a similar feature.",
+      "createdAt": "2025-08-18T19:39:55Z",
+      "updatedAt": "2025-08-18T19:54:54Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "ARC works as follows. For each presentation context $\\mathit{ctx}$, the client initializes a fresh \"presentation\" state. For each presentation, it chooses a random nonce $n$ from $[1..c]$ and computes a tag $t = \\mathsf{PRF}_k(n, \\mathit{ctx})$, where $k$ is a scalar it committed to in its credential. The server tracks these $(n, t)$ pairs on a per-origin basis.\n\nCan we do something similar for ACT? Here's an initial idea that doesn't work: Instead of revealing the nullifier $k$ directly, we might instead reveal $\\mathsf{PRF}_k(\\mathit{ctx})$.\n\n@meyira pointed the following attack: Given credential state $S$ with $c$ spend, a malicious client could present $S$ to  a number of origins, then present each of the re-issued credentials to some target origin. We therefore need some way of binding the re-issued credential to the origin so that it can only be presented there.\n\nAlso, we only know how to instantiate $\\mathsf{PRF}$ with classical assumptions (cf. [2024/1552](https://eprint.iacr.org/2024/1552), Theorem 8.7). We therefore would want to make this feature optional so that not all deployments need to sacrifice PQ privacy.\n",
+          "createdAt": "2025-08-18T19:54:24Z",
+          "updatedAt": "2025-08-18T19:54:54Z"
         }
       ]
     }
