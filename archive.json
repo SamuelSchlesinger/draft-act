@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-08-19T00:05:35.234927+00:00",
+  "timestamp": "2025-08-21T00:04:24.917598+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -173,7 +173,7 @@
       "labels": [],
       "body": "ACT credentials should expire, for two reasons:\n\n1. Security: The server may want to rate-limit clients over time, say, to $c$ requests/day, where $c$ is the number of credits for each credential issued. Unless credentials expire, issuing one credential/day per client would not be sufficient to enforce the rate limit, since the client could hoard credentials issued over multiple days.\n\n2. Operational: Preventing double spends requires storing all nullifiers accepted for a given server key. This means the cost of the double spending check increases over time as the number of stored nullifiers increases. Once a credential expires, it's no longer necessary to track its nullifiers.\n\nThe draft currently envisions implementing expiry by frequently rotating the server's key. Time would be divided into discrete epochs, say 00:00-23:59 UTC, and each epoch would have its own server key. Clients would need to be configured out-of-band with the corresponding public key for each epoch.\n\nThis imposes an operational burden that may be untenable for some deployments. For example, suppose the clients are operated by company X and credentials are issued by (and presented to) company Y. Suppose further that X requests issuance from Y on behalf of its clients. (This prevents Y from being able to fingerprint clients. It also makes it possible to separate issuance from attestation of who is a \"legitimate\" client, which is helpful in many scenarios. See [RFC 9576](https://datatracker.ietf.org/doc/rfc9576/).)\n\nTo implement this feature, Y would expose an API to X for pulling epoch public keys; X would periodically ping this API and push keys down to its clients. How \"doable\" this is in practice depends on the length of the epoch window. Rotating every day may not be so bad, but rotating every hour would require a lot of coordination.\n\nOne way around this would be to support something like ARC's [request context](https://chris-wood.github.io/draft-arc/draft-yun-cfrg-arc.html#section-4.2.1). Roughly speaking, the request context is some string that the client and server must agree on in order for issuance or presentation to succeed. The context might encode the epoch in which the credential was issued. During presentation, the server would use the _current epoch_ as the request context, thereby rejecting credentials issued too far in the past.\n",
       "createdAt": "2025-08-18T19:09:59Z",
-      "updatedAt": "2025-08-18T20:15:29Z",
+      "updatedAt": "2025-08-20T21:42:37Z",
       "closedAt": null,
       "comments": [
         {
@@ -182,6 +182,83 @@
           "body": "A few thoughts on how we might implement request context.\n\n1. We're already deriving the generators $h_1, h_2, h_3$ (using the notation of the [write up](https://github.com/SamuelSchlesinger/anonymous-credit-tokens/blob/main/docs/design.pdf)) by hashing fixed strings. What about simply incorporating the request context into the hash? \n\n2. The BBS MAC the client gets from the server is over a commitment to a vector that includes the current budget $c$ and the next nullifier $k$. We could either this vector with an additional scalar $w$ that includes the hash of the request context so that the MAC becomes:\n\n    $$A = \\left(g \\cdot h_1^c \\cdot h_2^k \\cdot h_3^w \\cdot  h_4^r \\right)^{1/(x+e)}$$\n\n3. We could tack on a fresh commitment to $w$ to the signed message:\n\n    $$A = \\left(g \\cdot (h_1^c \\cdot h_2^k \\cdot h_3^{r_0}) \\cdot (h_4^w \\cdot h_5^{r_1})\\right)^{1/(x+e)}$$\n\n    where $r_0, r_1$ are random scalars.\n\nThe first one seems like the least invasive, but I'm not sure how it would impact security analysis. In terms of performance, it would be more expensive, since we have to compute the generators at issuance/presentation time rather than at setup time. @armfazh ball parks the cost of each hash to curve to be about 1/4 the cost of scalar multiplication.\n\nThe second one seems pretty natural to me, but I'm not sure how this would impact the ZKPs. Likewise for the third option. Both would cost a bit more in performance.",
           "createdAt": "2025-08-18T19:24:56Z",
           "updatedAt": "2025-08-18T20:15:29Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "I feel like the first is the least invasive, but it isn't great from a deployment perspective: do we have to verify with multiple different keys? I prefer something between the second and third, where we essentially go from MAC-ing `(r, k, c)` to MAC-ing `(r, k, c, epoch)` and using the BBS-show machinery to unveil `epoch` when we present a credential.",
+          "createdAt": "2025-08-19T02:03:00Z",
+          "updatedAt": "2025-08-19T02:03:00Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I feel like the first is the least invasive, but it isn't great from a deployment perspective: do we have to verify with multiple different keys?\n\nWhat do you mean by multiple keys? The suggestion is to just change how the generators are derived. You wouldn't need to deploy new keys or anything like that.",
+          "createdAt": "2025-08-19T02:12:39Z",
+          "updatedAt": "2025-08-19T02:12:39Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "Apologies, I phrased it incorrectly but the point still stands: verifying with different generators.",
+          "createdAt": "2025-08-19T14:57:01Z",
+          "updatedAt": "2025-08-19T14:57:01Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "Feels nicer to verify once, retrieve the field you were looking for, then note that the epoch is within the tolerable range.",
+          "createdAt": "2025-08-19T14:57:35Z",
+          "updatedAt": "2025-08-19T14:57:35Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm not sure I'm following. The prover and verifier would generate the same set of points if they have the same request-context string, therefore you would only verify the proof once. If they don't have the same request-context, then verification should fail. This is what we want.",
+          "createdAt": "2025-08-19T15:34:53Z",
+          "updatedAt": "2025-08-19T15:34:53Z"
+        },
+        {
+          "author": "jkatz2",
+          "authorAssociation": "NONE",
+          "body": "I agree with @SamuelSchlesinger, conceptually the right thing to do seems to be to simply have the epoch be another attribute field. (I'm not saying other approaches can't work, but any other approaches should be compared to the strawman where we simply add another field.)",
+          "createdAt": "2025-08-19T16:53:34Z",
+          "updatedAt": "2025-08-19T16:53:34Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "@cjpatton i.e. there is only one acceptable epoch at any given time?",
+          "createdAt": "2025-08-20T15:17:28Z",
+          "updatedAt": "2025-08-20T15:17:28Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "You could have overlapping epoch windows I suppose. If we keep the attribute generic, I.e., the scalar is the hash of some \"request context\" (using the term from ARC), then it could be left up to he application. I think that's the right thing to do.",
+          "createdAt": "2025-08-20T15:21:22Z",
+          "updatedAt": "2025-08-20T15:21:22Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "Okay, so it sounds like we are all comfortable with the approach where the expiry is a publicly revealed attribute in the credential, and this is used generically to assist in solving contextual scoping of a token in #8.",
+          "createdAt": "2025-08-20T16:55:27Z",
+          "updatedAt": "2025-08-20T16:55:27Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "It might be useful to separate \"request context\" and \"presentation context\" into separate attributes, but otherwise that sounds good to me.",
+          "createdAt": "2025-08-20T17:32:50Z",
+          "updatedAt": "2025-08-20T17:32:50Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "Yes, in particular if we support arbitrary public attributes I think this works.",
+          "createdAt": "2025-08-20T21:42:37Z",
+          "updatedAt": "2025-08-20T21:42:37Z"
         }
       ]
     },
@@ -197,7 +274,7 @@
       "labels": [],
       "body": "ACT could be used to rate limit HTTP requests from clients to an HTTP server. In many such cases, the server will operate multiple \"origins\". For example, the same content delivery network might serve HTTP requests for multiple websites.\n\nIn this deployment scenario, it's useful to be able to enforce the rate limit on a per-origin basis. That is, when the client is issued a token with $c$ credits, it gets to make at most $c$ requests to each origin operated by the server.\n\nI see two ways to do this with ACT as it is, neither of which is ideal:\n\n1. The server could issue $c\\cdot N$ credits, where $N$ is the number of origins. However, the client could just spend all of its token at one origin and thereby bypass the per-origin rate-limit.\n\n2. The server could use separate keys for each origin, but this would require the client to reveal to the issuer which origin it wants to reach.\n\nWhat we really want is something like ARC's [presentation context](https://chris-wood.github.io/draft-arc/draft-yun-cfrg-arc.html#section-4.3-3.1.1) string. For our use case, this string would encode the origin, e.g., $\\mathit{ctx} = \\texttt{example.com}$. It would be great to provide ACT with a similar feature.",
       "createdAt": "2025-08-18T19:39:55Z",
-      "updatedAt": "2025-08-18T19:54:54Z",
+      "updatedAt": "2025-08-20T16:48:20Z",
       "closedAt": null,
       "comments": [
         {
@@ -206,6 +283,104 @@
           "body": "ARC works as follows. For each presentation context $\\mathit{ctx}$, the client initializes a fresh \"presentation\" state. For each presentation, it chooses a random nonce $n$ from $[1..c]$ and computes a tag $t = \\mathsf{PRF}_k(n, \\mathit{ctx})$, where $k$ is a scalar it committed to in its credential. The server tracks these $(n, t)$ pairs on a per-origin basis.\n\nCan we do something similar for ACT? Here's an initial idea that doesn't work: Instead of revealing the nullifier $k$ directly, we might instead reveal $\\mathsf{PRF}_k(\\mathit{ctx})$.\n\n@meyira pointed the following attack: Given credential state $S$ with $c$ spend, a malicious client could present $S$ to  a number of origins, then present each of the re-issued credentials to some target origin. We therefore need some way of binding the re-issued credential to the origin so that it can only be presented there.\n\nAlso, we only know how to instantiate $\\mathsf{PRF}$ with classical assumptions (cf. [2024/1552](https://eprint.iacr.org/2024/1552), Theorem 8.7). We therefore would want to make this feature optional so that not all deployments need to sacrifice PQ privacy.\n",
           "createdAt": "2025-08-18T19:54:24Z",
           "updatedAt": "2025-08-18T19:54:54Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "> The server could use separate keys for each origin, but this would require the client to reveal to the issuer which origin it wants to reach.\n\nCurrently, the vector which we MAC is `(r, k, c)`, but we could instead MAC `(r, k, c, o)` where `o` indicated the origin, and `o` might not be revealed to the issuer upon MAC-ing, i.e. sent as part of the commitment that gets MAC-ed.",
+          "createdAt": "2025-08-19T01:56:58Z",
+          "updatedAt": "2025-08-19T02:05:00Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "That's a better option from a privacy perspective, but IIRC the client would need to know the issuer it wants during issuance. I think this is too much of a restriction.",
+          "createdAt": "2025-08-19T02:14:38Z",
+          "updatedAt": "2025-08-19T02:14:38Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "That's fair. I think you could also achieve this via a funny hybrid of ARC and ACT, where you are issued a MAC of `(k, c)` and then you present to origin `o` `Y = PRF_k(origin)`, `c`, along with a proof that there exists a MAC of `(k, c)` such that `Y = PRF_k(origin)`. In response, the issuer would issue you an ACT with `c` tokens in it scoped to origin `o` using the trick I stated above. There is another world where you don't show `c` to the origin but instead sign it under a commitment similar to ACT refunds.",
+          "createdAt": "2025-08-19T14:33:43Z",
+          "updatedAt": "2025-08-19T14:33:43Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "That's kinda what I was thinking. I'm just not sure how to adjust the ZKPs.",
+          "createdAt": "2025-08-19T14:46:43Z",
+          "updatedAt": "2025-08-19T14:46:43Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "To me, it almost feels like a separate draft almost? Maybe an extension or another type of document, perhaps, as it is more like a proxied attestation strategy for ACTs rather than a detail of the ACT construction itself.",
+          "createdAt": "2025-08-19T14:55:21Z",
+          "updatedAt": "2025-08-19T14:55:21Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "Maybe the bit that belongs here is the extra origin field, optionally. It feels that also fits into the same extension that the expiry would use, as well, as they have an identical implementation.",
+          "createdAt": "2025-08-19T14:56:12Z",
+          "updatedAt": "2025-08-19T14:56:12Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The feature is pretty incremental ... it seems like it would be too small to have as a standalone doc. In any case, I think the ACT doc would be less useful without this option.",
+          "createdAt": "2025-08-19T15:37:46Z",
+          "updatedAt": "2025-08-19T15:37:46Z"
+        },
+        {
+          "author": "jkatz2",
+          "authorAssociation": "NONE",
+          "body": "I'm not sure what all was encompassed by \"this option,\" but I think including support for any number of (public) attributes as part of the ACT makes sense. This would allow for including the origin as one of the attributes. OTOH, extending to a full-fledged combination of ARC and ACT does seem like it would be a separate piece of work.",
+          "createdAt": "2025-08-20T14:09:41Z",
+          "updatedAt": "2025-08-20T14:09:41Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "I'm definitely interested in this approach, whether or not it is a separate document from the main ACT draft I'm happy to include it in this repository. It seems to allow minimization of a (potential expensive) attestation and it kind of fixes some of the PQ-privacy issues of ARC, where you don't have PQ-privacy for which origins you're interacting with, but you do have PQ-privacy for your interactions on that origin.",
+          "createdAt": "2025-08-20T15:21:11Z",
+          "updatedAt": "2025-08-20T15:21:11Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "To be clear, I believe we're converging on something like the following:\n\n1. When the credential is issued, it either supports presentation context binding or does not. Support would be indicated by an attribute.\n2. When the credential is presented:\n    - If it supports presentation context, then the client reveals $\\mathsf{PRF}_k(\\mathit{ctx})$, where $\\mathit{ctx}$ is the presentation context. The re-issued credential has an _additional_ attribute, whose value is the hash of $\\mathit{ctx}$.\n    - If it doesn't support presentation context, then the client reveals $k$ as currently specified. The re-issued credential is also as currently specified.\n\nDoes this make sense to folks?",
+          "createdAt": "2025-08-20T15:26:44Z",
+          "updatedAt": "2025-08-20T15:27:18Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "From my perspective, there are two separate credentials: one is the \"global credential\", which is a MAC of `(k, c)`. Another is the \"origin `o` local credential\" which is a MAC of `(r, k, c, o)`. The client of this protocol would keep the \"global credential\" (we should rename this, just a stand-in) and a map from `o` to \"origin `o` local credential\" similar to how the user keeps a map from `o` to a counter in ARC.",
+          "createdAt": "2025-08-20T15:36:51Z",
+          "updatedAt": "2025-08-20T15:37:04Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "That's roughly how I think of it as well :)",
+          "createdAt": "2025-08-20T16:37:28Z",
+          "updatedAt": "2025-08-20T16:37:28Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "Sounds like its time to write it up! There is something really interesting here around public verifiability, it might enable a \"publicly verifiable\" scheme where the global credential is publicly verifiable but rate-limited at each relying party only, so there is no need to share a database, and each ACT is still privately verifiable because it is scoped to the individual relying party, which has become a privately verifying issuer of this ACT. In that case, we actually might not require `o` to be included in the credential, cause we can use a different underlying keypair. Maybe something is wrong with this, I haven't written this down in detail, but wanted to note it here for posterity.",
+          "createdAt": "2025-08-20T16:45:30Z",
+          "updatedAt": "2025-08-20T16:46:04Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Sounds like its time to write it up!\n\nMy suggestion would be to handle the more straightforward issues, like #1 and #2, before adding new features. That way we end up with less work in the end.",
+          "createdAt": "2025-08-20T16:48:20Z",
+          "updatedAt": "2025-08-20T16:48:20Z"
         }
       ]
     }
