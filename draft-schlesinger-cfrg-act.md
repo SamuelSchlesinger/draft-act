@@ -380,13 +380,15 @@ IssueRequest():
 ### Issuer: Issuance Response
 
 ~~~
-Issue(sk, request, c):
+IssueResponse(sk, request, c):
   Input:
     - sk: Issuer's private key
     - request: Client's issuance request
     - c: Credit amount to issue (c > 0)
   Output:
     - response: Issuance response or INVALID
+  Exceptions:
+    - InvalidIssuanceResponseProof, raised when the client proof verification fails
 
   Steps:
     1. Parse request as (K, gamma, k_bar, r_bar)
@@ -396,7 +398,7 @@ Issue(sk, request, c):
     5. AddToTranscript(transcript, K)
     6. AddToTranscript(transcript, K1)
     7. if GetChallenge(transcript) != gamma:
-    8.     return INVALID
+    8.     raise InvalidIssuanceResponseProof
     9. // Create BBS signature on (c, k, r)
     10. e <- Zq
     11. A = (G + H1 * c + K) * (1/(e + sk))  // K = H2 * k + H3 * r
@@ -430,7 +432,9 @@ VerifyIssuance(pk, request, response, state):
     - response: Issuer's response
     - state: Client state from request generation
   Output:
-    - token: Credit token or INVALID
+    - token: Credit token
+  Exceptions:
+    - InvalidIssuanceVerificationProof, raised when the client proof verification fails
 
   Steps:
     1. Parse request as (K, gamma, k_bar, r_bar)
@@ -450,7 +454,7 @@ VerifyIssuance(pk, request, response, state):
     16. AddToTranscript(transcript_resp, Y_A)
     17. AddToTranscript(transcript_resp, Y_G)
     18. if GetChallenge(transcript_resp) != gamma_resp:
-    19.     return INVALID
+    19.     raise InvalidIssuanceVerificationProof
     20. token = (A, e, k, r, c)
     21. return token
 ~~~
@@ -618,16 +622,19 @@ VerifyAndRefund(sk, proof):
     - sk: Issuer's private key
     - proof: Client's spend proof
   Output:
-    - refund: Refund for remaining credits or INVALID
+    - refund: Refund for remaining credits
+  Exceptions:
+    - DoubleSpendError: raised when the nullifier has been used before
+    - InvalidRefundResponseProof: raised when the refund proof verification fails
 
   Steps:
     1. Parse proof and extract nullifier k
     2. // Check nullifier hasn't been used
     3. if k in used_nullifiers:
-    4.     return INVALID
+    4.     raise DoubleSpendError
     5. // Verify the proof (see Section 3.5.2)
     6. if not VerifySpendProof(sk, proof):
-    7.     return INVALID
+    7.     raise InvalidRefundResponseProof
     8. // Record nullifier
     9. used_nullifiers.add(k)
     10. // Issue refund for remaining balance
@@ -691,6 +698,8 @@ ConstructRefundToken(pk, spend_proof, refund, state):
     - state: Client state (k*, r*, m)
   Output:
     - token: New credit token or INVALID
+  Exceptions:
+    - InvalidRefundProof: When the refund proof verification fails
 
   Steps:
     1. Parse refund as (A*, e*, gamma, z)
@@ -714,7 +723,7 @@ ConstructRefundToken(pk, spend_proof, refund, state):
     16. AddToTranscript(transcript, Y_A)
     17. AddToTranscript(transcript, Y_G)
     18. if GetChallenge(transcript) != gamma:
-    19.     return INVALID
+    19.     raise InvalidRefundProof
 
     20. // Construct new token
     21. token = (A*, e*, k*, r*, m)
@@ -732,6 +741,9 @@ VerifySpendProof(sk, proof):
     - proof: Spend proof from client
   Output:
     - valid: Boolean indicating if proof is valid
+  Exceptions:
+    - ParsingError: raised when A' is not the identity
+    - InvalidClientSpendProof: raised when the challenge does not match the reconstruction
 
   Steps:
     1. Parse proof as (k, s, A', B_bar, Com, gamma, e_bar,
@@ -740,7 +752,7 @@ VerifySpendProof(sk, proof):
 
     2. // Check A' is not identity
     3. if A' == Identity:
-    4.     return false
+    4.     raise ParsingError
 
     5. // Compute issuer's view of signature
     6. A_bar = A' * sk
@@ -792,7 +804,7 @@ VerifySpendProof(sk, proof):
 
     46. // Verify challenge matches
     47. if gamma != gamma_check:
-    48.     return false
+    48.     raise InvalidVerifySpendProof
 
     49. return true
 ~~~
@@ -935,10 +947,12 @@ CreditToScalar(amount):
     - amount: Integer credit amount (0 <= amount < 2^L)
   Output:
     - s: Scalar representation
+  Exceptions:
+    - AmountTooBigError: raised when the amount exceeds 2^L
 
   Steps:
     1. if amount >= 2^L:
-    2.     return ERROR
+    2.     return AmountTooBigError
     3. return Scalar(amount)
 
 ScalarToCredit(s):
@@ -946,13 +960,15 @@ ScalarToCredit(s):
     - s: Scalar value
   Output:
     - amount: Integer credit amount or ERROR
+  Exceptions:
+    - HighBytesSet: raised when the bytes 16..32 of the scalar value are nonzero
 
   Steps:
     1. bytes = s.to_bytes_le()
     2. // Check high bytes are zero
     3. For i = 16 to 31:
     4.     if bytes[i] != 0:
-    5.         return ERROR
+    5.         return HighBytesSet
     6. amount = bytes[0..15] as u128
     7. return amount
 ~~~
