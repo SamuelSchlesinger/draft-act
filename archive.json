@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-08-21T00:04:24.917598+00:00",
+  "timestamp": "2025-08-26T00:05:21.626552+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -144,12 +144,14 @@
       "url": "https://github.com/SamuelSchlesinger/draft-act/issues/5",
       "state": "OPEN",
       "author": "cjpatton",
-      "authorAssociation": "NONE",
-      "assignees": [],
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "meyira"
+      ],
       "labels": [],
       "body": "CFRG recently signed up to work out [Sigma protocols](https://datatracker.ietf.org/doc/draft-irtf-cfrg-sigma-protocols/) and the [Fiat-Shamir transform](https://datatracker.ietf.org/doc/draft-irtf-cfrg-fiat-shamir/). To the extent that is possible, ACT should be built on top of them so that there is less for the draft to specify. Note that it may be necessary to add support for $\\vee$-proofs.",
       "createdAt": "2025-08-12T19:34:24Z",
-      "updatedAt": "2025-08-12T23:47:34Z",
+      "updatedAt": "2025-08-25T17:20:56Z",
       "closedAt": null,
       "comments": [
         {
@@ -173,7 +175,7 @@
       "labels": [],
       "body": "ACT credentials should expire, for two reasons:\n\n1. Security: The server may want to rate-limit clients over time, say, to $c$ requests/day, where $c$ is the number of credits for each credential issued. Unless credentials expire, issuing one credential/day per client would not be sufficient to enforce the rate limit, since the client could hoard credentials issued over multiple days.\n\n2. Operational: Preventing double spends requires storing all nullifiers accepted for a given server key. This means the cost of the double spending check increases over time as the number of stored nullifiers increases. Once a credential expires, it's no longer necessary to track its nullifiers.\n\nThe draft currently envisions implementing expiry by frequently rotating the server's key. Time would be divided into discrete epochs, say 00:00-23:59 UTC, and each epoch would have its own server key. Clients would need to be configured out-of-band with the corresponding public key for each epoch.\n\nThis imposes an operational burden that may be untenable for some deployments. For example, suppose the clients are operated by company X and credentials are issued by (and presented to) company Y. Suppose further that X requests issuance from Y on behalf of its clients. (This prevents Y from being able to fingerprint clients. It also makes it possible to separate issuance from attestation of who is a \"legitimate\" client, which is helpful in many scenarios. See [RFC 9576](https://datatracker.ietf.org/doc/rfc9576/).)\n\nTo implement this feature, Y would expose an API to X for pulling epoch public keys; X would periodically ping this API and push keys down to its clients. How \"doable\" this is in practice depends on the length of the epoch window. Rotating every day may not be so bad, but rotating every hour would require a lot of coordination.\n\nOne way around this would be to support something like ARC's [request context](https://chris-wood.github.io/draft-arc/draft-yun-cfrg-arc.html#section-4.2.1). Roughly speaking, the request context is some string that the client and server must agree on in order for issuance or presentation to succeed. The context might encode the epoch in which the credential was issued. During presentation, the server would use the _current epoch_ as the request context, thereby rejecting credentials issued too far in the past.\n",
       "createdAt": "2025-08-18T19:09:59Z",
-      "updatedAt": "2025-08-20T21:42:37Z",
+      "updatedAt": "2025-08-25T23:54:51Z",
       "closedAt": null,
       "comments": [
         {
@@ -259,6 +261,13 @@
           "body": "Yes, in particular if we support arbitrary public attributes I think this works.",
           "createdAt": "2025-08-20T21:42:37Z",
           "updatedAt": "2025-08-20T21:42:37Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Consensus from 2025/8/25 call is to solve this by extending ACT to support any number of public attributes (as required by the application).",
+          "createdAt": "2025-08-25T23:54:51Z",
+          "updatedAt": "2025-08-25T23:54:51Z"
         }
       ]
     },
@@ -270,11 +279,13 @@
       "state": "OPEN",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "cjpatton"
+      ],
       "labels": [],
       "body": "ACT could be used to rate limit HTTP requests from clients to an HTTP server. In many such cases, the server will operate multiple \"origins\". For example, the same content delivery network might serve HTTP requests for multiple websites.\n\nIn this deployment scenario, it's useful to be able to enforce the rate limit on a per-origin basis. That is, when the client is issued a token with $c$ credits, it gets to make at most $c$ requests to each origin operated by the server.\n\nI see two ways to do this with ACT as it is, neither of which is ideal:\n\n1. The server could issue $c\\cdot N$ credits, where $N$ is the number of origins. However, the client could just spend all of its token at one origin and thereby bypass the per-origin rate-limit.\n\n2. The server could use separate keys for each origin, but this would require the client to reveal to the issuer which origin it wants to reach.\n\nWhat we really want is something like ARC's [presentation context](https://chris-wood.github.io/draft-arc/draft-yun-cfrg-arc.html#section-4.3-3.1.1) string. For our use case, this string would encode the origin, e.g., $\\mathit{ctx} = \\texttt{example.com}$. It would be great to provide ACT with a similar feature.",
       "createdAt": "2025-08-18T19:39:55Z",
-      "updatedAt": "2025-08-20T16:48:20Z",
+      "updatedAt": "2025-08-26T00:04:52Z",
       "closedAt": null,
       "comments": [
         {
@@ -381,8 +392,31 @@
           "body": "> Sounds like its time to write it up!\n\nMy suggestion would be to handle the more straightforward issues, like #1 and #2, before adding new features. That way we end up with less work in the end.",
           "createdAt": "2025-08-20T16:48:20Z",
           "updatedAt": "2025-08-20T16:48:20Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Conclusion from 2025/8/25: We believe we can implement this feature by composing ARC and ACT. ARC wouldn't need any changes; ACT would need an additional public attribute for binding to the presentation context, but we will get this from https://github.com/SamuelSchlesinger/draft-act/issues/7#issuecomment-3222079464.\n\nWe would use ARC in \"one-show\" mode, where the client gets to show the credential exactly once per-presentation-context. When a client successfully presents ARC in some context, it also gets issued an ACT with $c-1$ credits, where $c$ is bound to the ARC request context.\n\nThis is more or less what's going on in the \"reverse Privacy Pass\" flow (credit @thibmeu for making this observation).\n\nNote that the server can distinguish between a \"first\" showing in a given presentation context and a \"subsequent\" showing: for the latter, there is no ARC presentation; only ACT. Is this a problem for anonymity? If so, we could add ARC presentation as a kind of \"cover\", but this would be expensive (and makes something like ARC + VOPRF more attractive).",
+          "createdAt": "2025-08-26T00:04:52Z",
+          "updatedAt": "2025-08-26T00:04:52Z"
         }
       ]
+    },
+    {
+      "number": 11,
+      "id": "I_kwDOPc24Mc7H1UiO",
+      "title": "Choosing an algebraic MAC",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/issues/11",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The BBS MAC (currently used by ACT) is\n\n$\\left(A = (x+e)^{-1} \\left(G + \\sum_i m_i \\cdot H_i \\right), e\\right)$\n\nwhere $e$ is a random scalar. The CMZ MAC (as used by ARC) is\n\n$\\left( U, V=({x_0 + \\sum_i x_i \\cdot m_i}) U \\right)$\n\nwhere $U$ is a random element of the group.\n\nHow do we choose between these?\n\n### Security\n\nRelevant papers:\n\n* [2013/516, aka CMZ](https://eprint.iacr.org/2013/516), Theorem 2 claims 128 bits of security (for a 256-bit group) for CMZ, unconditionally, in the generic group model.\n* [2023/275](https://eprint.iacr.org/2023/275), Theorem 2 claims 128 bits of security for BBS in the algebraic group model under the $q$-DL assumption ($q$ is the number of signing queries). Theorem 1 proves security in the standard model under a stronger assumption ($q$-SDH) and with a quadratic loss of concrete security. (Note: On page 17 there's a claim that $q$-SDH and $q$-DL are equivalent in the algebraic group model.) Also, see [this write up](https://github.com/SamuelSchlesinger/authenticated-pseudonyms/blob/dev/design/Private_BBS_Security.pdf) about the BBS MAC in particular.\n* [2024/1552](https://eprint.iacr.org/2024/1552), Theorem 5.1 claims 128 bits of security for a variant of CMZ called \"muCMZ\" in the algebraic group model under the $3$-DL assumption. (This doesn't make sense to me... shouldn't the number of signing queries matter?)\n* [2025/1093](https://eprint.iacr.org/2025/1093) describes an attack on BBS that implies a larger-than-usual curve is required to get 128 bits of security (i.e., Ristretto255 -> Decaf448 or P256 -> P384). The same attack doesn't seem (to me) to be directly applicable to CMZ.\n\n### Statistical anonymity\n\nBBS has statistical anonymity, meaning even a quantum attacker can't link presentations to the client. ARC on the other hand is vulnerable to a quantum attack wherein the server issues a credential under a different secret key without changing the public key.",
+      "createdAt": "2025-08-25T17:31:29Z",
+      "updatedAt": "2025-08-25T23:07:51Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -427,6 +461,60 @@
           "comments": []
         }
       ]
+    },
+    {
+      "number": 9,
+      "id": "PR_kwDOPc24Mc6lPwG4",
+      "title": "Replace ERROR/INVALID with specific exceptions",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/pull/9",
+      "state": "CLOSED",
+      "author": "meyira",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The previous implementation returned `INVALID` or`ERROR` to indicate any type of failure. To avoid ambiguity when debugging, this change introduces named raising exceptions (e.g., `InvalidIssuanceVerificationProof`, `DoubleSpendError`) to provide clear, specific details about why an operation failed. This allows calling code to implement a more robust error-handling logic.",
+      "createdAt": "2025-08-25T16:23:55Z",
+      "updatedAt": "2025-08-25T16:35:28Z",
+      "baseRepository": "SamuelSchlesinger/draft-act",
+      "baseRefName": "main",
+      "baseRefOid": "9bade9f72de7db8a6a68daeba3b5f2fd1a546996",
+      "headRepository": "SamuelSchlesinger/draft-act",
+      "headRefName": "lena/ACT-add-errors",
+      "headRefOid": "bf0024da50f725f84464558645c3da395340801d",
+      "closedAt": "2025-08-25T16:35:28Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 10,
+      "id": "PR_kwDOPc24Mc6lP4lK",
+      "title": "Replace ERROR/INVALID with specific exceptions",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/pull/10",
+      "state": "OPEN",
+      "author": "meyira",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "meyira"
+      ],
+      "labels": [],
+      "body": "The previous implementation returned `INVALID` or`ERROR` to indicate any type of failure. To avoid ambiguity when debugging, this change introduces named raising exceptions (e.g., `InvalidIssuanceVerificationProof`, `DoubleSpendError`) to provide clear, specific details about why an operation failed. This allows calling code to implement a more robust error-handling logic.",
+      "createdAt": "2025-08-25T16:36:38Z",
+      "updatedAt": "2025-08-25T16:36:39Z",
+      "baseRepository": "SamuelSchlesinger/draft-act",
+      "baseRefName": "main",
+      "baseRefOid": "9bade9f72de7db8a6a68daeba3b5f2fd1a546996",
+      "headRepository": "SamuelSchlesinger/draft-act",
+      "headRefName": "lena/ACT-add-errors",
+      "headRefOid": "4601d69bdeed57a834bbeb2db7df30b0ead16a4d",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
