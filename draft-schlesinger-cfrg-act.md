@@ -388,7 +388,7 @@ IssueResponse(sk, request, c):
   Output:
     - response: Issuance response or INVALID
   Exceptions:
-    - InvalidIssuanceResponseProof, raised when the client proof verification fails
+    - InvalidIssuanceRequestProof, raised when the client proof verification fails
 
   Steps:
     1. Parse request as (K, gamma, k_bar, r_bar)
@@ -398,7 +398,7 @@ IssueResponse(sk, request, c):
     5. AddToTranscript(transcript, K)
     6. AddToTranscript(transcript, K1)
     7. if GetChallenge(transcript) != gamma:
-    8.     raise InvalidIssuanceResponseProof
+    8.     raise InvalidIssuanceRequestProof
     9. // Create BBS signature on (c, k, r)
     10. e <- Zq
     11. A = (G + H1 * c + K) * (1/(e + sk))  // K = H2 * k + H3 * r
@@ -434,7 +434,7 @@ VerifyIssuance(pk, request, response, state):
   Output:
     - token: Credit token
   Exceptions:
-    - InvalidIssuanceVerificationProof, raised when the client proof verification fails
+    - InvalidIssuanceResponseProof, raised when the server proof verification fails
 
   Steps:
     1. Parse request as (K, gamma, k_bar, r_bar)
@@ -454,7 +454,7 @@ VerifyIssuance(pk, request, response, state):
     16. AddToTranscript(transcript_resp, Y_A)
     17. AddToTranscript(transcript_resp, Y_G)
     18. if GetChallenge(transcript_resp) != gamma_resp:
-    19.     raise InvalidIssuanceVerificationProof
+    19.     raise InvalidIssuanceResponseProof
     20. token = (A, e, k, r, c)
     21. return token
 ~~~
