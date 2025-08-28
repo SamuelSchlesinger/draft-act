@@ -742,7 +742,7 @@ VerifySpendProof(sk, proof):
   Output:
     - valid: Boolean indicating if proof is valid
   Exceptions:
-    - ParsingError: raised when A' is not the identity
+    - IdentityPointError: raised when A' is not the identity
     - InvalidClientSpendProof: raised when the challenge does not match the reconstruction
 
   Steps:
@@ -752,7 +752,7 @@ VerifySpendProof(sk, proof):
 
     2. // Check A' is not identity
     3. if A' == Identity:
-    4.     raise ParsingError
+    4.     raise IdentityPointError
 
     5. // Compute issuer's view of signature
     6. A_bar = A' * sk
@@ -961,14 +961,14 @@ ScalarToCredit(s):
   Output:
     - amount: Integer credit amount or ERROR
   Exceptions:
-    - HighBytesSet: raised when the bytes 16..32 of the scalar value are nonzero
+    - HighBytesSetError: raised when the bytes 16..32 of the scalar value are nonzero
 
   Steps:
     1. bytes = s.to_bytes_le()
     2. // Check high bytes are zero
     3. For i = 16 to 31:
     4.     if bytes[i] != 0:
-    5.         return HighBytesSet
+    5.         return HighBytesSetError
     6. amount = bytes[0..15] as u128
     7. return amount
 ~~~
