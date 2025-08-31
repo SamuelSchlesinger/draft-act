@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-08-26T00:05:21.626552+00:00",
+  "timestamp": "2025-08-31T00:06:28.591747+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -502,19 +502,33 @@
       "labels": [],
       "body": "The previous implementation returned `INVALID` or`ERROR` to indicate any type of failure. To avoid ambiguity when debugging, this change introduces named raising exceptions (e.g., `InvalidIssuanceVerificationProof`, `DoubleSpendError`) to provide clear, specific details about why an operation failed. This allows calling code to implement a more robust error-handling logic.",
       "createdAt": "2025-08-25T16:36:38Z",
-      "updatedAt": "2025-08-25T16:36:39Z",
+      "updatedAt": "2025-08-30T20:45:27Z",
       "baseRepository": "SamuelSchlesinger/draft-act",
       "baseRefName": "main",
       "baseRefOid": "9bade9f72de7db8a6a68daeba3b5f2fd1a546996",
       "headRepository": "SamuelSchlesinger/draft-act",
       "headRefName": "lena/ACT-add-errors",
-      "headRefOid": "4601d69bdeed57a834bbeb2db7df30b0ead16a4d",
+      "headRefOid": "236761a16f5eee2e1b7b21cf71374460ca1e1c21",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOPc24Mc69BQ5R",
+          "commit": {
+            "abbreviatedOid": "236761a"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "APPROVED",
+          "body": "Approved, only (nonblocking) preference is changing HighBytesSetError to some other option.",
+          "createdAt": "2025-08-30T20:45:27Z",
+          "updatedAt": "2025-08-30T20:45:27Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
