@@ -961,14 +961,14 @@ ScalarToCredit(s):
   Output:
     - amount: Integer credit amount or ERROR
   Exceptions:
-    - HighBytesSetError: raised when the bytes 16..32 of the scalar value are nonzero
+    - ScalarOutOfRangeError: raised when the bytes 16..32 of the scalar value are nonzero
 
   Steps:
     1. bytes = s.to_bytes_le()
     2. // Check high bytes are zero
     3. For i = 16 to 31:
     4.     if bytes[i] != 0:
-    5.         return HighBytesSetError
+    5.         return ScalarOutOfRangeError
     6. amount = bytes[0..15] as u128
     7. return amount
 ~~~
