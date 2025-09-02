@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-08-31T00:06:28.591747+00:00",
+  "timestamp": "2025-09-02T00:05:09.966024+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -493,7 +493,7 @@
       "id": "PR_kwDOPc24Mc6lP4lK",
       "title": "Replace ERROR/INVALID with specific exceptions",
       "url": "https://github.com/SamuelSchlesinger/draft-act/pull/10",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "meyira",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -502,17 +502,19 @@
       "labels": [],
       "body": "The previous implementation returned `INVALID` or`ERROR` to indicate any type of failure. To avoid ambiguity when debugging, this change introduces named raising exceptions (e.g., `InvalidIssuanceVerificationProof`, `DoubleSpendError`) to provide clear, specific details about why an operation failed. This allows calling code to implement a more robust error-handling logic.",
       "createdAt": "2025-08-25T16:36:38Z",
-      "updatedAt": "2025-08-30T20:45:27Z",
+      "updatedAt": "2025-09-01T10:26:23Z",
       "baseRepository": "SamuelSchlesinger/draft-act",
       "baseRefName": "main",
       "baseRefOid": "9bade9f72de7db8a6a68daeba3b5f2fd1a546996",
       "headRepository": "SamuelSchlesinger/draft-act",
       "headRefName": "lena/ACT-add-errors",
-      "headRefOid": "236761a16f5eee2e1b7b21cf71374460ca1e1c21",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "63292d4e3eb9ad08ee69e09b2debd325ebb6eb81",
+      "closedAt": "2025-09-01T10:26:23Z",
+      "mergedAt": "2025-09-01T10:26:23Z",
+      "mergedBy": "meyira",
+      "mergeCommit": {
+        "oid": "0329f6b6c0ae1bea0e4449dfcaafc2667f9c4111"
+      },
       "comments": [],
       "reviews": [
         {
