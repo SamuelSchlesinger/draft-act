@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-09-02T00:05:09.966024+00:00",
+  "timestamp": "2025-09-09T00:05:13.992895+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -146,12 +146,12 @@
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
-        "meyira"
+        "armfazh"
       ],
       "labels": [],
       "body": "CFRG recently signed up to work out [Sigma protocols](https://datatracker.ietf.org/doc/draft-irtf-cfrg-sigma-protocols/) and the [Fiat-Shamir transform](https://datatracker.ietf.org/doc/draft-irtf-cfrg-fiat-shamir/). To the extent that is possible, ACT should be built on top of them so that there is less for the draft to specify. Note that it may be necessary to add support for $\\vee$-proofs.",
       "createdAt": "2025-08-12T19:34:24Z",
-      "updatedAt": "2025-08-25T17:20:56Z",
+      "updatedAt": "2025-09-08T17:24:41Z",
       "closedAt": null,
       "comments": [
         {
