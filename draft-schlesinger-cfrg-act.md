@@ -39,6 +39,7 @@ normative:
 
 informative:
   RFC9474:
+  FST: DOI.10.1007/3-540-47721-7_12
   ORRU-SIGMA:
     title: "Sigma Protocols"
     target: https://www.ietf.org/archive/id/draft-orru-zkproof-sigma-protocols-00.txt
@@ -362,20 +363,40 @@ IssueRequest():
     1. k <- Zq  // Nullifier (will prevent double-spending)
     2. r <- Zq  // Blinding factor
     3. K = H2 * k + H3 * r
-    4. // Generate proof of knowledge of k, r
-    5. k' <- Zq
-    6. r' <- Zq
-    7. K1 = H2 * k' + H3 * r'
-    8. transcript = CreateTranscript("request")
-    9. AddToTranscript(transcript, K)
-    10. AddToTranscript(transcript, K1)
-    11. gamma = GetChallenge(transcript)
-    12. k_bar = k' + gamma * k
-    13. r_bar = r' + gamma * r
-    14. request = (K, gamma, k_bar, r_bar)
-    15. state = (k, r)
-    16. return (request, state)
+
+    // Generate proof of knowledge of k, r
+    4. relation = build_relation_issue_request(H2, H3, K)
+    5. nizk = new NISigmaProtocol("request", relation)
+    6. witness = [k, r]
+    7. pok = nizk.prove(witness)
+    8. request = (K, pok)
+    9. state = (k, r, K)
+   10. return (request, state)
 ~~~
+
+The {{build_relation_issue_request}}{:format="title"} function
+constructs a linear relation to prove knowledge of the
+scalars `(k0, k1)` such that `R = k0*P + k1*Q`, for group
+elements `P`, `Q`, and `R`.
+
+~~~ pseudocode
+build_relation_issue_request(P, Q, R):
+  Input:
+    - P: Group Element.
+    - Q: Group Element.
+    - R: Group Element.
+  Output:
+    - lr: LinearRelation for R = k0*P + k1*Q
+
+  Steps:
+     1. lr = new LinearRelation()
+     2. k0, k1 = lr.allocate_scalars(2)
+     3. p_id, q_id, r_id = lr.allocate_elements(3)
+     4. lr.append_equation(r_id, [(k0, P), (k1, Q)])
+     5. lr.set_elements([(p_id, P), (q_id, Q), (r_id, R)])
+     6. return lr
+~~~
+{: #build_relation_issue_request }
 
 ### Issuer: Issuance Response
 
@@ -391,44 +412,60 @@ IssueResponse(sk, request, c):
     - InvalidIssuanceRequestProof, raised when the client proof verification fails
 
   Steps:
-    1. Parse request as (K, gamma, k_bar, r_bar)
-    2. // Verify proof of knowledge
-    3. K1 = H2 * k_bar + H3 * r_bar - K * gamma
-    4. transcript = CreateTranscript("request")
-    5. AddToTranscript(transcript, K)
-    6. AddToTranscript(transcript, K1)
-    7. if GetChallenge(transcript) != gamma:
-    8.     raise InvalidIssuanceRequestProof
-    9. // Create BBS signature on (c, k, r)
-    10. e <- Zq
-    11. A = (G + H1 * c + K) * (1/(e + sk))  // K = H2 * k + H3 * r
-    12. // Generate proof of correct computation
-    13. alpha <- Zq
-    14. Y_A = A * alpha
-    15. Y_G = G * alpha
-    16. X_A = G + H1 * c + K
-    17. X_G = G * e + pk
-    18. transcript_resp = CreateTranscript("respond")
-    19. AddToTranscript(transcript_resp, c)
-    20. AddToTranscript(transcript_resp, e)
-    21. AddToTranscript(transcript_resp, A)
-    22. AddToTranscript(transcript_resp, X_A)
-    23. AddToTranscript(transcript_resp, X_G)
-    24. AddToTranscript(transcript_resp, Y_A)
-    25. AddToTranscript(transcript_resp, Y_G)
-    26. gamma_resp = GetChallenge(transcript_resp)
-    27. z = gamma_resp * (sk + e) + alpha
-    28. response = (A, e, gamma_resp, z, c)
-    29. return response
+    // Verify proof of knowledge
+    1. Parse request as (K, pok)
+    2. relation = build_relation_issue_request(H2, H3, K)
+    3. nizk = new NISigmaProtocol("request", relation)
+    4. if nizk.verify(pok) == false:
+    5.     raise InvalidIssuanceRequestProof
+
+    // Create BBS signature on (c, k, r)
+    6. e <- Zq
+    7. X_A = G + H1 * c + K
+    8. A = X_A * (1/(e + sk))
+    9. X_G = G * (e + sk)
+
+    // Generate proof of correct computation
+   10. relation = build_relation_issue_response(A, X_A, G, X_G)
+   11. nizk = new NISigmaProtocol("response", relation)
+   12. witness = [e + sk]
+   13. pok = nizk.prove(witness)
+   14. response = (A, e, c, pok)
+   15. return response
 ~~~
+
+The {{build_relation_issue_response}}{:format="title"} function
+constructs a linear relation to prove knowledge of the
+scalar `k` such that `X = k*P` and `Y = k*Q`, for group
+elements `P`, `Q`, `X`, and `Y`.
+
+~~~ pseudocode
+build_relation_issue_response(P, X, Q, Y):
+  Input:
+    - P: Group Element.
+    - X: Group Element.
+    - Q: Group Element.
+    - Y: Group Element.
+  Output:
+    - lr: LinearRelation for X = k*P, Y = k*Q
+
+  Steps:
+     1. lr = new LinearRelation()
+     2. k = lr.allocate_scalars(1)
+     3. p_id, q_id, x_id, y_id = lr.allocate_elements(4)
+     4. lr.append_equation(x_id, [(k, p_id)])
+     5. lr.append_equation(y_id, [(k, q_id)])
+     6. lr.set_elements([(p_id, P), (q_id, Q), (x_id, X), (y_id, Y)])
+     7. return lr
+~~~
+{: #build_relation_issue_response }
 
 ### Client: Token Verification
 
 ~~~
-VerifyIssuance(pk, request, response, state):
+VerifyIssuance(pk, response, state):
   Input:
     - pk: Issuer's public key
-    - request: The issuance request sent
     - response: Issuer's response
     - state: Client state from request generation
   Output:
@@ -437,26 +474,18 @@ VerifyIssuance(pk, request, response, state):
     - InvalidIssuanceResponseProof, raised when the server proof verification fails
 
   Steps:
-    1. Parse request as (K, gamma, k_bar, r_bar)
-    2. Parse response as (A, e, gamma_resp, z, c)
-    3. Parse state as (k, r)
-    4. // Verify proof
-    6. X_A = G + H1 * c + K
-    7. X_G = G * e + pk
-    8. Y_A = A * z - X_A * gamma_resp
-    9. Y_G = G * z - X_G * gamma_resp
-    10. transcript_resp = CreateTranscript("respond")
-    11. AddToTranscript(transcript_resp, c)
-    12. AddToTranscript(transcript_resp, e)
-    13. AddToTranscript(transcript_resp, A)
-    14. AddToTranscript(transcript_resp, X_A)
-    15. AddToTranscript(transcript_resp, X_G)
-    16. AddToTranscript(transcript_resp, Y_A)
-    17. AddToTranscript(transcript_resp, Y_G)
-    18. if GetChallenge(transcript_resp) != gamma_resp:
-    19.     raise InvalidIssuanceResponseProof
-    20. token = (A, e, k, r, c)
-    21. return token
+    1. Parse response as (A, e, c, pok)
+    2. Parse state as (k, r, K)
+
+    // Verify proof
+    3. X_A = G + H1 * c + K
+    4. X_G = G * e + pk
+    5. relation = build_relation_issue_response(A, X_A, G, X_G)
+    6. nizk = new NISigmaProtocol("response", relation)
+    7. if nizk.verify(pok) == false:
+    8.     raise InvalidIssuanceResponseProof
+    9. token = (A, e, k, r, c)
+   10. return token
 ~~~
 
 ## Token Spending
@@ -824,6 +853,55 @@ This version string MUST be used consistently across all implementations for
 interoperability. The curve specification is included to prevent cross-curve
 attacks and ensure implementations using different curves cannot accidentally
 interact.
+
+### Sigma Proofs and Fiat-Shamir Transform
+
+Proofs of knowledge are based on interactive sigma protocols, which
+are made non-interactive through the Fiat-Shamir transform {{FST}}.
+The concrete construction uses two interfaces:
+one for describing the sigma protocol, and
+another for generating non-interactive zero-knowledge proofs.
+
+A proof of knowledge is constructed for the relation
+$$R = {(x, w) : x \in L, w \in W(x)}$$
+where the language (`L`) is the set of linear relations between the
+statement (`x`) and the witness (`w`) in the set (`W(x)`) of valid
+witnesses for `x`.
+The statement is expressed as linear combinations of scalars and group
+elements, while the witness is represented as a list of scalars.
+The LinearRelation interface, described in {{ORRU-SIGMA}}, allows
+constructing a sigma protocol for the relation above.
+
+~~~ aasvg
++--------------------------------------------------+
+| LinearRelation                                   |
++--------------------------------------------------+
+| allocate_scalars(n: int): list[int]              |
+| allocate_elements(n: int): list[int]             |
+| append_equation(lhs: int, rhs: list[(int, int)]) |
+| set_elements(e: list[(int, Group.Element)])      |
++--------------------------------------------------+
+~~~
+
+The NISigmaProtocol interface, described in {{ORRU-SIGMA}},
+converts an interactive sigma protocol created with the LinearRelation
+interface into a non-interactive proof generation.
+The NISigmaProtocol requires of an initialization vector (`iv`) that
+uniquely identifies the protocol.
+Once initialized, it can be used to generate and verify proofs.
+
+~~~ aasvg
++--------------------------------------------------+
+| NISigmaProtocol                                  |
++--------------------------------------------------+
+| constructor(iv: list[byte], rel: LinearRelation) |
+| prove(witness: list[Group.Scalar]): list[byte]   |
+| verify(proof: list[byte]): boolean               |
++--------------------------------------------------+
+~~~
+
+The NISigmaProtocol is parametrized with a Codec, which specifies
+how to encode prover messages and verifier challenges.
 
 ### Hash Function and Fiat-Shamir Transform
 
