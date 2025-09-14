@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-09-11T00:04:56.983528+00:00",
+  "timestamp": "2025-09-14T00:05:50.541426+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -537,6 +537,77 @@
           "createdAt": "2025-08-30T20:45:27Z",
           "updatedAt": "2025-08-30T20:45:27Z",
           "comments": []
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "id": "PR_kwDOPc24Mc6oGnFg",
+      "title": "Invoking sigma proofs in issuance request/response.",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/pull/12",
+      "state": "OPEN",
+      "author": "armfazh",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Partially addresses issue #5\r\n\r\nAdds compaitbiity with Sigma proofs and Fiat-Shamir drafts.\r\n\r\nThese changes only applies to Credit Issuance.\r\n\r\nThe correspondent implementation is at: https://github.com/SamuelSchlesinger/anonymous-credit-tokens/pull/6",
+      "createdAt": "2025-09-11T19:23:27Z",
+      "updatedAt": "2025-09-12T17:52:28Z",
+      "baseRepository": "SamuelSchlesinger/draft-act",
+      "baseRefName": "main",
+      "baseRefOid": "0329f6b6c0ae1bea0e4449dfcaafc2667f9c4111",
+      "headRepository": "armfazh/draft-act",
+      "headRefName": "adoptSigmaProofs_issuance",
+      "headRefOid": "c74eb8ade3ced7bf23048c5d362fc666df4db3e6",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOPc24Mc6_z7XB",
+          "commit": {
+            "abbreviatedOid": "c74eb8a"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Just some initial comments. One high level one: let's add normative references to the sigma and fiat-shamir drafts.",
+          "createdAt": "2025-09-12T17:42:44Z",
+          "updatedAt": "2025-09-12T17:52:28Z",
+          "comments": [
+            {
+              "originalPosition": 51,
+              "body": "nit: draft-irtf-cfrg-sigma-protocols is inconsistent about this, but I think the constructor is supposed to take in a description of the group.\r\n\r\nnit: `new Constructor()` is Javascript, not Python :D\r\n```suggestion\r\n     1. lr = LinearRelation(group)\r\n```",
+              "createdAt": "2025-09-12T17:42:44Z",
+              "updatedAt": "2025-09-12T17:52:28Z"
+            },
+            {
+              "originalPosition": 53,
+              "body": "The draft-irtf-cfrg-sigma-protocols draft likes to include a `_var` suffix; I think we should follow their conventions wherever it makes sense. Here I think it does: it's nice to be able to have the relation variable be clearly associated with an actual value.",
+              "createdAt": "2025-09-12T17:43:49Z",
+              "updatedAt": "2025-09-12T17:52:28Z"
+            },
+            {
+              "originalPosition": 54,
+              "body": "The inputs to `append_equation()` should all be variables, not values. I.e., `P` and `Q` should be variables instead of group elements.",
+              "createdAt": "2025-09-12T17:46:17Z",
+              "updatedAt": "2025-09-12T17:52:28Z"
+            },
+            {
+              "originalPosition": 28,
+              "body": "Where is this constructor defined? Is this from the fiat-shamir draft?\r\n\r\nAlso, `new` isn't a key word in Python :)",
+              "createdAt": "2025-09-12T17:49:22Z",
+              "updatedAt": "2025-09-12T17:52:28Z"
+            },
+            {
+              "originalPosition": 27,
+              "body": "How are `k0` and `k1` set in the relation?",
+              "createdAt": "2025-09-12T17:50:26Z",
+              "updatedAt": "2025-09-12T17:52:28Z"
+            }
+          ]
         }
       ]
     }
