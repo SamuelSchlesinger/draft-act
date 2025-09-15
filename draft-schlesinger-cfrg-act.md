@@ -364,9 +364,9 @@ IssueRequest():
     2. r <- Zq  // Blinding factor
     3. K = H2 * k + H3 * r
 
-    // Generate proof of knowledge of k, r
+    // Generate proof of knowledge of (k, r) such that K = H2 * k + H3 * r
     4. relation = build_relation_issue_request(H2, H3, K)
-    5. nizk = new NISigmaProtocol("request", relation)
+    5. nizk = NISigmaProtocol("request", relation)
     6. witness = [k, r]
     7. pok = nizk.prove(witness)
     8. request = (K, pok)
@@ -389,10 +389,10 @@ build_relation_issue_request(P, Q, R):
     - lr: LinearRelation for R = k0*P + k1*Q
 
   Steps:
-     1. lr = new LinearRelation()
+     1. lr = LinearRelation()
      2. k0, k1 = lr.allocate_scalars(2)
      3. p_id, q_id, r_id = lr.allocate_elements(3)
-     4. lr.append_equation(r_id, [(k0, P), (k1, Q)])
+     4. lr.append_equation(r_id, [(k0, p_id), (k1, q_id)])
      5. lr.set_elements([(p_id, P), (q_id, Q), (r_id, R)])
      6. return lr
 ~~~
@@ -415,7 +415,7 @@ IssueResponse(sk, request, c):
     // Verify proof of knowledge
     1. Parse request as (K, pok)
     2. relation = build_relation_issue_request(H2, H3, K)
-    3. nizk = new NISigmaProtocol("request", relation)
+    3. nizk = NISigmaProtocol("request", relation)
     4. if nizk.verify(pok) == false:
     5.     raise InvalidIssuanceRequestProof
 
@@ -427,7 +427,7 @@ IssueResponse(sk, request, c):
 
     // Generate proof of correct computation
    10. relation = build_relation_issue_response(A, X_A, G, X_G)
-   11. nizk = new NISigmaProtocol("response", relation)
+   11. nizk = NISigmaProtocol("response", relation)
    12. witness = [e + sk]
    13. pok = nizk.prove(witness)
    14. response = (A, e, c, pok)
@@ -450,7 +450,7 @@ build_relation_issue_response(P, X, Q, Y):
     - lr: LinearRelation for X = k*P, Y = k*Q
 
   Steps:
-     1. lr = new LinearRelation()
+     1. lr = LinearRelation()
      2. k = lr.allocate_scalars(1)
      3. p_id, q_id, x_id, y_id = lr.allocate_elements(4)
      4. lr.append_equation(x_id, [(k, p_id)])
@@ -481,7 +481,7 @@ VerifyIssuance(pk, response, state):
     3. X_A = G + H1 * c + K
     4. X_G = G * e + pk
     5. relation = build_relation_issue_response(A, X_A, G, X_G)
-    6. nizk = new NISigmaProtocol("response", relation)
+    6. nizk = NISigmaProtocol("response", relation)
     7. if nizk.verify(pok) == false:
     8.     raise InvalidIssuanceResponseProof
     9. token = (A, e, k, r, c)
@@ -854,7 +854,7 @@ interoperability. The curve specification is included to prevent cross-curve
 attacks and ensure implementations using different curves cannot accidentally
 interact.
 
-### Sigma Proofs and Fiat-Shamir Transform
+### Sigma Proofs and Fiat-Shamir Transform {#sigma-and-fs}
 
 Proofs of knowledge are based on interactive sigma protocols, which
 are made non-interactive through the Fiat-Shamir transform {{FST}}.
@@ -888,13 +888,14 @@ converts an interactive sigma protocol created with the LinearRelation
 interface into a non-interactive proof generation.
 The NISigmaProtocol requires of an initialization vector (`iv`) that
 uniquely identifies the protocol.
-Once initialized, it can be used to generate and verify proofs.
+Once initialized, the Prover can generate proofs of knowledge
+of the witness, while the Verifier can validate these proofs.
 
 ~~~ aasvg
 +--------------------------------------------------+
 | NISigmaProtocol                                  |
 +--------------------------------------------------+
-| constructor(iv: list[byte], rel: LinearRelation) |
+| init(iv: list[byte], rel: LinearRelation)        |
 | prove(witness: list[Group.Scalar]): list[byte]   |
 | verify(proof: list[byte]): boolean               |
 +--------------------------------------------------+
