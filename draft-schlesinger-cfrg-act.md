@@ -453,9 +453,9 @@ IssueRequest():
     // Generate proof of knowledge of (k, r) such that K = H2 * k + H3 * r
     4. statement = LinearRelation(group)
     5. append_pedersen(statement, H2, H3, K)
-    6. nizk = NISigmaProtocol("request", statement)
+    6. prover = NISigmaProtocol("request", statement)
     7. witness = [k, r]
-    8. pok = nizk.prove(witness)
+    8. pok = prover.prove(witness)
     9. request = (K, pok)
    10. state = (k, r, K)
    11. return (request, state)
@@ -479,8 +479,8 @@ IssueResponse(sk, request, c):
     1. Parse request as (K, pok)
     2. statement = LinearRelation(group)
     3. append_pedersen(statement, H2, H3, K)
-    4. nizk = NISigmaProtocol("request", statement)
-    5. if nizk.verify(pok) == false:
+    4. verifier = NISigmaProtocol("request", statement)
+    5. if verifier.verify(pok) == false:
     6.     raise InvalidIssuanceRequestProof
 
     // Create BBS signature on (c, k, r)
@@ -492,9 +492,9 @@ IssueResponse(sk, request, c):
    // Generate proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G * (e+sk)
    11. statement = LinearRelation(group)
    12. append_dleq(statement, A, X_A, G, X_G)
-   13. nizk = NISigmaProtocol("respond", statement)
+   13. prover = NISigmaProtocol("respond", statement)
    14. witness = [e + sk]
-   15. pok = nizk.prove(witness)
+   15. pok = prover.prove(witness)
    16. response = (A, e, c, pok)
    17. return response
 ~~~
@@ -521,8 +521,8 @@ VerifyIssuance(pk, response, state):
     4. X_G = G * e + pk
     5. statement = LinearRelation(group)
     6. append_dleq(statement, A, X_A, G, X_G)
-    7. nizk = NISigmaProtocol("respond", statement)
-    8. if nizk.verify(pok) == false:
+    7. verifier = NISigmaProtocol("respond", statement)
+    8. if verifier.verify(pok) == false:
     9.     raise InvalidIssuanceResponseProof
    10. token = (A, e, k, r, c)
    11. return token
@@ -735,9 +735,9 @@ IssueRefund(sk, K'):
     // Generate proof of knowledge of (e* + sk) such that X_A* = A* * (e* + sk) and X_G = G * (e* + sk)
     5. statement = LinearRelation(group)
     6. append_dleq(statement, A*, X_A*, G, X_G)
-    7. nizk = NISigmaProtocol("refund", statement)
+    7. prover = NISigmaProtocol("refund", statement)
     8. witness = [e* + sk]
-    9. pok = nizk.prove(witness)
+    9. pok = prover.prove(witness)
    10. refund = (A*, e*, pok)
    11. return refund
 ~~~
@@ -770,8 +770,8 @@ ConstructRefundToken(pk, spend_proof, refund, state):
     // Verify proof of knowledge of (e* + sk) such that X_A* = A* * (e* + sk) and X_G = G * (e* + sk)
     6. statement = LinearRelation(group)
     7. append_dleq(statement, A*, X_A*, G, X_G)
-    8. nizk = NISigmaProtocol("refund", statement)
-    9. if nizk.verify(pok) == false:
+    8. verifier = NISigmaProtocol("refund", statement)
+    9. if verifier.verify(pok) == false:
    10.     raise InvalidRefundProof
 
    // Construct new token
