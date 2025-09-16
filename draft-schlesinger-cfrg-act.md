@@ -178,10 +178,10 @@ This protocol builds upon several cryptographic primitives:
   proofs of possession. We use a variant that is privately verifiable, which
   avoids the need for pairings and makes our protocol more efficient.
 
-- **Sigma Protocols** {{!I-D.irtf-cfrg-sigma-protocols}}: The zero-knowledge proof framework used
+- **Sigma Protocols** {{!SIGMA=I-D.irtf-cfrg-sigma-protocols}}: The zero-knowledge proof framework used
   for spending proofs.
 
-- **Fiat-Shamir Transform** {{!I-D.irtf-cfrg-fiat-shamir}}: The technique to make the interactive
+- **Fiat-Shamir Transform** {{!FIAT-SHAMIR=I-D.irtf-cfrg-fiat-shamir}}: The technique to make the interactive
   proofs non-interactive.
 
 The protocol can be viewed as a specialized instantiation of keyed-verification
@@ -855,7 +855,7 @@ statement (`x`) and the witness (`w`) in the set (`W(x)`) of valid
 witnesses for `x`.
 The statement is expressed as linear combinations of scalars and group
 elements, while the witness is represented as a list of scalars.
-The LinearRelation interface, described in {{!I-D.irtf-cfrg-sigma-protocols}}, allows
+The LinearRelation interface, described in {{SIGMA}}, allows
 constructing a sigma protocol for the relation above.
 
 ~~~ aasvg
@@ -869,7 +869,7 @@ constructing a sigma protocol for the relation above.
 +--------------------------------------------------+
 ~~~
 
-The NISigmaProtocol interface, described in {{!I-D.irtf-cfrg-sigma-protocols}},
+The NISigmaProtocol interface, described in {{SIGMA}},
 converts an interactive sigma protocol created with the LinearRelation
 interface into a non-interactive proof generation.
 The NISigmaProtocol requires of an initialization vector (`iv`) that
@@ -893,8 +893,8 @@ how to encode prover messages and verifier challenges.
 ### Hash Function and Fiat-Shamir Transform
 
 The protocol uses BLAKE3 {{BLAKE3}} as the underlying hash function for the
-Fiat-Shamir transform {{!I-D.irtf-cfrg-fiat-shamir}}. Following the sigma protocol framework
-{{!I-D.irtf-cfrg-sigma-protocols}}, challenges are generated using a transcript that accumulates
+Fiat-Shamir transform {{FIAT-SHAMIR}}. Following the sigma protocol framework
+{{SIGMA}}, challenges are generated using a transcript that accumulates
 all protocol messages:
 
 ~~~
@@ -1218,7 +1218,7 @@ generators (CSPRNGs) for:
 
 ### Nonce Generation
 
-Following {{!I-D.irtf-cfrg-sigma-protocols}}, nonces (the randomness used in proofs) MUST be
+Following {{SIGMA}}, nonces (the randomness used in proofs) MUST be
 generated with extreme care:
 
 1. **Fresh Randomness**: Generate new nonces for every proof
