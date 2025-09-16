@@ -858,7 +858,7 @@ elements, while the witness is represented as a list of scalars.
 The LinearRelation interface, described in {{SIGMA}}, allows
 constructing a sigma protocol for the relation above.
 
-~~~ aasvg
+~~~
 +--------------------------------------------------+
 | LinearRelation                                   |
 +--------------------------------------------------+
@@ -877,11 +877,11 @@ uniquely identifies the protocol.
 Once initialized, the Prover can generate proofs of knowledge
 of the witness, while the Verifier can validate these proofs.
 
-~~~ aasvg
+~~~
 +--------------------------------------------------+
 | NISigmaProtocol                                  |
 +--------------------------------------------------+
-| init(iv: list[byte], rel: LinearRelation)        |
+| __init__(iv: list[byte], rel: LinearRelation)    |
 | prove(witness: list[Group.Scalar]): list[byte]   |
 | verify(proof: list[byte]): boolean               |
 +--------------------------------------------------+
