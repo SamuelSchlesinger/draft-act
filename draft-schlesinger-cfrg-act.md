@@ -285,10 +285,13 @@ See {{Section 5.1 of FIAT-SHAMIR}} for requirements of this codec.
 
 ### Pedersen Commitment
 
-The {{append_pedersen}}{:format="title"} function appends linear relations
-to the statement to prove knowledge of a Pederson commitment,
-that is, knowledge of the scalars `(k0, k1)` such that `R = k0*P + k1*Q`,
+A proof of knowledge derived from a Pedersen commitment shows that
+the prover knows witness scalars `(k0, k1)` such that `R = k0*P + k1*Q`,
 for group elements `P`, `Q`, and `R`.
+This is denoted as `Pedersen(P, Q, R) = PoK{ (k0, k1) : R = k0*P + k1*Q }`.
+
+The {{append_pedersen}}{:format="title"} function appends linear relations
+to the statement to instantiate a Pedersen proof.
 
 ~~~ pseudocode
 append_pedersen(statement, P, Q, R):
@@ -299,35 +302,38 @@ append_pedersen(statement, P, Q, R):
     - R: Group Element.
 
   Steps:
-     1. k0_var, k1_var = statement.allocate_scalars(2)
-     2. P_var, Q_var, R_var = statement.allocate_elements(3)
-     3. statement.append_equation(R_var, [(k0_var, P_var), (k1_var, Q_var)])
-     4. statement.set_elements([(P_var, P), (Q_var, Q), (R_var, R)])
+    1. k0_var, k1_var = statement.allocate_scalars(2)
+    2. P_var, Q_var, R_var = statement.allocate_elements(3)
+    3. statement.append_equation(R_var, [(k0_var, P_var), (k1_var, Q_var)])
+    4. statement.set_elements([(P_var, P), (Q_var, Q), (R_var, R)])
 ~~~
 {: #append_pedersen }
 
 ### DLEQ Proof
 
-The {{append_dleq}}{:format="title"} function appends linear relations
-to the statement to prove knowledge of a Discrete Logarithm Equivalence (DLEQ),
-that is, the knowledge of the scalar `k` such that `X = k*P` and `Y = k*Q`,
+A proof of knowledge of a Discrete Logarithm Equivalence (DLEQ) shows that
+the prover knows a witness scalar `k` such that `X = k*P` and `Y = k*Q`,
 for group elements `P`, `Q`, `X`, and `Y`.
+This is denoted as `DLEQ(P, Q, X, Y) = PoK{ k : X = k*P, Y = k*Q }`.
+
+The {{append_dleq}}{:format="title"} function appends linear relations
+to the statement to instantiate a DLEQ proof.
 
 ~~~ pseudocode
-append_dleq(statement, P, X, Q, Y):
+append_dleq(statement, P, Q, X, Y):
   Input:
     - statement: LinearRelation.
     - P: Group Element.
-    - X: Group Element.
     - Q: Group Element.
+    - X: Group Element.
     - Y: Group Element.
 
   Steps:
-     1. k_var = statement.allocate_scalars(1)
-     2. P_var, X_var, Q_var, Y_var = statement.allocate_elements(4)
-     3. statement.append_equation(X_var, [(k_var, P_var)])
-     4. statement.append_equation(Y_var, [(k_var, Q_var)])
-     5. statement.set_elements([(P_var, P), (X_var, X), (Q_var, Q), (Y_var, Y)])
+    1. k_var = statement.allocate_scalars(1)
+    2. P_var, Q_var, X_var, Y_var = statement.allocate_elements(4)
+    3. statement.append_equation(X_var, [(k_var, P_var)])
+    4. statement.append_equation(Y_var, [(k_var, Q_var)])
+    5. statement.set_elements([(P_var, P), (Q_var, Q), (X_var, X), (Y_var, Y)])
 ~~~
 {: #append_dleq }
 
@@ -485,7 +491,7 @@ IssueResponse(sk, request, c):
 
     // Create BBS signature on (c, k, r)
     7. e <- Zq
-    8. X_A = G + H1 * c + K
+    8. X_A = G + H1 * c + K // K = H2 * k + H3 * r
     9. A = X_A * (1/(e + sk))
    10. X_G = G * (e + sk)
 
