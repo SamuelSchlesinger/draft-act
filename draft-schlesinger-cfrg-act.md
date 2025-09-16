@@ -231,6 +231,58 @@ key parameters are:
 - **G**: The standard generator of the Ristretto group
 - **L**: The bit length for credit values
 
+## Sigma Proofs and Fiat-Shamir Transform {#sigma-and-fs}
+
+Proofs of knowledge are based on interactive sigma protocols, which
+are made non-interactive through the Fiat-Shamir transform {{FST}}.
+The concrete construction uses two interfaces:
+one for describing the sigma protocol, and
+another for generating non-interactive zero-knowledge proofs.
+
+A proof of knowledge is constructed for the relation
+$$R = {(x, w) : x \in L, w \in W(x)}$$
+where the language (`L`) is the set of linear relations between the
+statement (`x`) and the witness (`w`) in the set (`W(x)`) of valid
+witnesses for `x`.
+The statement is expressed as linear combinations of scalars and group
+elements, while the witness is represented as a list of scalars.
+The LinearRelation interface, described in {{Section 2.2.6 of SIGMA}},
+allows constructing a sigma protocol for the relation above.
+
+~~~
++--------------------------------------------------+
+| LinearRelation                                   |
++--------------------------------------------------+
+| __init__(group: Group)                           |
+| allocate_scalars(n: int): list[int]              |
+| allocate_elements(n: int): list[int]             |
+| append_equation(lhs: int, rhs: list[(int, int)]) |
+| set_elements(e: list[(int, Group.Element)])      |
++--------------------------------------------------+
+~~~
+
+The NISigmaProtocol interface, described in {{Section 5 of FIAT-SHAMIR}},
+converts an interactive sigma protocol created with the LinearRelation
+interface into a non-interactive proof generation.
+The NISigmaProtocol requires of an initialization vector (`iv`) that
+uniquely identifies the protocol.
+Once initialized, the Prover can generate proofs of knowledge
+of the witness, while the Verifier can validate these proofs.
+
+~~~
++--------------------------------------------------+
+| NISigmaProtocol                                  |
++--------------------------------------------------+
+| __init__(iv: list[byte], rel: LinearRelation)    |
+| prove(witness: list[Group.Scalar]): list[byte]   |
+| verify(proof: list[byte]): boolean               |
++--------------------------------------------------+
+~~~
+
+The NISigmaProtocol is parametrized with a Codec, which specifies
+how to encode prover messages and verifier challenges.
+See {{Section 5.1 of FIAT-SHAMIR}} for requirements of this codec.
+
 # Protocol Specification
 
 ## System Parameters
@@ -839,56 +891,6 @@ This version string MUST be used consistently across all implementations for
 interoperability. The curve specification is included to prevent cross-curve
 attacks and ensure implementations using different curves cannot accidentally
 interact.
-
-### Sigma Proofs and Fiat-Shamir Transform {#sigma-and-fs}
-
-Proofs of knowledge are based on interactive sigma protocols, which
-are made non-interactive through the Fiat-Shamir transform {{FST}}.
-The concrete construction uses two interfaces:
-one for describing the sigma protocol, and
-another for generating non-interactive zero-knowledge proofs.
-
-A proof of knowledge is constructed for the relation
-$$R = {(x, w) : x \in L, w \in W(x)}$$
-where the language (`L`) is the set of linear relations between the
-statement (`x`) and the witness (`w`) in the set (`W(x)`) of valid
-witnesses for `x`.
-The statement is expressed as linear combinations of scalars and group
-elements, while the witness is represented as a list of scalars.
-The LinearRelation interface, described in {{SIGMA}}, allows
-constructing a sigma protocol for the relation above.
-
-~~~
-+--------------------------------------------------+
-| LinearRelation                                   |
-+--------------------------------------------------+
-| allocate_scalars(n: int): list[int]              |
-| allocate_elements(n: int): list[int]             |
-| append_equation(lhs: int, rhs: list[(int, int)]) |
-| set_elements(e: list[(int, Group.Element)])      |
-+--------------------------------------------------+
-~~~
-
-The NISigmaProtocol interface, described in {{SIGMA}},
-converts an interactive sigma protocol created with the LinearRelation
-interface into a non-interactive proof generation.
-The NISigmaProtocol requires of an initialization vector (`iv`) that
-uniquely identifies the protocol.
-Once initialized, the Prover can generate proofs of knowledge
-of the witness, while the Verifier can validate these proofs.
-
-~~~
-+--------------------------------------------------+
-| NISigmaProtocol                                  |
-+--------------------------------------------------+
-| __init__(iv: list[byte], rel: LinearRelation)    |
-| prove(witness: list[Group.Scalar]): list[byte]   |
-| verify(proof: list[byte]): boolean               |
-+--------------------------------------------------+
-~~~
-
-The NISigmaProtocol is parametrized with a Codec, which specifies
-how to encode prover messages and verifier challenges.
 
 ### Hash Function and Fiat-Shamir Transform
 
