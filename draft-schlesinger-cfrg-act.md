@@ -283,6 +283,54 @@ The NISigmaProtocol is parametrized with a Codec, which specifies
 how to encode prover messages and verifier challenges.
 See {{Section 5.1 of FIAT-SHAMIR}} for requirements of this codec.
 
+### Pedersen Commitment
+
+The {{append_pedersen}}{:format="title"} function appends linear relations
+to the statement to prove knowledge of a Pederson commitment,
+that is, knowledge of the scalars `(k0, k1)` such that `R = k0*P + k1*Q`,
+for group elements `P`, `Q`, and `R`.
+
+~~~ pseudocode
+append_pedersen(statement, P, Q, R):
+  Input:
+    - statement: LinearRelation.
+    - P: Group Element.
+    - Q: Group Element.
+    - R: Group Element.
+
+  Steps:
+     1. k0_var, k1_var = statement.allocate_scalars(2)
+     2. P_var, Q_var, R_var = statement.allocate_elements(3)
+     3. statement.append_equation(R_var, [(k0_var, P_var), (k1_var, Q_var)])
+     4. statement.set_elements([(P_var, P), (Q_var, Q), (R_var, R)])
+~~~
+{: #append_pedersen }
+
+### DLEQ Proof
+
+The {{append_dleq}}{:format="title"} function appends linear relations
+to the statement to prove knowledge of a Discrete Logarithm Equivalence (DLEQ),
+that is, the knowledge of the scalar `k` such that `X = k*P` and `Y = k*Q`,
+for group elements `P`, `Q`, `X`, and `Y`.
+
+~~~ pseudocode
+append_dleq(statement, P, X, Q, Y):
+  Input:
+    - statement: LinearRelation.
+    - P: Group Element.
+    - X: Group Element.
+    - Q: Group Element.
+    - Y: Group Element.
+
+  Steps:
+     1. k_var = statement.allocate_scalars(1)
+     2. P_var, X_var, Q_var, Y_var = statement.allocate_elements(4)
+     3. statement.append_equation(X_var, [(k_var, P_var)])
+     4. statement.append_equation(Y_var, [(k_var, Q_var)])
+     5. statement.set_elements([(P_var, P), (X_var, X), (Q_var, Q), (Y_var, Y)])
+~~~
+{: #append_dleq }
+
 # Protocol Specification
 
 ## System Parameters
@@ -403,38 +451,15 @@ IssueRequest():
     3. K = H2 * k + H3 * r
 
     // Generate proof of knowledge of (k, r) such that K = H2 * k + H3 * r
-    4. relation = build_relation_issue_request(H2, H3, K)
-    5. nizk = NISigmaProtocol("request", relation)
-    6. witness = [k, r]
-    7. pok = nizk.prove(witness)
-    8. request = (K, pok)
-    9. state = (k, r, K)
-   10. return (request, state)
+    4. statement = LinearRelation(group)
+    5. append_pedersen(statement, H2, H3, K)
+    6. nizk = NISigmaProtocol("request", statement)
+    7. witness = [k, r]
+    8. pok = nizk.prove(witness)
+    9. request = (K, pok)
+   10. state = (k, r, K)
+   11. return (request, state)
 ~~~
-
-The {{build_relation_issue_request}}{:format="title"} function
-constructs a linear relation to prove knowledge of the
-scalars `(k0, k1)` such that `R = k0*P + k1*Q`, for group
-elements `P`, `Q`, and `R`.
-
-~~~ pseudocode
-build_relation_issue_request(P, Q, R):
-  Input:
-    - P: Group Element.
-    - Q: Group Element.
-    - R: Group Element.
-  Output:
-    - lr: LinearRelation for R = k0*P + k1*Q
-
-  Steps:
-     1. lr = LinearRelation()
-     2. k0, k1 = lr.allocate_scalars(2)
-     3. p_id, q_id, r_id = lr.allocate_elements(3)
-     4. lr.append_equation(r_id, [(k0, p_id), (k1, q_id)])
-     5. lr.set_elements([(p_id, P), (q_id, Q), (r_id, R)])
-     6. return lr
-~~~
-{: #build_relation_issue_request }
 
 ### Issuer: Issuance Response
 
@@ -450,53 +475,29 @@ IssueResponse(sk, request, c):
     - InvalidIssuanceRequestProof, raised when the client proof verification fails
 
   Steps:
-    // Verify proof of knowledge
+    // Verify proof of knowledge of (k, r) such that K = H2 * k + H3 * r
     1. Parse request as (K, pok)
-    2. relation = build_relation_issue_request(H2, H3, K)
-    3. nizk = NISigmaProtocol("request", relation)
-    4. if nizk.verify(pok) == false:
-    5.     raise InvalidIssuanceRequestProof
+    2. statement = LinearRelation(group)
+    3. append_pedersen(statement, H2, H3, K)
+    4. nizk = NISigmaProtocol("request", statement)
+    5. if nizk.verify(pok) == false:
+    6.     raise InvalidIssuanceRequestProof
 
     // Create BBS signature on (c, k, r)
-    6. e <- Zq
-    7. X_A = G + H1 * c + K
-    8. A = X_A * (1/(e + sk))
-    9. X_G = G * (e + sk)
+    7. e <- Zq
+    8. X_A = G + H1 * c + K
+    9. A = X_A * (1/(e + sk))
+   10. X_G = G * (e + sk)
 
-    // Generate proof of correct computation
-   10. relation = build_relation_issue_response(A, X_A, G, X_G)
-   11. nizk = NISigmaProtocol("response", relation)
-   12. witness = [e + sk]
-   13. pok = nizk.prove(witness)
-   14. response = (A, e, c, pok)
-   15. return response
+   // Generate proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G * (e+sk)
+   11. statement = LinearRelation(group)
+   12. append_dleq(statement, A, X_A, G, X_G)
+   13. nizk = NISigmaProtocol("respond", statement)
+   14. witness = [e + sk]
+   15. pok = nizk.prove(witness)
+   16. response = (A, e, c, pok)
+   17. return response
 ~~~
-
-The {{build_relation_issue_response}}{:format="title"} function
-constructs a linear relation to prove knowledge of the
-scalar `k` such that `X = k*P` and `Y = k*Q`, for group
-elements `P`, `Q`, `X`, and `Y`.
-
-~~~ pseudocode
-build_relation_issue_response(P, X, Q, Y):
-  Input:
-    - P: Group Element.
-    - X: Group Element.
-    - Q: Group Element.
-    - Y: Group Element.
-  Output:
-    - lr: LinearRelation for X = k*P, Y = k*Q
-
-  Steps:
-     1. lr = LinearRelation()
-     2. k = lr.allocate_scalars(1)
-     3. p_id, q_id, x_id, y_id = lr.allocate_elements(4)
-     4. lr.append_equation(x_id, [(k, p_id)])
-     5. lr.append_equation(y_id, [(k, q_id)])
-     6. lr.set_elements([(p_id, P), (q_id, Q), (x_id, X), (y_id, Y)])
-     7. return lr
-~~~
-{: #build_relation_issue_response }
 
 ### Client: Token Verification
 
@@ -515,15 +516,16 @@ VerifyIssuance(pk, response, state):
     1. Parse response as (A, e, c, pok)
     2. Parse state as (k, r, K)
 
-    // Verify proof
+    // Verify proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G * (e+sk)
     3. X_A = G + H1 * c + K
     4. X_G = G * e + pk
-    5. relation = build_relation_issue_response(A, X_A, G, X_G)
-    6. nizk = NISigmaProtocol("response", relation)
-    7. if nizk.verify(pok) == false:
-    8.     raise InvalidIssuanceResponseProof
-    9. token = (A, e, k, r, c)
-   10. return token
+    5. statement = LinearRelation(group)
+    6. append_dleq(statement, A, X_A, G, X_G)
+    7. nizk = NISigmaProtocol("respond", statement)
+    8. if nizk.verify(pok) == false:
+    9.     raise InvalidIssuanceResponseProof
+   10. token = (A, e, k, r, c)
+   11. return token
 ~~~
 
 ## Token Spending
@@ -724,32 +726,20 @@ IssueRefund(sk, K'):
     - refund: Refund response
 
   Steps:
-    1. // Create new BBS signature on remaining balance
-    2. e* <- Zq
-    3. X_A* = G + K'
-    4. A* = X_A* * (1/(e* + sk))
+    // Create new BBS signature on remaining balance
+    1. e* <- Zq
+    2. X_A* = G + K'
+    3. A* = X_A* * (1/(e* + sk))
+    4. X_G = G * (e* + sk)
 
-    5. // Generate proof of correct computation
-    6. alpha <- Zq
-    7. Y_A = A* * alpha
-    8. Y_G = G * alpha
-    9. X_G = G * e* + pk
-
-    10. // Create challenge using transcript
-    11. transcript = CreateTranscript("refund")
-    12. AddToTranscript(transcript, e*)
-    13. AddToTranscript(transcript, A*)
-    14. AddToTranscript(transcript, X_A*)
-    15. AddToTranscript(transcript, X_G)
-    16. AddToTranscript(transcript, Y_A)
-    17. AddToTranscript(transcript, Y_G)
-    18. gamma = GetChallenge(transcript)
-
-    19. // Compute response
-    20. z = gamma * (sk + e*) + alpha
-
-    21. refund = (A*, e*, gamma, z)
-    22. return refund
+    // Generate proof of knowledge of (e* + sk) such that X_A* = A* * (e* + sk) and X_G = G * (e* + sk)
+    5. statement = LinearRelation(group)
+    6. append_dleq(statement, A*, X_A*, G, X_G)
+    7. nizk = NISigmaProtocol("refund", statement)
+    8. witness = [e* + sk]
+    9. pok = nizk.prove(witness)
+   10. refund = (A*, e*, pok)
+   11. return refund
 ~~~
 
 ### Client: Refund Token Construction
@@ -769,32 +759,24 @@ ConstructRefundToken(pk, spend_proof, refund, state):
     - InvalidRefundProof: When the refund proof verification fails
 
   Steps:
-    1. Parse refund as (A*, e*, gamma, z)
+    1. Parse refund as (A*, e*, pok)
     2. Parse state as (k*, r*, m)
 
-    3. // Reconstruct commitment
-    4. K' = Sum(spend_proof.Com[j] * 2^j for j in [L])
-    5. X_A* = G + K'
-    6. X_G = G * e* + pk
+    // Reconstruct commitment
+    3. K' = Sum(spend_proof.Com[j] * 2^j for j in [L])
+    4. X_A* = G + K'
+    5. X_G = G * e* + pk
 
-    7. // Verify proof
-    8. Y_A = A* * z + X_A* * (-gamma)
-    9. Y_G = G * z + X_G * (-gamma)
+    // Verify proof of knowledge of (e* + sk) such that X_A* = A* * (e* + sk) and X_G = G * (e* + sk)
+    6. statement = LinearRelation(group)
+    7. append_dleq(statement, A*, X_A*, G, X_G)
+    8. nizk = NISigmaProtocol("refund", statement)
+    9. if nizk.verify(pok) == false:
+   10.     raise InvalidRefundProof
 
-    10. // Check challenge using transcript
-    11. transcript = CreateTranscript("refund")
-    12. AddToTranscript(transcript, e*)
-    13. AddToTranscript(transcript, A*)
-    14. AddToTranscript(transcript, X_A*)
-    15. AddToTranscript(transcript, X_G)
-    16. AddToTranscript(transcript, Y_A)
-    17. AddToTranscript(transcript, Y_G)
-    18. if GetChallenge(transcript) != gamma:
-    19.     raise InvalidRefundProof
-
-    20. // Construct new token
-    21. token = (A*, e*, k*, r*, m)
-    22. return token
+   // Construct new token
+   11. token = (A*, e*, k*, r*, m)
+   12. return token
 ~~~
 
 ### Spend Proof Verification {#spend-verification}
