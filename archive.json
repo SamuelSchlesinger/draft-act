@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-09-14T00:05:50.541426+00:00",
+  "timestamp": "2025-09-16T00:05:31.383625+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -552,13 +552,13 @@
       "labels": [],
       "body": "Partially addresses issue #5\r\n\r\nAdds compaitbiity with Sigma proofs and Fiat-Shamir drafts.\r\n\r\nThese changes only applies to Credit Issuance.\r\n\r\nThe correspondent implementation is at: https://github.com/SamuelSchlesinger/anonymous-credit-tokens/pull/6",
       "createdAt": "2025-09-11T19:23:27Z",
-      "updatedAt": "2025-09-12T17:52:28Z",
+      "updatedAt": "2025-09-15T23:56:45Z",
       "baseRepository": "SamuelSchlesinger/draft-act",
       "baseRefName": "main",
       "baseRefOid": "0329f6b6c0ae1bea0e4449dfcaafc2667f9c4111",
       "headRepository": "armfazh/draft-act",
       "headRefName": "adoptSigmaProofs_issuance",
-      "headRefOid": "c74eb8ade3ced7bf23048c5d362fc666df4db3e6",
+      "headRefOid": "fc5bbbcc64e419c3ccbcd96d2b1ba8724800fb99",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -606,6 +606,208 @@
               "body": "How are `k0` and `k1` set in the relation?",
               "createdAt": "2025-09-12T17:50:26Z",
               "updatedAt": "2025-09-12T17:52:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AULdR",
+          "commit": {
+            "abbreviatedOid": "c74eb8a"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-15T22:30:57Z",
+          "updatedAt": "2025-09-15T22:30:57Z",
+          "comments": [
+            {
+              "originalPosition": 51,
+              "body": "`new` word removed.\r\n\r\nPassing `group` to functions is inconsistent in the sigma protocols draft. ([group](https://github.com/mmaker/draft-irtf-cfrg-sigma-protocols/blob/main/draft-irtf-cfrg-sigma-protocols.md?plain=1#L396) vs [no-group](https://github.com/mmaker/draft-irtf-cfrg-sigma-protocols/blob/main/draft-irtf-cfrg-sigma-protocols.md?plain=1#L416)). It should be fixed though.\r\nIn the this draft, it is assumed that all functions know the system parameters, as per Section 3.1.\r\n",
+              "createdAt": "2025-09-15T22:30:57Z",
+              "updatedAt": "2025-09-15T22:30:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AULkC",
+          "commit": {
+            "abbreviatedOid": "c74eb8a"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-15T22:31:04Z",
+          "updatedAt": "2025-09-15T22:31:04Z",
+          "comments": [
+            {
+              "originalPosition": 54,
+              "body": "good catch!,",
+              "createdAt": "2025-09-15T22:31:04Z",
+              "updatedAt": "2025-09-15T22:31:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AULo_",
+          "commit": {
+            "abbreviatedOid": "c74eb8a"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-15T22:31:09Z",
+          "updatedAt": "2025-09-15T22:31:09Z",
+          "comments": [
+            {
+              "originalPosition": 28,
+              "body": "Yes, this is defined in the new Section \"Sigma Proofs and Fiat-Shamir Transform {#sigma-and-fs}\"\r\nRight now the Section called _Cryptographic Primitives_ comes later in the text, I consider it should be moved to before describing the protocol functions.",
+              "createdAt": "2025-09-15T22:31:09Z",
+              "updatedAt": "2025-09-15T22:31:09Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AULrQ",
+          "commit": {
+            "abbreviatedOid": "c74eb8a"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-15T22:31:12Z",
+          "updatedAt": "2025-09-15T22:31:12Z",
+          "comments": [
+            {
+              "originalPosition": 27,
+              "body": "updated.",
+              "createdAt": "2025-09-15T22:31:12Z",
+              "updatedAt": "2025-09-15T22:31:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AUXWX",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Nice!",
+          "createdAt": "2025-09-15T23:05:17Z",
+          "updatedAt": "2025-09-15T23:56:45Z",
+          "comments": [
+            {
+              "originalPosition": 33,
+              "body": "Consistency with ARC: see https://github.com/chris-wood/draft-arc/pull/37.\r\n\r\n```suggestion\r\n- **Sigma Protocols** {{!SIGMA=I-D.irtf-cfrg-sigma-protocols}}: The zero-knowledge proof framework used\r\n```",
+              "createdAt": "2025-09-15T23:05:17Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 37,
+              "body": "Consistency with ARC: see https://github.com/chris-wood/draft-arc/pull/37.\r\n\r\n```suggestion\r\n- **Fiat-Shamir Transform** {{!FIAT-SHAMIR=I-D.irtf-cfrg-fiat-shamir}}: The technique to make the interactive\r\n```",
+              "createdAt": "2025-09-15T23:06:40Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 79,
+              "body": "Alignment with https://github.com/chris-wood/draft-arc/pull/37\r\n```suggestion\r\n    4. statement = build_relation_issue_request(H2, H3, K)\r\n    5. prover = NISigmaProtocol(\"request\", statement)\r\n```",
+              "createdAt": "2025-09-15T23:16:30Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 102,
+              "body": "Aligntment with https://github.com/chris-wood/draft-arc/pull/37\r\n```suggestion\r\n     1. statement = LinearRelation()\r\n```",
+              "createdAt": "2025-09-15T23:17:08Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 51,
+              "body": "Good call, we need to harmonize upstream. Would you mind sending a PR there?\r\n\r\nI think we should resolve this problem by giving the group a name in Section 3.1 and passing that name into  `LinearRelation()`. This [aligns with ARC](https://github.com/chris-wood/draft-arc/pull/37/files#diff-956de759234f6559a65e044fe0e23d2720f11672f59704e475078830c2b6c9e1R878) and also gets us one step closer towards being able to support multiple groups.",
+              "createdAt": "2025-09-15T23:18:44Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 53,
+              "body": "Bumping this one. The convention for element variable names from the ARC and Sigma drafts is to name it `X_var`, where `X` is the the value we're going to set the element to. Likewise for scalars, although we don't explicitly set those in the linear relation. (They're part of the witness instead.)\r\n\r\nHere and below for build_relation_issue_response.",
+              "createdAt": "2025-09-15T23:21:39Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 93,
+              "body": "Consistency with https://github.com/chris-wood/draft-arc/pull/37\r\n```suggestion\r\nbuild_statement_issue_request(P, Q, R):\r\n```",
+              "createdAt": "2025-09-15T23:25:56Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 147,
+              "body": "We're going to need to specify encodings of transmitted messages. Perhaps open an issue?",
+              "createdAt": "2025-09-15T23:27:26Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 155,
+              "body": "I think the comment from the previous code was helpful\r\n```suggestion\r\n    7. X_A = G + H1 * c + K // K = H2 * k + H3 * r\r\n```",
+              "createdAt": "2025-09-15T23:36:51Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 161,
+              "body": "This is probably neither here nor there, but the previous code went with \"respond\". Perhaps @SamuelSchlesinger has an opinion here",
+              "createdAt": "2025-09-15T23:38:17Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 90,
+              "body": "```suggestion\r\nThe {{build_relation_issue_request}}{:format=\"title\"} function\r\nconstructs a linear relation to prove knowledge of a Pederson commitment, that is, knowledge of\r\nscalars `(k0, k1)` such that `R = k0*P + k1*Q`, for group\r\nelements `P`, `Q`, and `R`.\r\n```",
+              "createdAt": "2025-09-15T23:39:23Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 90,
+              "body": "I might even call this function something like `build_relation_pederson_commitment()` and refer (informationally) to https://mmaker.github.io/draft-irtf-cfrg-sigma-protocols/draft-irtf-cfrg-sigma-protocols.html#section-2.2.9. The only difference between the code here and that section is the invocation of `set_elements()`.",
+              "createdAt": "2025-09-15T23:41:19Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 171,
+              "body": "Likewise here, I would name this `build_relation_dleq` and refer informatively to https://mmaker.github.io/draft-irtf-cfrg-sigma-protocols/draft-irtf-cfrg-sigma-protocols.html#section-2.2.8.",
+              "createdAt": "2025-09-15T23:42:15Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 266,
+              "body": "nit: aasvg is generally reserved for complex artwork. I would make this a normal table instead.\r\n```suggestion\r\n~~~\r\n```",
+              "createdAt": "2025-09-15T23:51:03Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 264,
+              "body": "Relations should be expressed mathematically in the same way as the sigma protocols draft itself. that is, this should be aligned more with https://mmaker.github.io/draft-irtf-cfrg-sigma-protocols/draft-irtf-cfrg-sigma-protocols.html#section-2-4",
+              "createdAt": "2025-09-15T23:53:02Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 289,
+              "body": "It's the constructor, is it not?\r\n```suggestion\r\n| __init__(iv: list[byte], rel: LinearRelation)        |\r\n```",
+              "createdAt": "2025-09-15T23:53:35Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 296,
+              "body": "This isn't actually specified in the draft as far as I can tell?",
+              "createdAt": "2025-09-15T23:54:02Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
+            },
+            {
+              "originalPosition": 248,
+              "body": "What's the goal of this text? If the goal is to present the APIs for and give a brief overview of  {{SIGMA}} and {{FIAT-SHAMIR}}, then it should probably go before the ACT protocol definition.",
+              "createdAt": "2025-09-15T23:56:00Z",
+              "updatedAt": "2025-09-15T23:56:45Z"
             }
           ]
         }
