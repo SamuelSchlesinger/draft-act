@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-09-16T00:05:31.383625+00:00",
+  "timestamp": "2025-09-18T00:04:50.306808+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -425,6 +425,22 @@
           "updatedAt": "2025-09-10T18:13:05Z"
         }
       ]
+    },
+    {
+      "number": 13,
+      "id": "I_kwDOPc24Mc7L8X_X",
+      "title": "Specify encodings of transmitted messages",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/issues/13",
+      "state": "OPEN",
+      "author": "armfazh",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "We're going to need to specify encodings of transmitted messages. Perhaps open an issue?\r\n\r\n_Originally posted by @cjpatton in https://github.com/SamuelSchlesinger/draft-act/pull/12#discussion_r2350317164_\r\n\r\nThe draft v00 recommends the use of CBOR encoding.  Another option is to use TLS 1.3 syntax for serialization.\r\n\r\n",
+      "createdAt": "2025-09-16T10:33:10Z",
+      "updatedAt": "2025-09-16T10:33:10Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -552,13 +568,13 @@
       "labels": [],
       "body": "Partially addresses issue #5\r\n\r\nAdds compaitbiity with Sigma proofs and Fiat-Shamir drafts.\r\n\r\nThese changes only applies to Credit Issuance.\r\n\r\nThe correspondent implementation is at: https://github.com/SamuelSchlesinger/anonymous-credit-tokens/pull/6",
       "createdAt": "2025-09-11T19:23:27Z",
-      "updatedAt": "2025-09-15T23:56:45Z",
+      "updatedAt": "2025-09-17T00:04:43Z",
       "baseRepository": "SamuelSchlesinger/draft-act",
       "baseRefName": "main",
       "baseRefOid": "0329f6b6c0ae1bea0e4449dfcaafc2667f9c4111",
       "headRepository": "armfazh/draft-act",
       "headRefName": "adoptSigmaProofs_issuance",
-      "headRefOid": "fc5bbbcc64e419c3ccbcd96d2b1ba8724800fb99",
+      "headRefOid": "0726b1f10b4a30f6bb4c745913e8b5fe52a6c3fd",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -808,6 +824,568 @@
               "body": "What's the goal of this text? If the goal is to present the APIs for and give a brief overview of  {{SIGMA}} and {{FIAT-SHAMIR}}, then it should probably go before the ACT protocol definition.",
               "createdAt": "2025-09-15T23:56:00Z",
               "updatedAt": "2025-09-15T23:56:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AW5Ic",
+          "commit": {
+            "abbreviatedOid": "c74eb8a"
+          },
+          "author": "cathieyun",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T04:42:26Z",
+          "updatedAt": "2025-09-16T04:42:26Z",
+          "comments": [
+            {
+              "originalPosition": 51,
+              "body": "I think the \"no-group\" example is just a typo / omission, I believe you always need to pass in a group to initialize a linear relation. This also tracks with the proof of concept implementation. (Could you send a PR to the sigma spec to resolve this? Otherwise I will try to wrap it in with some of my editorial work).",
+              "createdAt": "2025-09-16T04:42:26Z",
+              "updatedAt": "2025-09-16T04:42:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AW6Lm",
+          "commit": {
+            "abbreviatedOid": "c74eb8a"
+          },
+          "author": "cathieyun",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T04:43:33Z",
+          "updatedAt": "2025-09-16T04:43:33Z",
+          "comments": [
+            {
+              "originalPosition": 53,
+              "body": "+1 to this feedback, I've found myself confused between the actual values and the variables representing the values (and python's lack of types does not help with this), and adding the `_var` suffix helps prevent some of that confusion.",
+              "createdAt": "2025-09-16T04:43:33Z",
+              "updatedAt": "2025-09-16T04:43:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AW7Ex",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "cathieyun",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T04:44:33Z",
+          "updatedAt": "2025-09-16T04:44:33Z",
+          "comments": [
+            {
+              "originalPosition": 37,
+              "body": "Do you have preferences on if we tag to a specific version of the fiat-shamir spec (and sigma spec), eg suffixing with `-00`? Or is it better to have this non-versioned? I'll follow suit in the ARC spec.",
+              "createdAt": "2025-09-16T04:44:33Z",
+              "updatedAt": "2025-09-16T04:44:33Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AW__S",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "cathieyun",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T04:50:16Z",
+          "updatedAt": "2025-09-16T04:50:16Z",
+          "comments": [
+            {
+              "originalPosition": 296,
+              "body": "The codec is specified in the FIat-Shamir spec, eg LinearMapCodec for Sigma protocols in 5.1:\r\nhttps://datatracker.ietf.org/doc/draft-irtf-cfrg-fiat-shamir/\r\n\r\nThis was a point of confusion - it seems like the `NISigmaProtocol` needs to be initialized with a Codec, but there's no way to initialize the Codec? Maybe the codec for `NISigmaProtocol` defaults to `LinearMapCodec` - but if so, that is not explicitly stated. I asked Michele about this and can let you know what the intended behavior is once he responds. (Or he can respond in this thread directly, I linked this thread to him as well). In the meantime I have just ignored the Codec in the `NISigmaProtocol` initialization and use in the ARC spec.",
+              "createdAt": "2025-09-16T04:50:16Z",
+              "updatedAt": "2025-09-16T05:01:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7Adsne",
+          "commit": {
+            "abbreviatedOid": "c74eb8a"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T10:21:05Z",
+          "updatedAt": "2025-09-16T10:21:05Z",
+          "comments": [
+            {
+              "originalPosition": 51,
+              "body": "Created https://github.com/mmaker/draft-irtf-cfrg-sigma-protocols/pull/73 to aleviate this omission.",
+              "createdAt": "2025-09-16T10:21:05Z",
+              "updatedAt": "2025-09-16T10:21:05Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AewvO",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T11:06:50Z",
+          "updatedAt": "2025-09-16T11:06:50Z",
+          "comments": [
+            {
+              "originalPosition": 90,
+              "body": "I have refactored the functions, now it allows to append proofs to a statement passed by reference. \r\nIt may be helpful later when range proofs will be added on top of it. ",
+              "createdAt": "2025-09-16T11:06:50Z",
+              "updatedAt": "2025-09-16T11:09:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AexRX",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T11:07:09Z",
+          "updatedAt": "2025-09-16T11:07:10Z",
+          "comments": [
+            {
+              "originalPosition": 264,
+              "body": "updated have a look",
+              "createdAt": "2025-09-16T11:07:10Z",
+              "updatedAt": "2025-09-16T11:07:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7Aexc7",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T11:07:18Z",
+          "updatedAt": "2025-09-16T11:07:18Z",
+          "comments": [
+            {
+              "originalPosition": 296,
+              "body": "added a reference to Codec section",
+              "createdAt": "2025-09-16T11:07:18Z",
+              "updatedAt": "2025-09-16T11:07:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AeyY1",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T11:07:58Z",
+          "updatedAt": "2025-09-16T11:07:58Z",
+          "comments": [
+            {
+              "originalPosition": 248,
+              "body": "moved. ",
+              "createdAt": "2025-09-16T11:07:58Z",
+              "updatedAt": "2025-09-16T11:07:58Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AeyoF",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T11:08:06Z",
+          "updatedAt": "2025-09-16T11:08:06Z",
+          "comments": [
+            {
+              "originalPosition": 266,
+              "body": "done",
+              "createdAt": "2025-09-16T11:08:06Z",
+              "updatedAt": "2025-09-16T11:08:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7Aey3e",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T11:08:16Z",
+          "updatedAt": "2025-09-16T11:08:16Z",
+          "comments": [
+            {
+              "originalPosition": 161,
+              "body": "you are right.",
+              "createdAt": "2025-09-16T11:08:16Z",
+              "updatedAt": "2025-09-16T11:08:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7Aey9z",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T11:08:23Z",
+          "updatedAt": "2025-09-16T11:08:23Z",
+          "comments": [
+            {
+              "originalPosition": 155,
+              "body": "done",
+              "createdAt": "2025-09-16T11:08:23Z",
+              "updatedAt": "2025-09-16T11:08:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AezD_",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T11:08:28Z",
+          "updatedAt": "2025-09-16T11:08:28Z",
+          "comments": [
+            {
+              "originalPosition": 147,
+              "body": "tracked on #13 ",
+              "createdAt": "2025-09-16T11:08:28Z",
+              "updatedAt": "2025-09-16T11:08:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AezNS",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T11:08:35Z",
+          "updatedAt": "2025-09-16T11:08:35Z",
+          "comments": [
+            {
+              "originalPosition": 102,
+              "body": "done",
+              "createdAt": "2025-09-16T11:08:35Z",
+              "updatedAt": "2025-09-16T11:08:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AezUF",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T11:08:38Z",
+          "updatedAt": "2025-09-16T11:08:39Z",
+          "comments": [
+            {
+              "originalPosition": 79,
+              "body": "done",
+              "createdAt": "2025-09-16T11:08:38Z",
+              "updatedAt": "2025-09-16T11:08:39Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AeziA",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T11:08:49Z",
+          "updatedAt": "2025-09-16T11:08:49Z",
+          "comments": [
+            {
+              "originalPosition": 37,
+              "body": "updated",
+              "createdAt": "2025-09-16T11:08:49Z",
+              "updatedAt": "2025-09-16T11:08:49Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7Aezyb",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T11:08:59Z",
+          "updatedAt": "2025-09-16T11:08:59Z",
+          "comments": [
+            {
+              "originalPosition": 33,
+              "body": "done",
+              "createdAt": "2025-09-16T11:08:59Z",
+              "updatedAt": "2025-09-16T11:08:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AlUCt",
+          "commit": {
+            "abbreviatedOid": "865bd29"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "This looks good to me. Before merging, let's make sure to eyes from either Sam or Jon. This change is simplifies things quite a lot ... we need the designers to make sure we haven't removed anything that's critical for security.",
+          "createdAt": "2025-09-16T17:28:41Z",
+          "updatedAt": "2025-09-16T17:59:36Z",
+          "comments": [
+            {
+              "originalPosition": 56,
+              "body": "nit: @cathieyun would you capitalize \"Sigma\" here?",
+              "createdAt": "2025-09-16T17:28:41Z",
+              "updatedAt": "2025-09-16T17:59:36Z"
+            },
+            {
+              "originalPosition": 76,
+              "body": "I would maybe write it this way so that it doesn't look as Python jargony.\r\n\r\nHere and for NISigmaProtocol below.\r\n\r\n```suggestion\r\n| LinearRelation(group: Group)                           |\r\n```",
+              "createdAt": "2025-09-16T17:30:05Z",
+              "updatedAt": "2025-09-16T17:59:36Z"
+            },
+            {
+              "originalPosition": 90,
+              "body": "```suggestion\r\nOnce initialized, the Prover can generate proofs of knowledge\r\nof a witness statisfying the statement, while the Verifier can validate these proofs.\r\n```",
+              "createdAt": "2025-09-16T17:34:13Z",
+              "updatedAt": "2025-09-16T17:59:36Z"
+            },
+            {
+              "originalPosition": 111,
+              "body": "Not needed for us I think. LIkewise for DLEQ below.\r\n```suggestion\r\n```",
+              "createdAt": "2025-09-16T17:34:44Z",
+              "updatedAt": "2025-09-16T17:59:36Z"
+            },
+            {
+              "originalPosition": 114,
+              "body": "Add a reference to `{{Section 2.2.9 of !SIGMA}}`. Likewise for DLEQ below.",
+              "createdAt": "2025-09-16T17:35:35Z",
+              "updatedAt": "2025-09-16T17:59:36Z"
+            },
+            {
+              "originalPosition": 240,
+              "body": "Here and below\r\n```suggestion\r\n    5. if not verifier.verify(pok):\r\n```",
+              "createdAt": "2025-09-16T17:42:01Z",
+              "updatedAt": "2025-09-16T17:59:36Z"
+            },
+            {
+              "originalPosition": 245,
+              "body": "```suggestion\r\n    8. X_A = G + H1 * c + K  // K = H2 * k + H3 * r\r\n```",
+              "createdAt": "2025-09-16T17:44:40Z",
+              "updatedAt": "2025-09-16T17:59:36Z"
+            },
+            {
+              "originalPosition": 233,
+              "body": "Reviewer note: Presumably `alpha`, `z`, and `gamma_resp` are now all internal to `pok`, but we should have @SamuelSchlesinger or @jkatz2 confirm.",
+              "createdAt": "2025-09-16T17:55:10Z",
+              "updatedAt": "2025-09-16T17:59:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7Alw4a",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T18:03:04Z",
+          "updatedAt": "2025-09-16T18:03:04Z",
+          "comments": [
+            {
+              "originalPosition": 37,
+              "body": "I think it's best to add the version suffix.",
+              "createdAt": "2025-09-16T18:03:04Z",
+              "updatedAt": "2025-09-16T18:03:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7AlxR4",
+          "commit": {
+            "abbreviatedOid": "fc5bbbc"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-16T18:03:34Z",
+          "updatedAt": "2025-09-16T18:03:35Z",
+          "comments": [
+            {
+              "originalPosition": 90,
+              "body": "Looks great!",
+              "createdAt": "2025-09-16T18:03:34Z",
+              "updatedAt": "2025-09-16T18:03:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7ApR7z",
+          "commit": {
+            "abbreviatedOid": "865bd29"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-17T00:04:17Z",
+          "updatedAt": "2025-09-17T00:04:17Z",
+          "comments": [
+            {
+              "originalPosition": 245,
+              "body": "done",
+              "createdAt": "2025-09-17T00:04:17Z",
+              "updatedAt": "2025-09-17T00:04:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7ApR-Q",
+          "commit": {
+            "abbreviatedOid": "865bd29"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-17T00:04:22Z",
+          "updatedAt": "2025-09-17T00:04:22Z",
+          "comments": [
+            {
+              "originalPosition": 240,
+              "body": "done",
+              "createdAt": "2025-09-17T00:04:22Z",
+              "updatedAt": "2025-09-17T00:04:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7ApSBy",
+          "commit": {
+            "abbreviatedOid": "865bd29"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-17T00:04:27Z",
+          "updatedAt": "2025-09-17T00:04:28Z",
+          "comments": [
+            {
+              "originalPosition": 114,
+              "body": "done",
+              "createdAt": "2025-09-17T00:04:28Z",
+              "updatedAt": "2025-09-17T00:04:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7ApSEU",
+          "commit": {
+            "abbreviatedOid": "865bd29"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-17T00:04:33Z",
+          "updatedAt": "2025-09-17T00:04:33Z",
+          "comments": [
+            {
+              "originalPosition": 111,
+              "body": "removed",
+              "createdAt": "2025-09-17T00:04:33Z",
+              "updatedAt": "2025-09-17T00:04:33Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7ApSHU",
+          "commit": {
+            "abbreviatedOid": "865bd29"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-17T00:04:38Z",
+          "updatedAt": "2025-09-17T00:04:38Z",
+          "comments": [
+            {
+              "originalPosition": 90,
+              "body": "done",
+              "createdAt": "2025-09-17T00:04:38Z",
+              "updatedAt": "2025-09-17T00:04:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7ApSJT",
+          "commit": {
+            "abbreviatedOid": "865bd29"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-17T00:04:42Z",
+          "updatedAt": "2025-09-17T00:04:43Z",
+          "comments": [
+            {
+              "originalPosition": 76,
+              "body": "done",
+              "createdAt": "2025-09-17T00:04:42Z",
+              "updatedAt": "2025-09-17T00:04:43Z"
             }
           ]
         }
