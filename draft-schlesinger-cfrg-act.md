@@ -178,8 +178,7 @@ This protocol builds upon several cryptographic primitives:
   proofs of possession. We use a variant that is privately verifiable, which
   avoids the need for pairings and makes our protocol more efficient.
 
-- **Sigma Protocols** {{!SIGMA=I-D.irtf-cfrg-sigma-protocols-00}}: The zero-knowledge proof framework used
-  for spending proofs.
+- **Sigma Protocols** {{!SIGMA=I-D.irtf-cfrg-sigma-protocols-00}}: The zero-knowledge proof framework used for issuing and spending credits.
 
 - **Fiat-Shamir Transform** {{!FIAT-SHAMIR=I-D.irtf-cfrg-fiat-shamir-00}}: The technique to make the interactive
   proofs non-interactive.
@@ -263,8 +262,8 @@ allows constructing a sigma protocol for the relation above.
 
 The NISigmaProtocol interface, described in {{Section 5 of FIAT-SHAMIR}},
 converts an interactive sigma protocol created with the LinearRelation
-interface into a non-interactive proof generation.
-The NISigmaProtocol requires of an initialization vector (`iv`) that
+interface into a non-interactive proof.
+The NISigmaProtocol requires an initialization vector (`iv`) that
 uniquely identifies the protocol.
 Once initialized, the Prover can generate proofs of knowledge
 of a witness statisfying the statement, while the Verifier can validate
