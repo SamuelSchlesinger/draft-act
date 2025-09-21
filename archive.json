@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-09-18T00:04:50.306808+00:00",
+  "timestamp": "2025-09-21T00:06:01.387370+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -568,13 +568,13 @@
       "labels": [],
       "body": "Partially addresses issue #5\r\n\r\nAdds compaitbiity with Sigma proofs and Fiat-Shamir drafts.\r\n\r\nThese changes only applies to Credit Issuance.\r\n\r\nThe correspondent implementation is at: https://github.com/SamuelSchlesinger/anonymous-credit-tokens/pull/6",
       "createdAt": "2025-09-11T19:23:27Z",
-      "updatedAt": "2025-09-17T00:04:43Z",
+      "updatedAt": "2025-09-19T13:42:39Z",
       "baseRepository": "SamuelSchlesinger/draft-act",
       "baseRefName": "main",
       "baseRefOid": "0329f6b6c0ae1bea0e4449dfcaafc2667f9c4111",
       "headRepository": "armfazh/draft-act",
       "headRefName": "adoptSigmaProofs_issuance",
-      "headRefOid": "0726b1f10b4a30f6bb4c745913e8b5fe52a6c3fd",
+      "headRefOid": "c999eba1fef8e2ac3a369afe439b6e1e5092447c",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -1386,6 +1386,246 @@
               "body": "done",
               "createdAt": "2025-09-17T00:04:42Z",
               "updatedAt": "2025-09-17T00:04:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7BNZ8S",
+          "commit": {
+            "abbreviatedOid": "0726b1f"
+          },
+          "author": "jkatz2",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-18T18:48:41Z",
+          "updatedAt": "2025-09-18T18:48:41Z",
+          "comments": [
+            {
+              "originalPosition": 34,
+              "body": "also during issuance",
+              "createdAt": "2025-09-18T18:48:41Z",
+              "updatedAt": "2025-09-18T18:48:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7BNhZv",
+          "commit": {
+            "abbreviatedOid": "0726b1f"
+          },
+          "author": "jkatz2",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-18T18:55:53Z",
+          "updatedAt": "2025-09-18T18:55:54Z",
+          "comments": [
+            {
+              "originalPosition": 74,
+              "body": "I'm not sure the point of including this. By itself, it means nothing to me. If it's copied from Section 2.2.5 of SIGMA, then why can't we just direct the reader there?",
+              "createdAt": "2025-09-18T18:55:53Z",
+              "updatedAt": "2025-09-18T18:55:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7BNiux",
+          "commit": {
+            "abbreviatedOid": "0726b1f"
+          },
+          "author": "jkatz2",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-18T18:57:09Z",
+          "updatedAt": "2025-09-18T18:57:10Z",
+          "comments": [
+            {
+              "originalPosition": 86,
+              "body": "Omit 'generation'?",
+              "createdAt": "2025-09-18T18:57:09Z",
+              "updatedAt": "2025-09-18T18:57:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7BNjGb",
+          "commit": {
+            "abbreviatedOid": "0726b1f"
+          },
+          "author": "jkatz2",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-18T18:57:35Z",
+          "updatedAt": "2025-09-18T18:57:35Z",
+          "comments": [
+            {
+              "originalPosition": 87,
+              "body": "remove 'of'",
+              "createdAt": "2025-09-18T18:57:35Z",
+              "updatedAt": "2025-09-18T18:57:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7BNkdC",
+          "commit": {
+            "abbreviatedOid": "0726b1f"
+          },
+          "author": "jkatz2",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-18T18:58:49Z",
+          "updatedAt": "2025-09-18T18:58:50Z",
+          "comments": [
+            {
+              "originalPosition": 107,
+              "body": "I assume this is a special case of the LinearRelation above, so why not present it that way?",
+              "createdAt": "2025-09-18T18:58:50Z",
+              "updatedAt": "2025-09-18T18:58:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7BNpDH",
+          "commit": {
+            "abbreviatedOid": "0726b1f"
+          },
+          "author": "jkatz2",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-18T19:02:43Z",
+          "updatedAt": "2025-09-18T19:02:43Z",
+          "comments": [
+            {
+              "originalPosition": 107,
+              "body": "(I guess I am just finding it hard to follow. But I suppose it assumes the reader has read the FIAT-SHAMIR draft, which I have not yet.)",
+              "createdAt": "2025-09-18T19:02:43Z",
+              "updatedAt": "2025-09-18T19:02:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7BNuHl",
+          "commit": {
+            "abbreviatedOid": "0726b1f"
+          },
+          "author": "jkatz2",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-18T19:06:45Z",
+          "updatedAt": "2025-09-18T19:06:45Z",
+          "comments": [
+            {
+              "originalPosition": 233,
+              "body": "Yes, I think this is now addressed",
+              "createdAt": "2025-09-18T19:06:45Z",
+              "updatedAt": "2025-09-18T19:06:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7BPrg-",
+          "commit": {
+            "abbreviatedOid": "0726b1f"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-18T21:05:50Z",
+          "updatedAt": "2025-09-18T21:05:50Z",
+          "comments": [
+            {
+              "originalPosition": 107,
+              "body": "I may be wrong, but one of the reasons to introduce these special cases here is that the SIGMA draft shows them as 'Examples', so they are not 'Normative'.\r\nThis draft enforces their use. Otherwise, a simple reference to the DLEQ and Pedersen Example sections will suffice.\r\n\r\n\r\n",
+              "createdAt": "2025-09-18T21:05:50Z",
+              "updatedAt": "2025-09-18T21:05:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7BPtaH",
+          "commit": {
+            "abbreviatedOid": "0726b1f"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-18T21:08:41Z",
+          "updatedAt": "2025-09-18T21:08:41Z",
+          "comments": [
+            {
+              "originalPosition": 34,
+              "body": "done",
+              "createdAt": "2025-09-18T21:08:41Z",
+              "updatedAt": "2025-09-18T21:08:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7BPtcr",
+          "commit": {
+            "abbreviatedOid": "0726b1f"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-18T21:08:46Z",
+          "updatedAt": "2025-09-18T21:08:46Z",
+          "comments": [
+            {
+              "originalPosition": 86,
+              "body": "done",
+              "createdAt": "2025-09-18T21:08:46Z",
+              "updatedAt": "2025-09-18T21:08:46Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7BPtm3",
+          "commit": {
+            "abbreviatedOid": "0726b1f"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-18T21:08:54Z",
+          "updatedAt": "2025-09-18T21:08:54Z",
+          "comments": [
+            {
+              "originalPosition": 87,
+              "body": "done",
+              "createdAt": "2025-09-18T21:08:54Z",
+              "updatedAt": "2025-09-18T21:08:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7BaczR",
+          "commit": {
+            "abbreviatedOid": "0726b1f"
+          },
+          "author": "jkatz2",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-19T13:42:38Z",
+          "updatedAt": "2025-09-19T13:42:39Z",
+          "comments": [
+            {
+              "originalPosition": 344,
+              "body": "It might be easier to read if we replace *s with 's. (So e', A_X', A', etc.)",
+              "createdAt": "2025-09-19T13:42:39Z",
+              "updatedAt": "2025-09-19T13:42:39Z"
             }
           ]
         }
