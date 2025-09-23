@@ -733,18 +733,18 @@ IssueRefund(sk, K'):
 
   Steps:
     // Create new BBS signature on remaining balance
-    1. e* <- Zq
-    2. X_A* = G + K'
-    3. A* = X_A* * (1/(e* + sk))
-    4. X_G = G * (e* + sk)
+    1. e <- Zq
+    2. X_A = G + K'
+    3. A = X_A * (1/(e + sk))
+    4. X_G = G * (e + sk)
 
-    // Generate proof of knowledge of (e* + sk) such that X_A* = A* * (e* + sk) and X_G = G * (e* + sk)
+    // Generate proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G * (e + sk)
     5. statement = LinearRelation(group)
-    6. append_dleq(statement, A*, G, X_A*, X_G)
+    6. append_dleq(statement, A, G, X_A, X_G)
     7. prover = NISigmaProtocol("refund", statement)
-    8. witness = [e* + sk]
+    8. witness = [e + sk]
     9. pok = prover.prove(witness)
-   10. refund = (A*, e*, pok)
+   10. refund = (A, e, pok)
    11. return refund
 ~~~
 
@@ -765,23 +765,23 @@ ConstructRefundToken(pk, spend_proof, refund, state):
     - InvalidRefundProof: When the refund proof verification fails
 
   Steps:
-    1. Parse refund as (A*, e*, pok)
+    1. Parse refund as (A, e, pok)
     2. Parse state as (k*, r*, m)
 
     // Reconstruct commitment
     3. K' = Sum(spend_proof.Com[j] * 2^j for j in [L])
-    4. X_A* = G + K'
-    5. X_G = G * e* + pk
+    4. X_A = G + K'
+    5. X_G = G * e + pk
 
-    // Verify proof of knowledge of (e* + sk) such that X_A* = A* * (e* + sk) and X_G = G * (e* + sk)
+    // Verify proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G * (e + sk)
     6. statement = LinearRelation(group)
-    7. append_dleq(statement, A*, G, X_A*, X_G)
+    7. append_dleq(statement, A, G, X_A, X_G)
     8. verifier = NISigmaProtocol("refund", statement)
     9. if not verifier.verify(pok):
    10.     raise InvalidRefundProof
 
    // Construct new token
-   11. token = (A*, e*, k*, r*, m)
+   11. token = (A, e, k*, r*, m)
    12. return token
 ~~~
 
