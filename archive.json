@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-09-21T00:06:01.387370+00:00",
+  "timestamp": "2025-09-25T00:05:23.337264+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -568,13 +568,13 @@
       "labels": [],
       "body": "Partially addresses issue #5\r\n\r\nAdds compaitbiity with Sigma proofs and Fiat-Shamir drafts.\r\n\r\nThese changes only applies to Credit Issuance.\r\n\r\nThe correspondent implementation is at: https://github.com/SamuelSchlesinger/anonymous-credit-tokens/pull/6",
       "createdAt": "2025-09-11T19:23:27Z",
-      "updatedAt": "2025-09-19T13:42:39Z",
+      "updatedAt": "2025-09-24T03:52:53Z",
       "baseRepository": "SamuelSchlesinger/draft-act",
       "baseRefName": "main",
       "baseRefOid": "0329f6b6c0ae1bea0e4449dfcaafc2667f9c4111",
       "headRepository": "armfazh/draft-act",
       "headRefName": "adoptSigmaProofs_issuance",
-      "headRefOid": "c999eba1fef8e2ac3a369afe439b6e1e5092447c",
+      "headRefOid": "ecfe4405f1e1267f1d78953baf5c131513521b32",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -1626,6 +1626,78 @@
               "body": "It might be easier to read if we replace *s with 's. (So e', A_X', A', etc.)",
               "createdAt": "2025-09-19T13:42:39Z",
               "updatedAt": "2025-09-19T13:42:39Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7CEvGd",
+          "commit": {
+            "abbreviatedOid": "0726b1f"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-23T03:32:12Z",
+          "updatedAt": "2025-09-23T03:32:12Z",
+          "comments": [
+            {
+              "originalPosition": 344,
+              "body": "resolved by removing star from variables.",
+              "createdAt": "2025-09-23T03:32:12Z",
+              "updatedAt": "2025-09-23T03:32:12Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7CTi2l",
+          "commit": {
+            "abbreviatedOid": "ecfe440"
+          },
+          "author": "cathieyun",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-23T23:35:53Z",
+          "updatedAt": "2025-09-23T23:51:33Z",
+          "comments": [
+            {
+              "originalPosition": 56,
+              "body": "I have been lowercasing \"sigma protocols\" when used in this context :)",
+              "createdAt": "2025-09-23T23:35:53Z",
+              "updatedAt": "2025-09-23T23:51:33Z"
+            },
+            {
+              "originalPosition": 107,
+              "body": "Do you think the spec should move the examples to be \"normative\" instead of \"informative\"?",
+              "createdAt": "2025-09-23T23:36:55Z",
+              "updatedAt": "2025-09-23T23:51:33Z"
+            },
+            {
+              "originalPosition": 350,
+              "body": "FYI I synced with michele and he explained that this isn't the right way to use the API, this instantiates the factory class but we actually need to use the NIZK class which does actually instantiate the Codec:\r\nhttps://github.com/mmaker/draft-irtf-cfrg-sigma-protocols/blob/main/poc/fiat_shamir.sage#L7\r\n \r\nHowever, the NIZK class is missing from the spec, I am working on this issue to add it:\r\nhttps://github.com/mmaker/draft-irtf-cfrg-sigma-protocols/issues/74",
+              "createdAt": "2025-09-23T23:51:24Z",
+              "updatedAt": "2025-09-23T23:51:33Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7CWtFa",
+          "commit": {
+            "abbreviatedOid": "ecfe440"
+          },
+          "author": "cathieyun",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-09-24T03:52:53Z",
+          "updatedAt": "2025-09-24T03:52:53Z",
+          "comments": [
+            {
+              "originalPosition": 350,
+              "body": "FYI I opened a PR to add the NIZK class and instances to the sigma spec here: https://github.com/mmaker/draft-irtf-cfrg-sigma-protocols/pull/79\r\n\r\nAnd I will work on using that \"new\" API in the ARC spec here, if you want to see an example:\r\nhttps://github.com/chris-wood/draft-arc/pull/37",
+              "createdAt": "2025-09-24T03:52:53Z",
+              "updatedAt": "2025-09-24T03:52:59Z"
             }
           ]
         }
