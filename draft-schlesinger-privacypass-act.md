@@ -126,16 +126,16 @@ presentation. Otherwise, Clients invoke the issuance protocol to obtain an
 ACT. This interaction is shown below.
 
 ~~~ aasvg
-                                      +---------------------------+
+                                      +--------------------------.
 +--------+          +----------+      |  +--------+   +--------+  |
 | Client |          | Attester |      |  | Issuer |   | Origin |  |
 +---+----+          +-----+----+      |  +----+---+   +---+----+  |
-    |                     |           +-------|-----------|------ +
+    |                     |            `------|-----------|------'
     |                     |                   |           |
     |--------------------- Request ---------------------->|
-    <----------------- TokenChallenge --------------------+
+    |<---------------- TokenChallenge --------------------+
     |                     |                   |           |
-    | <== Attestation ==> |                   |           |
+    |<=== Attestation ===>|                   |           |
     +----------- CredentialRequest ---------->|           |
     |<---------- CredentialResponse ----------+           |
     |                     |                   |           |
