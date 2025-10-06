@@ -243,7 +243,7 @@ this protocol to produce a credential are described below.
 
 Given Origin-provided input `tokenChallenge` and the Issuer Public Key ID `issuer_key_id`,
 the Client first creates a credential request message using the `CredentialRequest`
-function from {{ARC}} as follows:
+function from {{ARC_PP}} as follows:
 
 ~~~
 request_context = concat(tokenChallenge.issuer_name,
