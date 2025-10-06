@@ -50,15 +50,13 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.
 
 {{ARCHITECTURE}} describes the Privacy Pass architecture, and {{ISSUANCE}} and
 {{AUTHSCHEME}} describe the issuance and redemption protocols for basic Privacy
-Pass tokens, i.e., those computed using blind RSA signatures (as specified in
-{{!BLIND-RSA=RFC9474}}) or verifiable oblivious pseudorandom functions (as
-specified in {{!VOPRFS=RFC9497}}). Further, the {{ARC_CRYPTO}} integrated into
-{{ARCHITECTURE}} in {{ARC_PP}} scheme extends these approaches to multi-use
+Pass tokens, i.e., those computed using blind RSA signatures as specified in
+{{Section 6 of ISSUANCE}} or verifiable oblivious pseudorandom functions as specified in {{Section 5 of ISSUANCE}}. Further, {{ARC_CRYPTO}} scheme, and its associated integration in {{ARCHITECTURE}} {{ARC_PP}}, extends these approaches to multi-use
 tokens.
 
 The Anonymous Credit Tokens (ACT) protocol, as specified in {{ACT}}, offers a
 differentiated approach to rate limiting from {{ARC_CRYPTO}}. In particular,
-each token contains the number of credits the client currently has. When they
+ACT credentials can be presented up-to N times. When they
 spend a certain number of credits from their token, their old token is
 invalidated and they redeem a new token with the new balance.
 
@@ -68,30 +66,34 @@ of the protocols, and the remainder of the document specifies the protocols them
 
 # Motivation
 
-To demonstrate how ACT is useful, one can use the same example from the
-{{ARC_PP}} protocols, accessing services without revealing your identity. It is
-important, in this case, to understand why ACT adds any appealing capabilities
-on top of {{ARC_CRYPTO}}. To demonstrate this, it is helpful to visualize the
-difference between how rate limiting works in {{ARC_CRYPTO}} vs {{ACT}}. For
-ARC, given a token with N rate limit, in any given presentation context we have
-N different possible presentations. This means that, from a single token, we
-can produce N presentations and access the system in parallel N times,
-unlinkably. This is a feature, because we get N parallel private accesses for
-each presentation context from the same token.
+To demonstrate how ACT is useful, one can use a similar example to the
+the one presented in {{section 2 of ARC_PP}}: a client that wishes to keep its IP address private while accessing a service. {{ARC_PP}} offers the origin to limit the number of requests a client can make to N. This is enforced by each origin getting its own presentation context, and limiting the number of presentations per context to N. This means that, from a single token, we
+can produce N presentations and access the system N times,
+unlinkably. These presentations can be generated in parallel.
 
-On the other hand, consider the case of an ACT with N credits in it. In order
-to redeem N different credits, we have to spend `1`, then get a refund, spend
-`1`, then get a refund, and so on. Because we can't spend our next `1` until we
-get a refund for our previous one, we are enforced to have a single live
-session using our ACT. This allows us to have arbitrary rate limit, but also
-concurrency control. Further, using ARC, if I notice some harm taking place
-with a presentation, I can't invalidate the underlying credential. On the other
-hand, with ACTs, you can decline to refund the token on purpose, creating the
+On the other hand, consider the case of an ACT with N credits in it. A client willing to redeem N different credits has to spend `1`, then get a refund, spend
+`1`, then get a refund, and so on. Because the client can't spend `1` until they
+get a refund for their previous credit, a single live
+session is enforced per ACT. This provides
+concurrency control. A client is also able to spend more than `1`, allowing for a more efficient redemption of multipe tokens.
+Finally, as new presentation requires the obtention of a previous refund,
+the origin gains the ability to invalidate a session by declining said refund.
+This creates the
 ability to shed harmful future traffic or redirect it in a favorable way.
 
 One such use case for this is a privacy proxy, another is privately accessing
-web APIs like the artificial intelligence models which are currently all the
-rage.
+web APIs like the artificial intelligence models, and finally zero trust networks
+which act as forward proxies for their user traffic.
+
+Therefore, ACT provides the following properties
+
+1. Concurrency control: Preventing multiple simultaneous uses of the same
+credential, mitigating abuse from token sharing or replay.
+2. Dynamic Revocation: Enabling immediate invalidation of tokens in response to
+origin policy, without waiting for token expiry.
+3. Per-Session Rate Limiting: Enforcing access policies that adapt to user,
+device, or risk context, rather than static per-token limits. This creates incentives
+for platform to deploy such methods.
 
 # Terminology
 
@@ -114,7 +116,7 @@ network byte order.
 
 The issuance and redemption protocols defined in this document are built on
 the Anonymous Credit Tokens (ACT) protocol. ACT tokens can be thought of as
-single use tokens, similar to the RSA Blind Signatures protocool. However,
+single use tokens, similar to the RSA Blind Signatures protocol. However,
 by another viewpoint, they might be thought of as stateful, multi-use tokens.
 
 With ACT, Clients receive TokenChallenge inputs from the redemption protocol
