@@ -31,7 +31,7 @@ author:
 
 normative:
   ACT: I-D.draft-schlesinger-cfrg-act
-  ARC_CRYPTO: I-D.draft-yun-privacypass-arc
+  ARC: I-D.draft-yun-privacypass-arc
   ARC_PP: I-D.draft-yun-cfrg-arc
   ARCHITECTURE: RFC9576
   AUTHSCHEME: RFC9577
@@ -51,11 +51,11 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.
 {{ARCHITECTURE}} describes the Privacy Pass architecture, and {{ISSUANCE}} and
 {{AUTHSCHEME}} describe the issuance and redemption protocols for basic Privacy
 Pass tokens, i.e., those computed using blind RSA signatures as specified in
-{{Section 6 of ISSUANCE}} or verifiable oblivious pseudorandom functions as specified in {{Section 5 of ISSUANCE}}. Further, {{ARC_CRYPTO}} scheme, and its associated integration in {{ARCHITECTURE}} {{ARC_PP}}, extends these approaches to multi-use
+{{Section 6 of ISSUANCE}} or verifiable oblivious pseudorandom functions as specified in {{Section 5 of ISSUANCE}}. Further, {{ARC}} scheme, and its associated integration in {{ARCHITECTURE}} {{ARC_PP}}, extends these approaches to multi-use
 tokens.
 
 The Anonymous Credit Tokens (ACT) protocol, as specified in {{ACT}}, offers a
-differentiated approach to rate limiting from {{ARC_CRYPTO}}. In particular,
+differentiated approach to rate limiting from {{ARC}}. In particular,
 ACT credentials can be presented up-to N times. When they
 spend a certain number of credits from their token, their old token is
 invalidated and they redeem a new token with the new balance.
@@ -67,7 +67,7 @@ of the protocols, and the remainder of the document specifies the protocols them
 # Motivation
 
 To demonstrate how ACT is useful, one can use a similar example to the
-the one presented in {{section 2 of ARC_PP}}: a client that wishes to keep its IP address private while accessing a service. {{ARC_PP}} offers the origin to limit the number of requests a client can make to N. This is enforced by each origin getting its own presentation context, and limiting the number of presentations per context to N. This means that, from a single token, we
+the one presented in {{Section 2 of ARC_PP}}: a client that wishes to keep its IP address private while accessing a service. {{ARC_PP}} offers the origin to limit the number of requests a client can make to N. This is enforced by each origin getting its own presentation context, and limiting the number of presentations per context to N. This means that, from a single token, we
 can produce N presentations and access the system N times,
 unlinkably. These presentations can be generated in parallel.
 
@@ -243,7 +243,7 @@ this protocol to produce a credential are described below.
 
 Given Origin-provided input `tokenChallenge` and the Issuer Public Key ID `issuer_key_id`,
 the Client first creates a credential request message using the `CredentialRequest`
-function from {{ARC_PP}} as follows:
+function from {{ARC}} as follows:
 
 ~~~
 request_context = concat(tokenChallenge.issuer_name,
