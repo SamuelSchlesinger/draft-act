@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-09-25T00:05:23.337264+00:00",
+  "timestamp": "2025-10-07T00:05:41.051572+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -438,9 +438,17 @@
       "labels": [],
       "body": "We're going to need to specify encodings of transmitted messages. Perhaps open an issue?\r\n\r\n_Originally posted by @cjpatton in https://github.com/SamuelSchlesinger/draft-act/pull/12#discussion_r2350317164_\r\n\r\nThe draft v00 recommends the use of CBOR encoding.  Another option is to use TLS 1.3 syntax for serialization.\r\n\r\n",
       "createdAt": "2025-09-16T10:33:10Z",
-      "updatedAt": "2025-09-16T10:33:10Z",
+      "updatedAt": "2025-10-05T14:39:42Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "I think we should probably stick with TLS 1.3 if the rest of Privacy Pass is using it, but I would have preferred CBOR from the start. Lets chat Monday at the meeting.",
+          "createdAt": "2025-10-05T14:39:42Z",
+          "updatedAt": "2025-10-05T14:39:42Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -1702,6 +1710,36 @@
           ]
         }
       ]
+    },
+    {
+      "number": 14,
+      "id": "PR_kwDOPc24Mc6sQISz",
+      "title": "Pass at motivation section",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/pull/14",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "enhancement"
+      ],
+      "body": "Add zero trust as a motivation\r\nclearly separate ARC and ACT\r\nremove the use of we/i in the motivation to be more neutral fix some typo\r\n\r\nmore work to be done to make arc and act converge towards a single high level credential architecture",
+      "createdAt": "2025-10-06T11:55:20Z",
+      "updatedAt": "2025-10-06T15:29:40Z",
+      "baseRepository": "SamuelSchlesinger/draft-act",
+      "baseRefName": "samschles/privacypass-integration",
+      "baseRefOid": "e494595e0560d4572e7cf8745d65042b1fd20c38",
+      "headRepository": "thibmeu/draft-act",
+      "headRefName": "reword-motivation",
+      "headRefOid": "09e3b85e75721a8c2ad60576f8d915daa98039a3",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
