@@ -361,37 +361,30 @@ Clients use credentials from the issuance protocol in producing tokens
 bound to the TokenChallenge. The process for producing a token in this
 way, as well as verifying a resulting token, is described in the following sections.
 
-!!! United below
-
 ## Token Creation
 
-Given a TokenChallenge value as input, denoted `challenge`, a presentation limit,
-denoted `presentationLimit`, and a previously computed credential that is valid
-for the Issuer identifier in the challenge, denoted `credential`, Clients compute
-a credential presentation value as follows:
+Given a TokenChallenge value as input, denoted `challenge`, a cost,
+denoted `cost`, and a previously computed credential that is valid
+for the Issuer identifier in the challenge, denoted `credential`, containing at
+least `cost` credits. Clients compute a spend request as follows:
 
 ~~~
-presentation_context = concat(tokenChallenge.issuer_name,
-  tokenChallenge.origin_info,
-  tokenChallenge.redemption_context,
-  issuer_key_id)
-state = MakePresentationState(credential, presentation_context, presentationLimit)
-newState, nonce, presentation = Present(state)
+spend_request, state = ProveSpend(credential, cost)
 ~~~
 
-Subsequent presentations MUST use the updated state, denoted `newState`. Reusing
-the original state will break the presentation unlinkability properties of ARC;
-see {{security}}.
+This credential MUST only ever be used for a single spend request. When we
+receive the refund from the server, we will be able to use this credential
+instead. If we use the same credential more than once, we violate the privacy
+assumptions of ACT by presenting the same nullifier twice.
 
 The resulting Token value is then constructed as follows:
 
 ~~~
 struct {
-    uint16_t token_type = 0xE5AC; /* Type ARC(P-256) */
-    uint32_t presentation_nonce;
+    uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
     uint8_t challenge_digest[32];
     uint8_t issuer_key_id[Nid];
-    uint8_t presentation[Npresentation];
+    uint8_t spend_request[Npresentation];
 } Token;
 ~~~
 
@@ -399,63 +392,74 @@ The structure fields are defined as follows:
 
 - "token_type" is a 2-octet integer, in network byte order, equal to 0xE5AC.
 
-- "presentation_nonce" is a 32-bit encoding of the nonce output from ARC.
-
 - "challenge_digest" is a 32-octet value containing the hash of the original TokenChallenge, SHA-256(TokenChallenge).
+
+- "nullifier" is a 32-octet value containing the single-use nullifier from the credential.
 
 - "issuer_key_id" is a Nid-octet identifier for the Issuer Public Key, computed
 as defined in {{setup}}.
 
-- "presentation" is a Npresentation-octet presentation, set to the serialized
-`presentation` value (see {{Section 4.3.2 of ARC}} for serialiation details).
+- "spend_request" is a Nspend_request-octet spend_request, set to the serialized
+`spend_request` value (see {{Section 4.1.3 of ACT}} for serialiation details).
 
-## Token Verification {#verification}
+## Token Refund {#refund}
 
-Given a deserialized presentation from the token, denoted `presentation` and
-obtained by deserializing a presentation according to {{Section 4.3.2 of ARC}},
-a presentation limit, denoted `presentation_limit`, a presentation nonce
-from a token, denoted `nonce`, and the digest of a token challenge, denoted
-`challenge_digest`, verifying a Token requires invoking the VerifyPresentation
-function from {{Section 4.3.3 of ARC}} in the following ways:
+Given a deserialized spend_request from the token, denoted `spend_request` and
+obtained by deserializing a spend_request according to {{Section 4.1.3 of ARC}},
+a cost, denoted `cost`, a nullifier from a token, denoted `nullifier`, and the
+digest of a token challenge, denoted `challenge_digest`, verifying a Token requires
+invoking the VerifyAndRefund function from {{Section 3.4.2 of ACT}} in the following ways:
 
 ~~~
 request_context = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
-presentation_context = concat(tokenChallenge.issuer_name,
-  tokenChallenge.origin_info,
-  tokenChallenge.redemption_context,
-  issuer_key_id)
-valid = VerifyPresentation(skI, pkI, request_context, presentation_context, nonce, presentation, presentation_limit)
+refund = VerifyAndRefund(skI, requestContext, spend_proof, cost)
 ~~~
 
-This function returns True if the CredentialToken is valid, and False otherwise.
+This function returns the `refund` serialized according to {{Section 4.1.4 of ACT}} if the CredentialToken is valid, and nil otherwise.
 
 Implementation-specific steps: to prevent double spending, the Origin should perform a check that the
-tag (presentation.tag) has not previously been seen. It then stores the tag for use in future double
+nullifier (spend_proof.nullifier) has not previously been seen. It then stores the tag for use in future double
 spending checks. To reduce the overhead of performing double spend checks, the Origin can store and
-look up the tags corresponding to the associated request_context and presentation_context values.
+look up the tags corresponding to the associated request_context value.
+
+~~~
+struct {
+    uint8_t refund[Nrefund];
+} Refund;
+~~~
+
+Finally, we send down the refund back to the client encoded as the above `Refund` struct.
+
+## New Token from Refund
+
+Differently from {{ARC}}, we have to reconstruct our new token based on the `Refund` response. To do
+so, we invoke the `ConstructRefundToken` from {{Section 3.4.4 of ACT}} in the following ways:
+
+~~~
+token = ConstructRefundToken(pkI, spend_proof, refund, state)
+~~~
+
+Now, finally, we can replace our old credential with this new one and this one can be properly used.
 
 # Security Considerations {#security}
 
 Privacy considerations for tokens based on deployment details, such as issuer configuration
-and issuer selection, are discussed in {{Section 6.1 of ARCHITECTURE}}. Note that ARC
+and issuer selection, are discussed in {{Section 6.1 of ARCHITECTURE}}. Note that ACT
 requires a joint Origin and Issuer configuration given that it is privately verifiable.
 
-ARC offers Origin-Client unlinkability, Issuer-Client unlinkability, and redemption context
-unlinkability, as described in {{Section 3.3 of ARCHITECTURE}}, with one exception.
-While redemption context unlinkability is achieved by re-randomizing credentials every time
-they are presented as tokens, there is a reduction in the anonymity set in the case of presentation
-nonce collisions, as detailed in {{Section 7.2 of ARC}}.
+ACT offers Origin-Client unlinkability, Issuer-Client unlinkability, and redemption context
+unlinkability, as described in {{Section 3.3 of ARCHITECTURE}}.
 
 # IANA Considerations
 
 This document updates the "Privacy Pass Token Type" Registry with the
 following entries.
 
-* Value: 0xE5AC
-* Name: ARC (P-256)
+* Value: 0xE5AD
+* Name: ACT (Ristretto255)
 * Token Structure: As defined in {{Section 2.2 of AUTHSCHEME}}
 * Token Key Encoding: Serialized as described in {{setup}}
 * TokenChallenge Structure: As defined in {{Section 2.1 of AUTHSCHEME}}
@@ -473,6 +477,4 @@ following entries.
 # Acknowledgments
 {:numbered="false"}
 
-The authors would like to thank Tommy Pauly and the authors
-of {{?RATE-LIMITED=I-D.ietf-privacypass-rate-limit-tokens}}
-for helpful discussions on rate-limited tokens.
+The authors would like to thank Cathie Yun, Thibault Meunier, and Chris Wood.
