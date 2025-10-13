@@ -1569,7 +1569,6 @@ Content-Length: &lt;Length of TokenRequest&gt;
 &lt;Bytes containing the TokenRequest&gt;
 </pre><a href="#section-7.1-8" class="pilcrow">¶</a>
 </div>
-<p id="section-7.1-9">!!! UNEDITED BELOW<a href="#section-7.1-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="issuer-to-client-response">
@@ -1580,7 +1579,7 @@ Content-Length: &lt;Length of TokenRequest&gt;
 <p id="section-7.2-1">Upon receipt of the request, the Issuer validates the following conditions:<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-7.2-2.1">
-            <p id="section-7.2-2.1.1">The TokenRequest contains a supported token_type equal to value 0xE5AC.<a href="#section-7.2-2.1.1" class="pilcrow">¶</a></p>
+            <p id="section-7.2-2.1.1">The TokenRequest contains a supported token_type equal to value 0xE5AD.<a href="#section-7.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-7.2-2.2">
             <p id="section-7.2-2.2.1">The TokenRequest.truncated_token_key_id corresponds to the truncated key ID
@@ -1616,7 +1615,7 @@ struct {
 <ul class="normal">
 <li class="normal" id="section-7.2-9.1">
             <p id="section-7.2-9.1.1">"encoded_response" is the Nresponse-octet encoded issuance response message, computed
-as the serialization of <code>response</code> as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-privacypass-arc-01#section-4.2.2" class="relref">Section 4.2.2</a> of [<a href="#ARC" class="cite xref">ARC</a>]</span>.<a href="#section-7.2-9.1.1" class="pilcrow">¶</a></p>
+as the serialization of <code>response</code> as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.2" class="relref">Section 4.1.2</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-7.2-9.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-7.2-10">The Issuer generates an HTTP response with status code 200 whose content
@@ -1639,12 +1638,12 @@ Content-Length: &lt;Length of TokenResponse&gt;
 <a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-credential-finalization" class="section-name selfRef">Credential Finalization</a>
         </h3>
 <p id="section-7.3-1">Upon receipt, the Client handles the response and, if successful, deserializes
-the content values <code>TokenResponse.encoded_response</code> according to <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-privacypass-arc-01#section-4.2.2" class="relref">Section 4.2.2</a> of [<a href="#ARC" class="cite xref">ARC</a>]</span>
+the content values <code>TokenResponse.encoded_response</code> according to <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-privacypass-arc-01#section-4.1.2" class="relref">Section 4.1.2</a> of [<a href="#ARC" class="cite xref">ARC</a>]</span>
 yielding <code>response</code>. If deserialization fails, the Client aborts the protocol.
 Otherwise, the Client processes the response as follows:<a href="#section-7.3-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-7.3-2">
 <pre>
-credential = FinalizeCredential(clientSecrets, pkI, request, response)
+credential = VerifyIssuance(clientSecrets, pkI, request, response)
 </pre><a href="#section-7.3-2" class="pilcrow">¶</a>
 </div>
 <p id="section-7.3-3">The Client then saves the credential structure, associated with the given Issuer
@@ -1658,12 +1657,13 @@ Name, to use when producing Token values in response to future token challenges.
       <h2 id="name-token-redemption-protocol">
 <a href="#section-8" class="section-number selfRef">8. </a><a href="#name-token-redemption-protocol" class="section-name selfRef">Token Redemption Protocol</a>
       </h2>
-<p id="section-8-1">The token redemption protocol takes as input TokenChallenge and presentation limit
-values from <span>[<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>], <a href="https://rfc-editor.org/rfc/rfc9577#section-2.1" class="relref">Section 2.1</a></span>; the presentation limit is sent as an additional
+<p id="section-8-1">The token redemption protocol takes as input TokenChallenge and cost
+values from <span>[<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>], <a href="https://rfc-editor.org/rfc/rfc9577#section-2.1" class="relref">Section 2.1</a></span>; the cost is sent as an additional
 attribute within the HTTP challenge as described in <a href="#token-challenge-requirements" class="auto internal xref">Section 6</a>.
 Clients use credentials from the issuance protocol in producing tokens
 bound to the TokenChallenge. The process for producing a token in this
 way, as well as verifying a resulting token, is described in the following sections.<a href="#section-8-1" class="pilcrow">¶</a></p>
+<p id="section-8-2">!!! United below<a href="#section-8-2" class="pilcrow">¶</a></p>
 <div id="token-creation">
 <section id="section-8.1">
         <h3 id="name-token-creation">
