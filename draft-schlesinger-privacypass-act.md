@@ -206,13 +206,11 @@ bound to "current time window."
 
 OPEN ISSUE: give more guidance about how to construct credential_context and redemption_context depending on the application's needs.
 
-!!! UNEDITED BELOW
-
 In addition to this updated TokenChallenge, the HTTP authentication challenge
 also SHOULD contain the following additional attribute:
 
-- "rate-limit", which contains a JSON number indicating the presentation
-  limit to use for ARC.
+- "cost", which contains a JSON number indicating the amount of credits to
+  to spend out of the ARC.
 
 Implementation-specific steps: the client should store the Origin-provided input `tokenChallenge` so that when they receive a new `tokenChallenge` value, they can check if it has changed and which fields are different. This will inform the client's behavior - for example, if `credential_context` is being used to enforce an expiration on the credential, then if the `credential_context` has changed, this can prompt the client to request a new credential.
 
@@ -243,7 +241,7 @@ this protocol to produce a credential are described below.
 
 Given Origin-provided input `tokenChallenge` and the Issuer Public Key ID `issuer_key_id`,
 the Client first creates a credential request message using the `CredentialRequest`
-function from {{ARC}} as follows:
+function from {{ACT}} as follows:
 
 ~~~
 request_context = concat(tokenChallenge.issuer_name,
@@ -257,7 +255,7 @@ The Client then creates a TokenRequest structure as follows:
 
 ~~~
 struct {
-  uint16_t token_type = 0xE5AC; /* Type ARC(P-256) */
+  uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
   uint8_t truncated_issuer_key_id;
   uint8_t encoded_request[Nrequest];
 } TokenRequest;
@@ -290,6 +288,8 @@ Content-Length: <Length of TokenRequest>
 
 <Bytes containing the TokenRequest>
 ~~~
+
+!!! UNEDITED BELOW
 
 ## Issuer-to-Client Response
 
