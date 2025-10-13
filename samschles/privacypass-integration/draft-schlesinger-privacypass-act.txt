@@ -271,13 +271,11 @@ Table of Contents
    credential_context and redemption_context depending on the
    application's needs.
 
-   !!! UNEDITED BELOW
-
    In addition to this updated TokenChallenge, the HTTP authentication
    challenge also SHOULD contain the following additional attribute:
 
-   *  "rate-limit", which contains a JSON number indicating the
-      presentation limit to use for ARC.
+   *  "cost", which contains a JSON number indicating the amount of
+      credits to to spend out of the ARC.
 
    Implementation-specific steps: the client should store the Origin-
    provided input tokenChallenge so that when they receive a new
@@ -319,7 +317,7 @@ Table of Contents
 
    Given Origin-provided input tokenChallenge and the Issuer Public Key
    ID issuer_key_id, the Client first creates a credential request
-   message using the CredentialRequest function from [ARC] as follows:
+   message using the CredentialRequest function from [ACT] as follows:
 
    request_context = concat(tokenChallenge.issuer_name,
      tokenChallenge.origin_info,
@@ -330,7 +328,7 @@ Table of Contents
    The Client then creates a TokenRequest structure as follows:
 
    struct {
-     uint16_t token_type = 0xE5AC; /* Type ARC(P-256) */
+     uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
      uint8_t truncated_issuer_key_id;
      uint8_t encoded_request[Nrequest];
    } TokenRequest;
@@ -363,6 +361,8 @@ Table of Contents
    Content-Length: <Length of TokenRequest>
 
    <Bytes containing the TokenRequest>
+
+   !!! UNEDITED BELOW
 
 7.2.  Issuer-to-Client Response
 
