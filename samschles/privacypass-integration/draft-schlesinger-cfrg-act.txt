@@ -5,7 +5,7 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                   J. Katz
 Intended status: Informational                                    Google
-Expires: 16 February 2026                                 15 August 2025
+Expires: 16 April 2026                                   13 October 2025
 
 
                         Anonymous Credit Tokens
@@ -67,7 +67,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 February 2026.
+   This Internet-Draft will expire on 16 April 2026.
 
 Copyright Notice
 
@@ -466,77 +466,81 @@ domain_separator = "ACT-v1:" || organization || ":" || service || ":" || deploym
 
 3.3.2.  Issuer: Issuance Response
 
-   Issue(sk, request, c):
-     Input:
-       - sk: Issuer's private key
-       - request: Client's issuance request
-       - c: Credit amount to issue (c > 0)
-     Output:
-       - response: Issuance response or INVALID
+IssueResponse(sk, request, c):
+  Input:
+    - sk: Issuer's private key
+    - request: Client's issuance request
+    - c: Credit amount to issue (c > 0)
+  Output:
+    - response: Issuance response or INVALID
+  Exceptions:
+    - InvalidIssuanceRequestProof, raised when the client proof verification fails
 
-     Steps:
-       1. Parse request as (K, gamma, k_bar, r_bar)
-       2. // Verify proof of knowledge
-       3. K1 = H2 * k_bar + H3 * r_bar - K * gamma
-       4. transcript = CreateTranscript("request")
-       5. AddToTranscript(transcript, K)
-       6. AddToTranscript(transcript, K1)
-       7. if GetChallenge(transcript) != gamma:
-       8.     return INVALID
-       9. // Create BBS signature on (c, k, r)
-       10. e <- Zq
-       11. A = (G + H1 * c + K) * (1/(e + sk))  // K = H2 * k + H3 * r
-       12. // Generate proof of correct computation
-       13. alpha <- Zq
-       14. Y_A = A * alpha
-       15. Y_G = G * alpha
-       16. X_A = G + H1 * c + K
-       17. X_G = G * e + pk
-       18. transcript_resp = CreateTranscript("respond")
-       19. AddToTranscript(transcript_resp, c)
-       20. AddToTranscript(transcript_resp, e)
-       21. AddToTranscript(transcript_resp, A)
-       22. AddToTranscript(transcript_resp, X_A)
-       23. AddToTranscript(transcript_resp, X_G)
-       24. AddToTranscript(transcript_resp, Y_A)
-       25. AddToTranscript(transcript_resp, Y_G)
-       26. gamma_resp = GetChallenge(transcript_resp)
-       27. z = gamma_resp * (sk + e) + alpha
-       28. response = (A, e, gamma_resp, z, c)
-       29. return response
+  Steps:
+    1. Parse request as (K, gamma, k_bar, r_bar)
+    2. // Verify proof of knowledge
+    3. K1 = H2 * k_bar + H3 * r_bar - K * gamma
+    4. transcript = CreateTranscript("request")
+    5. AddToTranscript(transcript, K)
+    6. AddToTranscript(transcript, K1)
+    7. if GetChallenge(transcript) != gamma:
+    8.     raise InvalidIssuanceRequestProof
+    9. // Create BBS signature on (c, k, r)
+    10. e <- Zq
+    11. A = (G + H1 * c + K) * (1/(e + sk))  // K = H2 * k + H3 * r
+    12. // Generate proof of correct computation
+    13. alpha <- Zq
+    14. Y_A = A * alpha
+    15. Y_G = G * alpha
+    16. X_A = G + H1 * c + K
+    17. X_G = G * e + pk
+    18. transcript_resp = CreateTranscript("respond")
+    19. AddToTranscript(transcript_resp, c)
+    20. AddToTranscript(transcript_resp, e)
+    21. AddToTranscript(transcript_resp, A)
+    22. AddToTranscript(transcript_resp, X_A)
+    23. AddToTranscript(transcript_resp, X_G)
+    24. AddToTranscript(transcript_resp, Y_A)
+    25. AddToTranscript(transcript_resp, Y_G)
+    26. gamma_resp = GetChallenge(transcript_resp)
+    27. z = gamma_resp * (sk + e) + alpha
+    28. response = (A, e, gamma_resp, z, c)
+    29. return response
 
 3.3.3.  Client: Token Verification
 
-   VerifyIssuance(pk, request, response, state):
-     Input:
-       - pk: Issuer's public key
-       - request: The issuance request sent
-       - response: Issuer's response
-       - state: Client state from request generation
-     Output:
-       - token: Credit token or INVALID
+VerifyIssuance(pk, request, response, state):
+  Input:
+    - pk: Issuer's public key
+    - request: The issuance request sent
+    - response: Issuer's response
+    - state: Client state from request generation
+  Output:
+    - token: Credit token
+  Exceptions:
+    - InvalidIssuanceResponseProof, raised when the server proof verification fails
 
-     Steps:
-       1. Parse request as (K, gamma, k_bar, r_bar)
-       2. Parse response as (A, e, gamma_resp, z, c)
-       3. Parse state as (k, r)
-       4. // Verify proof
-       6. X_A = G + H1 * c + K
-       7. X_G = G * e + pk
-       8. Y_A = A * z - X_A * gamma_resp
-       9. Y_G = G * z - X_G * gamma_resp
-       10. transcript_resp = CreateTranscript("respond")
-       11. AddToTranscript(transcript_resp, c)
-       12. AddToTranscript(transcript_resp, e)
-       13. AddToTranscript(transcript_resp, A)
-       14. AddToTranscript(transcript_resp, X_A)
-       15. AddToTranscript(transcript_resp, X_G)
-       16. AddToTranscript(transcript_resp, Y_A)
-       17. AddToTranscript(transcript_resp, Y_G)
-       18. if GetChallenge(transcript_resp) != gamma_resp:
-       19.     return INVALID
-       20. token = (A, e, k, r, c)
-       21. return token
+  Steps:
+    1. Parse request as (K, gamma, k_bar, r_bar)
+    2. Parse response as (A, e, gamma_resp, z, c)
+    3. Parse state as (k, r)
+    4. // Verify proof
+    6. X_A = G + H1 * c + K
+    7. X_G = G * e + pk
+    8. Y_A = A * z - X_A * gamma_resp
+    9. Y_G = G * z - X_G * gamma_resp
+    10. transcript_resp = CreateTranscript("respond")
+    11. AddToTranscript(transcript_resp, c)
+    12. AddToTranscript(transcript_resp, e)
+    13. AddToTranscript(transcript_resp, A)
+    14. AddToTranscript(transcript_resp, X_A)
+    15. AddToTranscript(transcript_resp, X_G)
+    16. AddToTranscript(transcript_resp, Y_A)
+    17. AddToTranscript(transcript_resp, Y_G)
+    18. if GetChallenge(transcript_resp) != gamma_resp:
+    19.     raise InvalidIssuanceResponseProof
+    20. token = (A, e, k, r, c)
+    21. return token
 
 3.4.  Token Spending
 
@@ -693,27 +697,30 @@ ProveSpend(token, s):
 
 3.4.2.  Issuer: Spend Verification and Refund
 
-   VerifyAndRefund(sk, proof):
-     Input:
-       - sk: Issuer's private key
-       - proof: Client's spend proof
-     Output:
-       - refund: Refund for remaining credits or INVALID
+VerifyAndRefund(sk, proof):
+  Input:
+    - sk: Issuer's private key
+    - proof: Client's spend proof
+  Output:
+    - refund: Refund for remaining credits
+  Exceptions:
+    - DoubleSpendError: raised when the nullifier has been used before
+    - InvalidRefundResponseProof: raised when the refund proof verification fails
 
-     Steps:
-       1. Parse proof and extract nullifier k
-       2. // Check nullifier hasn't been used
-       3. if k in used_nullifiers:
-       4.     return INVALID
-       5. // Verify the proof (see Section 3.5.2)
-       6. if not VerifySpendProof(sk, proof):
-       7.     return INVALID
-       8. // Record nullifier
-       9. used_nullifiers.add(k)
-       10. // Issue refund for remaining balance
-       11. K' = Sum(Com[j] * 2^j for j in [L])
-       12. refund = IssueRefund(sk, K')
-       13. return refund
+  Steps:
+    1. Parse proof and extract nullifier k
+    2. // Check nullifier hasn't been used
+    3. if k in used_nullifiers:
+    4.     raise DoubleSpendError
+    5. // Verify the proof (see Section 3.5.2)
+    6. if not VerifySpendProof(sk, proof):
+    7.     raise InvalidRefundResponseProof
+    8. // Record nullifier
+    9. used_nullifiers.add(k)
+    10. // Issue refund for remaining balance
+    11. K' = Sum(Com[j] * 2^j for j in [L])
+    12. refund = IssueRefund(sk, K')
+    13. return refund
 
 3.4.3.  Refund Issuance
 
@@ -767,6 +774,8 @@ ProveSpend(token, s):
        - state: Client state (k*, r*, m)
      Output:
        - token: New credit token or INVALID
+     Exceptions:
+       - InvalidRefundProof: When the refund proof verification fails
 
      Steps:
        1. Parse refund as (A*, e*, gamma, z)
@@ -790,7 +799,7 @@ ProveSpend(token, s):
        16. AddToTranscript(transcript, Y_A)
        17. AddToTranscript(transcript, Y_G)
        18. if GetChallenge(transcript) != gamma:
-       19.     return INVALID
+       19.     raise InvalidRefundProof
 
        20. // Construct new token
        21. token = (A*, e*, k*, r*, m)
@@ -806,6 +815,9 @@ VerifySpendProof(sk, proof):
     - proof: Spend proof from client
   Output:
     - valid: Boolean indicating if proof is valid
+  Exceptions:
+    - IdentityPointError: raised when A' is not the identity
+    - InvalidClientSpendProof: raised when the challenge does not match the reconstruction
 
   Steps:
     1. Parse proof as (k, s, A', B_bar, Com, gamma, e_bar,
@@ -814,7 +826,7 @@ VerifySpendProof(sk, proof):
 
     2. // Check A' is not identity
     3. if A' == Identity:
-    4.     return false
+    4.     raise IdentityPointError
 
     5. // Compute issuer's view of signature
     6. A_bar = A' * sk
@@ -866,7 +878,7 @@ VerifySpendProof(sk, proof):
 
     46. // Verify challenge matches
     47. if gamma != gamma_check:
-    48.     return false
+    48.     raise InvalidVerifySpendProof
 
     49. return true
 
@@ -997,31 +1009,35 @@ LengthPrefixed(data):
 
    Converting between credit amounts and scalars:
 
-   CreditToScalar(amount):
-     Input:
-       - amount: Integer credit amount (0 <= amount < 2^L)
-     Output:
-       - s: Scalar representation
+CreditToScalar(amount):
+  Input:
+    - amount: Integer credit amount (0 <= amount < 2^L)
+  Output:
+    - s: Scalar representation
+  Exceptions:
+    - AmountTooBigError: raised when the amount exceeds 2^L
 
-     Steps:
-       1. if amount >= 2^L:
-       2.     return ERROR
-       3. return Scalar(amount)
+  Steps:
+    1. if amount >= 2^L:
+    2.     return AmountTooBigError
+    3. return Scalar(amount)
 
-   ScalarToCredit(s):
-     Input:
-       - s: Scalar value
-     Output:
-       - amount: Integer credit amount or ERROR
+ScalarToCredit(s):
+  Input:
+    - s: Scalar value
+  Output:
+    - amount: Integer credit amount or ERROR
+  Exceptions:
+    - ScalarOutOfRangeError: raised when the bytes 16..32 of the scalar value are nonzero
 
-     Steps:
-       1. bytes = s.to_bytes_le()
-       2. // Check high bytes are zero
-       3. For i = 16 to 31:
-       4.     if bytes[i] != 0:
-       5.         return ERROR
-       6. amount = bytes[0..15] as u128
-       7. return amount
+  Steps:
+    1. bytes = s.to_bytes_le()
+    2. // Check high bytes are zero
+    3. For i = 16 to 31:
+    4.     if bytes[i] != 0:
+    5.         return ScalarOutOfRangeError
+    6. amount = bytes[0..15] as u128
+    7. return amount
 
 4.  Protocol Messages and Wire Format
 
@@ -1795,7 +1811,7 @@ Authors' Addresses
 
    Samuel Schlesinger
    Google
-   Email: sgschlesinger@gmail.com
+   Email: samschlesinger@google.com
 
 
    Jonathan Katz
