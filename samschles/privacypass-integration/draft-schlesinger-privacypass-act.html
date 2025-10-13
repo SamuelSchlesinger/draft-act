@@ -1189,7 +1189,10 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.<a href="#section-abs
                 <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-token-creation" class="internal xref">Token Creation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
-                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-token-verification" class="internal xref">Token Verification</a></p>
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-token-refund" class="internal xref">Token Refund</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
+                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-new-token-from-refund" class="internal xref">New Token from Refund</a></p>
 </li>
             </ul>
 </li>
@@ -1200,15 +1203,7 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.<a href="#section-abs
             <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
-            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-references" class="internal xref">References</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1">
-                <p id="section-toc.1-1.11.2.1.1"><a href="#section-11.1" class="auto internal xref">11.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.2">
-                <p id="section-toc.1-1.11.2.2.1"><a href="#section-11.2" class="auto internal xref">11.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
-</li>
-            </ul>
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-normative-references" class="internal xref">Normative References</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
             <p id="section-toc.1-1.12.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
@@ -1663,38 +1658,32 @@ attribute within the HTTP challenge as described in <a href="#token-challenge-re
 Clients use credentials from the issuance protocol in producing tokens
 bound to the TokenChallenge. The process for producing a token in this
 way, as well as verifying a resulting token, is described in the following sections.<a href="#section-8-1" class="pilcrow">¶</a></p>
-<p id="section-8-2">!!! United below<a href="#section-8-2" class="pilcrow">¶</a></p>
 <div id="token-creation">
 <section id="section-8.1">
         <h3 id="name-token-creation">
 <a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-token-creation" class="section-name selfRef">Token Creation</a>
         </h3>
-<p id="section-8.1-1">Given a TokenChallenge value as input, denoted <code>challenge</code>, a presentation limit,
-denoted <code>presentationLimit</code>, and a previously computed credential that is valid
-for the Issuer identifier in the challenge, denoted <code>credential</code>, Clients compute
-a credential presentation value as follows:<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.1-1">Given a TokenChallenge value as input, denoted <code>challenge</code>, a cost,
+denoted <code>cost</code>, and a previously computed credential that is valid
+for the Issuer identifier in the challenge, denoted <code>credential</code>, containing at
+least <code>cost</code> credits. Clients compute a spend request as follows:<a href="#section-8.1-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.1-2">
 <pre>
-presentation_context = concat(tokenChallenge.issuer_name,
-  tokenChallenge.origin_info,
-  tokenChallenge.redemption_context,
-  issuer_key_id)
-state = MakePresentationState(credential, presentation_context, presentationLimit)
-newState, nonce, presentation = Present(state)
+spend_request, state = ProveSpend(credential, cost)
 </pre><a href="#section-8.1-2" class="pilcrow">¶</a>
 </div>
-<p id="section-8.1-3">Subsequent presentations <span class="bcp14">MUST</span> use the updated state, denoted <code>newState</code>. Reusing
-the original state will break the presentation unlinkability properties of ARC;
-see <a href="#security" class="auto internal xref">Section 9</a>.<a href="#section-8.1-3" class="pilcrow">¶</a></p>
+<p id="section-8.1-3">This credential <span class="bcp14">MUST</span> only ever be used for a single spend request. When we
+receive the refund from the server, we will be able to use this credential
+instead. If we use the same credential more than once, we violate the privacy
+assumptions of ACT by presenting the same nullifier twice.<a href="#section-8.1-3" class="pilcrow">¶</a></p>
 <p id="section-8.1-4">The resulting Token value is then constructed as follows:<a href="#section-8.1-4" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.1-5">
 <pre>
 struct {
-    uint16_t token_type = 0xE5AC; /* Type ARC(P-256) */
-    uint32_t presentation_nonce;
+    uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
     uint8_t challenge_digest[32];
     uint8_t issuer_key_id[Nid];
-    uint8_t presentation[Npresentation];
+    uint8_t spend_request[Npresentation];
 } Token;
 </pre><a href="#section-8.1-5" class="pilcrow">¶</a>
 </div>
@@ -1704,51 +1693,69 @@ struct {
             <p id="section-8.1-7.1.1">"token_type" is a 2-octet integer, in network byte order, equal to 0xE5AC.<a href="#section-8.1-7.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-7.2">
-            <p id="section-8.1-7.2.1">"presentation_nonce" is a 32-bit encoding of the nonce output from ARC.<a href="#section-8.1-7.2.1" class="pilcrow">¶</a></p>
+            <p id="section-8.1-7.2.1">"challenge_digest" is a 32-octet value containing the hash of the original TokenChallenge, SHA-256(TokenChallenge).<a href="#section-8.1-7.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-7.3">
-            <p id="section-8.1-7.3.1">"challenge_digest" is a 32-octet value containing the hash of the original TokenChallenge, SHA-256(TokenChallenge).<a href="#section-8.1-7.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.1-7.3.1">"nullifier" is a 32-octet value containing the single-use nullifier from the credential.<a href="#section-8.1-7.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-7.4">
             <p id="section-8.1-7.4.1">"issuer_key_id" is a Nid-octet identifier for the Issuer Public Key, computed
 as defined in <a href="#setup" class="auto internal xref">Section 5</a>.<a href="#section-8.1-7.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-7.5">
-            <p id="section-8.1-7.5.1">"presentation" is a Npresentation-octet presentation, set to the serialized
-<code>presentation</code> value (see <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-privacypass-arc-01#section-4.3.2" class="relref">Section 4.3.2</a> of [<a href="#ARC" class="cite xref">ARC</a>]</span> for serialiation details).<a href="#section-8.1-7.5.1" class="pilcrow">¶</a></p>
+            <p id="section-8.1-7.5.1">"spend_request" is a Nspend_request-octet spend_request, set to the serialized
+<code>spend_request</code> value (see <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.3" class="relref">Section 4.1.3</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> for serialiation details).<a href="#section-8.1-7.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
-<div id="verification">
+<div id="refund">
 <section id="section-8.2">
-        <h3 id="name-token-verification">
-<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-token-verification" class="section-name selfRef">Token Verification</a>
+        <h3 id="name-token-refund">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-token-refund" class="section-name selfRef">Token Refund</a>
         </h3>
-<p id="section-8.2-1">Given a deserialized presentation from the token, denoted <code>presentation</code> and
-obtained by deserializing a presentation according to <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-privacypass-arc-01#section-4.3.2" class="relref">Section 4.3.2</a> of [<a href="#ARC" class="cite xref">ARC</a>]</span>,
-a presentation limit, denoted <code>presentation_limit</code>, a presentation nonce
-from a token, denoted <code>nonce</code>, and the digest of a token challenge, denoted
-<code>challenge_digest</code>, verifying a Token requires invoking the VerifyPresentation
-function from <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-privacypass-arc-01#section-4.3.3" class="relref">Section 4.3.3</a> of [<a href="#ARC" class="cite xref">ARC</a>]</span> in the following ways:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.2-1">Given a deserialized spend_request from the token, denoted <code>spend_request</code> and
+obtained by deserializing a spend_request according to <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-privacypass-arc-01#section-4.1.3" class="relref">Section 4.1.3</a> of [<a href="#ARC" class="cite xref">ARC</a>]</span>,
+a cost, denoted <code>cost</code>, a nullifier from a token, denoted <code>nullifier</code>, and the
+digest of a token challenge, denoted <code>challenge_digest</code>, verifying a Token requires
+invoking the VerifyAndRefund function from <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-3.4.2" class="relref">Section 3.4.2</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> in the following ways:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.2-2">
 <pre>
 request_context = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
-presentation_context = concat(tokenChallenge.issuer_name,
-  tokenChallenge.origin_info,
-  tokenChallenge.redemption_context,
-  issuer_key_id)
-valid = VerifyPresentation(skI, pkI, request_context, presentation_context, nonce, presentation, presentation_limit)
+refund = VerifyAndRefund(skI, requestContext, spend_proof, cost)
 </pre><a href="#section-8.2-2" class="pilcrow">¶</a>
 </div>
-<p id="section-8.2-3">This function returns True if the CredentialToken is valid, and False otherwise.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
+<p id="section-8.2-3">This function returns the <code>refund</code> serialized according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.4" class="relref">Section 4.1.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> if the CredentialToken is valid, and nil otherwise.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
 <p id="section-8.2-4">Implementation-specific steps: to prevent double spending, the Origin should perform a check that the
-tag (presentation.tag) has not previously been seen. It then stores the tag for use in future double
+nullifier (spend_proof.nullifier) has not previously been seen. It then stores the tag for use in future double
 spending checks. To reduce the overhead of performing double spend checks, the Origin can store and
-look up the tags corresponding to the associated request_context and presentation_context values.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
+look up the tags corresponding to the associated request_context value.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-8.2-5">
+<pre>
+struct {
+    uint8_t refund[Nrefund];
+} Refund;
+</pre><a href="#section-8.2-5" class="pilcrow">¶</a>
+</div>
+<p id="section-8.2-6">Finally, we send down the refund back to the client encoded as the above <code>Refund</code> struct.<a href="#section-8.2-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="new-token-from-refund">
+<section id="section-8.3">
+        <h3 id="name-new-token-from-refund">
+<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-new-token-from-refund" class="section-name selfRef">New Token from Refund</a>
+        </h3>
+<p id="section-8.3-1">Differently from <span>[<a href="#ARC" class="cite xref">ARC</a>]</span>, we have to reconstruct our new token based on the <code>Refund</code> response. To do
+so, we invoke the <code>ConstructRefundToken</code> from <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-3.4.4" class="relref">Section 3.4.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> in the following ways:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-8.3-2">
+<pre>
+token = ConstructRefundToken(pkI, spend_proof, refund, state)
+</pre><a href="#section-8.3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-8.3-3">Now, finally, we can replace our old credential with this new one and this one can be properly used.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1759,13 +1766,10 @@ look up the tags corresponding to the associated request_context and presentatio
 <a href="#section-9" class="section-number selfRef">9. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
 <p id="section-9-1">Privacy considerations for tokens based on deployment details, such as issuer configuration
-and issuer selection, are discussed in <span><a href="https://rfc-editor.org/rfc/rfc9576#section-6.1" class="relref">Section 6.1</a> of [<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span>. Note that ARC
+and issuer selection, are discussed in <span><a href="https://rfc-editor.org/rfc/rfc9576#section-6.1" class="relref">Section 6.1</a> of [<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span>. Note that ACT
 requires a joint Origin and Issuer configuration given that it is privately verifiable.<a href="#section-9-1" class="pilcrow">¶</a></p>
-<p id="section-9-2">ARC offers Origin-Client unlinkability, Issuer-Client unlinkability, and redemption context
-unlinkability, as described in <span><a href="https://rfc-editor.org/rfc/rfc9576#section-3.3" class="relref">Section 3.3</a> of [<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span>, with one exception.
-While redemption context unlinkability is achieved by re-randomizing credentials every time
-they are presented as tokens, there is a reduction in the anonymity set in the case of presentation
-nonce collisions, as detailed in <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-privacypass-arc-01#section-7.2" class="relref">Section 7.2</a> of [<a href="#ARC" class="cite xref">ARC</a>]</span>.<a href="#section-9-2" class="pilcrow">¶</a></p>
+<p id="section-9-2">ACT offers Origin-Client unlinkability, Issuer-Client unlinkability, and redemption context
+unlinkability, as described in <span><a href="https://rfc-editor.org/rfc/rfc9576#section-3.3" class="relref">Section 3.3</a> of [<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span>.<a href="#section-9-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-considerations">
@@ -1777,10 +1781,10 @@ nonce collisions, as detailed in <span><a href="https://datatracker.ietf.org/doc
 following entries.<a href="#section-10-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10-2.1">
-          <p id="section-10-2.1.1">Value: 0xE5AC<a href="#section-10-2.1.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.1.1">Value: 0xE5AD<a href="#section-10-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.2">
-          <p id="section-10-2.2.1">Name: ARC (P-256)<a href="#section-10-2.2.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.2.1">Name: ACT (Ristretto255)<a href="#section-10-2.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.3">
           <p id="section-10-2.3.1">Token Structure: As defined in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2" class="relref">Section 2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span><a href="#section-10-2.3.1" class="pilcrow">¶</a></p>
@@ -1815,69 +1819,49 @@ following entries.<a href="#section-10-1" class="pilcrow">¶</a></p>
       </ul>
 </section>
 </div>
-<div id="sec-combined-references">
-<section id="section-11">
-      <h2 id="name-references">
-<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-references" class="section-name selfRef">References</a>
-      </h2>
 <div id="sec-normative-references">
-<section id="section-11.1">
-        <h3 id="name-normative-references">
-<a href="#section-11.1" class="section-number selfRef">11.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
-        </h3>
+<section id="section-11">
+      <h2 id="name-normative-references">
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+      </h2>
 <dl class="references">
 <dt id="ACT">[ACT]</dt>
-        <dd>
+      <dd>
 <span class="refAuthor">Schlesinger, S.</span> and <span class="refAuthor">J. Katz</span>, <span class="refTitle">"Anonymous Credit Tokens"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-schlesinger-cfrg-act-00</span>, <time datetime="2025-08-18" class="refDate">18 August 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00">https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="ARC">[ARC]</dt>
-        <dd>
+      <dd>
 <span class="refAuthor">Yun, C.</span> and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Privacy Pass Issuance Protocol for Anonymous Rate-Limited Credentials"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-yun-privacypass-arc-01</span>, <time datetime="2025-08-06" class="refDate">6 August 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-yun-privacypass-arc-01">https://datatracker.ietf.org/doc/html/draft-yun-privacypass-arc-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="ARCHITECTURE">[ARCHITECTURE]</dt>
-        <dd>
+      <dd>
 <span class="refAuthor">Davidson, A.</span>, <span class="refAuthor">Iyengar, J.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"The Privacy Pass Architecture"</span>, <span class="seriesInfo">RFC 9576</span>, <span class="seriesInfo">DOI 10.17487/RFC9576</span>, <time datetime="2024-06" class="refDate">June 2024</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9576">https://www.rfc-editor.org/rfc/rfc9576</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="ARC_PP">[ARC_PP]</dt>
-        <dd>
+      <dd>
 <span class="refAuthor">Yun, C.</span> and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Anonymous Rate-Limited Credentials"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-yun-cfrg-arc-01</span>, <time datetime="2025-08-06" class="refDate">6 August 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-01">https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="AUTHSCHEME">[AUTHSCHEME]</dt>
-        <dd>
+      <dd>
 <span class="refAuthor">Pauly, T.</span>, <span class="refAuthor">Valdez, S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"The Privacy Pass HTTP Authentication Scheme"</span>, <span class="seriesInfo">RFC 9577</span>, <span class="seriesInfo">DOI 10.17487/RFC9577</span>, <time datetime="2024-06" class="refDate">June 2024</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9577">https://www.rfc-editor.org/rfc/rfc9577</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="ISSUANCE">[ISSUANCE]</dt>
-        <dd>
+      <dd>
 <span class="refAuthor">Celi, S.</span>, <span class="refAuthor">Davidson, A.</span>, <span class="refAuthor">Valdez, S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Privacy Pass Issuance Protocols"</span>, <span class="seriesInfo">RFC 9578</span>, <span class="seriesInfo">DOI 10.17487/RFC9578</span>, <time datetime="2024-06" class="refDate">June 2024</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9578">https://www.rfc-editor.org/rfc/rfc9578</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
-        <dd>
+      <dd>
 <span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
-        <dd>
+      <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="TLS13">[TLS13]</dt>
-      <dd>
+    <dd>
 <span class="refAuthor">Rescorla, E.</span>, <span class="refTitle">"The Transport Layer Security (TLS) Protocol Version 1.3"</span>, <span class="seriesInfo">RFC 8446</span>, <span class="seriesInfo">DOI 10.17487/RFC8446</span>, <time datetime="2018-08" class="refDate">August 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8446">https://www.rfc-editor.org/rfc/rfc8446</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
-</section>
-</div>
-<div id="sec-informative-references">
-<section id="section-11.2">
-        <h3 id="name-informative-references">
-<a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
-        </h3>
-<dl class="references">
-<dt id="RATE-LIMITED">[RATE-LIMITED]</dt>
-      <dd>
-<span class="refAuthor">Hendrickson, S.</span>, <span class="refAuthor">Iyengar, J.</span>, <span class="refAuthor">Pauly, T.</span>, <span class="refAuthor">Valdez, S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Rate-Limited Token Issuance Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-privacypass-rate-limit-tokens-06</span>, <time datetime="2024-04-01" class="refDate">1 April 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-rate-limit-tokens-06">https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-rate-limit-tokens-06</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-</dl>
-</section>
-</div>
 </section>
 </div>
 <div id="acknowledgments">
@@ -1885,9 +1869,7 @@ following entries.<a href="#section-10-1" class="pilcrow">¶</a></p>
       <h2 id="name-acknowledgments">
 <a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
       </h2>
-<p id="appendix-A-1">The authors would like to thank Tommy Pauly and the authors
-of <span>[<a href="#RATE-LIMITED" class="cite xref">RATE-LIMITED</a>]</span>
-for helpful discussions on rate-limited tokens.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<p id="appendix-A-1">The authors would like to thank Cathie Yun, Thibault Meunier, and Chris Wood.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authors-addresses">
