@@ -289,13 +289,11 @@ Content-Length: <Length of TokenRequest>
 <Bytes containing the TokenRequest>
 ~~~
 
-!!! UNEDITED BELOW
-
 ## Issuer-to-Client Response
 
 Upon receipt of the request, the Issuer validates the following conditions:
 
-- The TokenRequest contains a supported token_type equal to value 0xE5AC.
+- The TokenRequest contains a supported token_type equal to value 0xE5AD.
 - The TokenRequest.truncated_token_key_id corresponds to the truncated key ID
   of an Issuer Public Key, with corresponding secret key `skI`, owned by
   the Issuer.
@@ -326,7 +324,7 @@ struct {
 The structure fields are defined as follows:
 
 - "encoded_response" is the Nresponse-octet encoded issuance response message, computed
-  as the serialization of `response` as specified in {{Section 4.2.2 of ARC}}.
+  as the serialization of `response` as specified in {{Section 4.1.2 of ACT}}.
 
 The Issuer generates an HTTP response with status code 200 whose content
 consists of TokenResponse, with the content type set as
@@ -343,12 +341,12 @@ Content-Length: <Length of TokenResponse>
 ## Credential Finalization
 
 Upon receipt, the Client handles the response and, if successful, deserializes
-the content values `TokenResponse.encoded_response` according to {{Section 4.2.2 of ARC}}
+the content values `TokenResponse.encoded_response` according to {{Section 4.1.2 of ARC}}
 yielding `response`. If deserialization fails, the Client aborts the protocol.
 Otherwise, the Client processes the response as follows:
 
 ~~~
-credential = FinalizeCredential(clientSecrets, pkI, request, response)
+credential = VerifyIssuance(clientSecrets, pkI, request, response)
 ~~~
 
 The Client then saves the credential structure, associated with the given Issuer
@@ -356,12 +354,14 @@ Name, to use when producing Token values in response to future token challenges.
 
 # Token Redemption Protocol
 
-The token redemption protocol takes as input TokenChallenge and presentation limit
-values from {{AUTHSCHEME, Section 2.1}}; the presentation limit is sent as an additional
+The token redemption protocol takes as input TokenChallenge and cost
+values from {{AUTHSCHEME, Section 2.1}}; the cost is sent as an additional
 attribute within the HTTP challenge as described in {{token-challenge-requirements}}.
 Clients use credentials from the issuance protocol in producing tokens
 bound to the TokenChallenge. The process for producing a token in this
 way, as well as verifying a resulting token, is described in the following sections.
+
+!!! United below
 
 ## Token Creation
 
