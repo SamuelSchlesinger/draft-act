@@ -5,7 +5,7 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                   J. Katz
 Intended status: Standards Track                                  Google
-Expires: 16 April 2026                                   13 October 2025
+Expires: 17 April 2026                                   14 October 2025
 
 
        Privacy Pass Issuance Protocol for Anonymous Credit Tokens
@@ -47,7 +47,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 April 2026.
+   This Internet-Draft will expire on 17 April 2026.
 
 Copyright Notice
 
@@ -274,7 +274,7 @@ Table of Contents
    challenge also SHOULD contain the following additional attribute:
 
    *  "cost", which contains a JSON number indicating the amount of
-      credits to to spend out of the ARC.
+      credits to to spend out of the ACT.
 
    Implementation-specific steps: the client should store the Origin-
    provided input tokenChallenge so that when they receive a new
@@ -344,8 +344,8 @@ Table of Contents
       more details.
 
    *  "encoded_request" is the Nrequest-octet request, computed as the
-      serialization of the request value as defined in Section 4.2.1 of
-      [ARC].
+      serialization of the request value as defined in Section 4.1.2 of
+      [ACT].
 
    The Client then generates an HTTP POST request to send to the Issuer
    Request URL, with the TokenRequest as the content.  The media type
