@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-10-07T00:05:41.051572+00:00",
+  "timestamp": "2025-10-14T00:05:28.051540+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -1716,7 +1716,7 @@
       "id": "PR_kwDOPc24Mc6sQISz",
       "title": "Pass at motivation section",
       "url": "https://github.com/SamuelSchlesinger/draft-act/pull/14",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "thibmeu",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -1727,18 +1727,68 @@
       ],
       "body": "Add zero trust as a motivation\r\nclearly separate ARC and ACT\r\nremove the use of we/i in the motivation to be more neutral fix some typo\r\n\r\nmore work to be done to make arc and act converge towards a single high level credential architecture",
       "createdAt": "2025-10-06T11:55:20Z",
-      "updatedAt": "2025-10-06T15:29:40Z",
+      "updatedAt": "2025-10-13T13:31:08Z",
       "baseRepository": "SamuelSchlesinger/draft-act",
       "baseRefName": "samschles/privacypass-integration",
       "baseRefOid": "e494595e0560d4572e7cf8745d65042b1fd20c38",
       "headRepository": "thibmeu/draft-act",
       "headRefName": "reword-motivation",
       "headRefOid": "09e3b85e75721a8c2ad60576f8d915daa98039a3",
+      "closedAt": "2025-10-13T13:31:08Z",
+      "mergedAt": "2025-10-13T13:31:08Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "058914251759a105e90f27dc2de0aefa5213de15"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOPc24Mc7GlQOc",
+          "commit": {
+            "abbreviatedOid": "09e3b85"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2025-10-13T13:30:58Z",
+          "updatedAt": "2025-10-13T13:30:58Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 15,
+      "id": "PR_kwDOPc24Mc6tfzcP",
+      "title": "Privacy Pass Integration",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/pull/15",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "First (rough) draft, wanted to post for visibility as I work but I'll likely make revisions and changes myself as well.",
+      "createdAt": "2025-10-13T16:25:18Z",
+      "updatedAt": "2025-10-13T16:45:50Z",
+      "baseRepository": "SamuelSchlesinger/draft-act",
+      "baseRefName": "main",
+      "baseRefOid": "0329f6b6c0ae1bea0e4449dfcaafc2667f9c4111",
+      "headRepository": "SamuelSchlesinger/draft-act",
+      "headRefName": "samschles/privacypass-integration",
+      "headRefOid": "22c6d9504c421516cd922a286efb6a9cf170cdf6",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "For some context, this is basically a carbon copy of ARC's privacy pass integration with only the changes needed to support ACTs. The biggest change is the introduction of a response that contains what is needed to refund the token, but that was simple to add. There are missing bits and the API of ACT crypto isn't exactly what we need, we basically need to add in the request context.",
+          "createdAt": "2025-10-13T16:45:50Z",
+          "updatedAt": "2025-10-13T16:45:50Z"
+        }
+      ],
       "reviews": []
     }
   ]
