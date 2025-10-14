@@ -210,7 +210,7 @@ In addition to this updated TokenChallenge, the HTTP authentication challenge
 also SHOULD contain the following additional attribute:
 
 - "cost", which contains a JSON number indicating the amount of credits to
-  to spend out of the ARC.
+  to spend out of the ACT.
 
 Implementation-specific steps: the client should store the Origin-provided input `tokenChallenge` so that when they receive a new `tokenChallenge` value, they can check if it has changed and which fields are different. This will inform the client's behavior - for example, if `credential_context` is being used to enforce an expiration on the credential, then if the `credential_context` has changed, this can prompt the client to request a new credential.
 
@@ -272,7 +272,7 @@ The structure fields are defined as follows:
   and referenced information for more details.
 
 - "encoded_request" is the Nrequest-octet request, computed as the serialization
-  of the `request` value as defined in {{Section 4.2.1 of ARC}}.
+  of the `request` value as defined in {{Section 4.1.2 of ACT}}.
 
 The Client then generates an HTTP POST request to send to the Issuer Request URL,
 with the TokenRequest as the content. The media type for this request is
