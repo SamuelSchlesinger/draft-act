@@ -405,26 +405,36 @@ as defined in {{setup}}.
 
 ## Token Refund {#refund}
 
-Given a deserialized spend_request from the token, denoted `spend_request` and
-obtained by deserializing a spend_request according to {{Section 4.1.3 of ACT}},
-a cost, denoted `cost`, a nullifier from a token, denoted `nullifier`, and the
-digest of a token challenge, denoted `challenge_digest`, verifying a Token requires
-invoking the VerifyAndRefund function from {{Section 3.3.2 of ACT}} in the following ways:
+Upon receiving a Token from the Client, the Origin deserializes the spend_proof
+according to {{Section 4.1.3 of ACT}}, yielding a SpendProofMsg structure. The
+Origin then extracts the relevant fields from the spend proof:
+
+~~~
+// Extract fields from SpendProofMsg (see Section 4.1.3 of ACT)
+nullifier = spend_proof.k      // Field 1: nullifier (32 bytes)
+spend_amount = spend_proof.s   // Field 2: spend amount (32 bytes)
+~~~
+
+The Origin SHOULD verify that the spend_amount matches the requested cost from
+the TokenChallenge to ensure the client is spending the expected amount.
+
+To verify the Token and issue a refund, the Origin constructs the request_context
+and invokes VerifyAndRefund:
 
 ~~~
 request_context = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
-refund = VerifyAndRefund(skI, requestContext, spend_proof, cost)
+refund = VerifyAndRefund(skI, request_context, spend_proof)
 ~~~
 
-This function returns the `refund` serialized according to {{Section 4.1.4 of ACT}} if the CredentialToken is valid, and nil otherwise.
+This function returns the `refund` serialized according to {{Section 4.1.4 of ACT}} if the spend proof is valid, and nil otherwise.
 
-Implementation-specific steps: to prevent double spending, the Origin should perform a check that the
-nullifier (spend_proof.nullifier) has not previously been seen. It then stores the tag for use in future double
+Implementation-specific steps: to prevent double spending, the Origin MUST perform a check that the
+nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier for use in future double
 spending checks. To reduce the overhead of performing double spend checks, the Origin can store and
-look up the tags corresponding to the associated request_context value.
+look up the nullifiers corresponding to the associated request_context value.
 
 ~~~
 struct {
