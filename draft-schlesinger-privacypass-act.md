@@ -272,7 +272,7 @@ The structure fields are defined as follows:
   and referenced information for more details.
 
 - "encoded_request" is the Nrequest-octet request, computed as the serialization
-  of the `request` value as defined in {{Section 4.1.2 of ACT}}.
+  of the `request` value as defined in {{Section 4.1.1 of ACT}}.
 
 The Client then generates an HTTP POST request to send to the Issuer Request URL,
 with the TokenRequest as the content. The media type for this request is
@@ -303,7 +303,7 @@ If any of these conditions is not met, the Issuer MUST return an HTTP 422
 (Unprocessable Content) error to the client.
 
 If these conditions are met, the Issuer then tries to deserialize
-TokenRequest.encoded_request according to {{Section 4.2.1 of ARC}}, yielding `request`.
+TokenRequest.encoded_request according to {{Section 4.1.1 of ACT}}, yielding `request`.
 If this fails, the Issuer MUST return an HTTP 422 (Unprocessable Content)
 error to the client. Otherwise, if the Issuer is willing to produce a credential
 for the Client, the Issuer completes the issuance flow by an issuance response
@@ -341,7 +341,7 @@ Content-Length: <Length of TokenResponse>
 ## Credential Finalization
 
 Upon receipt, the Client handles the response and, if successful, deserializes
-the content values `TokenResponse.encoded_response` according to {{Section 4.1.2 of ARC}}
+the content values `TokenResponse.encoded_response` according to {{Section 4.1.2 of ACT}}
 yielding `response`. If deserialization fails, the Client aborts the protocol.
 Otherwise, the Client processes the response as follows:
 
@@ -405,10 +405,10 @@ as defined in {{setup}}.
 ## Token Refund {#refund}
 
 Given a deserialized spend_request from the token, denoted `spend_request` and
-obtained by deserializing a spend_request according to {{Section 4.1.3 of ARC}},
+obtained by deserializing a spend_request according to {{Section 4.1.3 of ACT}},
 a cost, denoted `cost`, a nullifier from a token, denoted `nullifier`, and the
 digest of a token challenge, denoted `challenge_digest`, verifying a Token requires
-invoking the VerifyAndRefund function from {{Section 3.4.2 of ACT}} in the following ways:
+invoking the VerifyAndRefund function from {{Section 3.3.2 of ACT}} in the following ways:
 
 ~~~
 request_context = concat(tokenChallenge.issuer_name,
@@ -436,7 +436,7 @@ Finally, we send down the refund back to the client encoded as the above `Refund
 ## New Token from Refund
 
 Differently from {{ARC}}, we have to reconstruct our new token based on the `Refund` response. To do
-so, we invoke the `ConstructRefundToken` from {{Section 3.4.4 of ACT}} in the following ways:
+so, we invoke the `ConstructRefundToken` from {{Section 3.3.4 of ACT}} in the following ways:
 
 ~~~
 token = ConstructRefundToken(pkI, spend_proof, refund, state)
