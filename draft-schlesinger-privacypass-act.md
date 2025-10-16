@@ -240,7 +240,7 @@ this protocol to produce a credential are described below.
 ## Client-to-Issuer Request
 
 Given Origin-provided input `tokenChallenge` and the Issuer Public Key ID `issuer_key_id`,
-the Client first creates a credential request message using the `CredentialRequest`
+the Client first creates a credential request message using the `IssueRequest`
 function from {{ACT}} as follows:
 
 ~~~
@@ -248,7 +248,7 @@ request_context = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
-(clientSecrets, request) = CredentialRequest(request_context)
+(clientSecrets, request) = IssueRequest(request_context)
 ~~~
 
 The Client then creates a TokenRequest structure as follows:
@@ -306,11 +306,12 @@ If these conditions are met, the Issuer then tries to deserialize
 TokenRequest.encoded_request according to {{Section 4.1.1 of ACT}}, yielding `request`.
 If this fails, the Issuer MUST return an HTTP 422 (Unprocessable Content)
 error to the client. Otherwise, if the Issuer is willing to produce a credential
-for the Client, the Issuer completes the issuance flow by an issuance response
-as follows:
+for the Client, the Issuer determines the number of initial credits to issue
+based on its policy (e.g., based on attestation results or payment verification),
+and completes the issuance flow by an issuance response as follows:
 
 ~~~
-response = CredentialResponse(skI, pkI, request)
+response = IssueResponse(skI, request, initial_credits)
 ~~~
 
 The Issuer then creates a TokenResponse structured as follows:
