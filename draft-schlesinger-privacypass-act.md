@@ -347,7 +347,7 @@ yielding `response`. If deserialization fails, the Client aborts the protocol.
 Otherwise, the Client processes the response as follows:
 
 ~~~
-credential = VerifyIssuance(clientSecrets, pkI, request, response)
+credential = VerifyIssuance(pkI, request, response, clientSecrets)
 ~~~
 
 The Client then saves the credential structure, associated with the given Issuer
@@ -366,11 +366,11 @@ way, as well as verifying a resulting token, is described in the following secti
 
 Given a TokenChallenge value as input, denoted `challenge`, a cost,
 denoted `cost`, and a previously computed credential that is valid
-for the Issuer identifier in the challenge, denoted `credential`, containing at
+for the Issuer identifier in the challenge, denoted `token`, containing at
 least `cost` credits. Clients compute a spend request as follows:
 
 ~~~
-spend_request, state = ProveSpend(credential, cost)
+spend_proof, state = ProveSpend(token, cost)
 ~~~
 
 This credential MUST only ever be used for a single spend request. When we
