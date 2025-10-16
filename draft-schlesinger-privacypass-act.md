@@ -385,23 +385,22 @@ struct {
     uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
     uint8_t challenge_digest[32];
     uint8_t issuer_key_id[Nid];
-    uint8_t spend_request[Npresentation];
+    uint8_t encoded_spend_proof[Nspend_proof];
 } Token;
 ~~~
 
 The structure fields are defined as follows:
 
-- "token_type" is a 2-octet integer, in network byte order, equal to 0xE5AC.
+- "token_type" is a 2-octet integer, in network byte order, equal to 0xE5AD.
 
 - "challenge_digest" is a 32-octet value containing the hash of the original TokenChallenge, SHA-256(TokenChallenge).
-
-- "nullifier" is a 32-octet value containing the single-use nullifier from the credential.
 
 - "issuer_key_id" is a Nid-octet identifier for the Issuer Public Key, computed
 as defined in {{setup}}.
 
-- "spend_request" is a Nspend_request-octet spend_request, set to the serialized
-`spend_request` value (see {{Section 4.1.3 of ACT}} for serialiation details).
+- "encoded_spend_proof" is a Nspend_proof-octet encoded spend proof, set to the serialized
+`spend_proof` value as specified in {{Section 4.1.3 of ACT}}. The spend proof contains
+the nullifier (field 1) and spend amount (field 2), among other cryptographic values.
 
 ## Token Refund {#refund}
 
