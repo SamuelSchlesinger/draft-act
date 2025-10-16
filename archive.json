@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-10-14T00:05:28.051540+00:00",
+  "timestamp": "2025-10-16T00:05:38.167602+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -1769,13 +1769,13 @@
       "labels": [],
       "body": "First (rough) draft, wanted to post for visibility as I work but I'll likely make revisions and changes myself as well.",
       "createdAt": "2025-10-13T16:25:18Z",
-      "updatedAt": "2025-10-13T16:45:50Z",
+      "updatedAt": "2025-10-15T16:30:08Z",
       "baseRepository": "SamuelSchlesinger/draft-act",
       "baseRefName": "main",
       "baseRefOid": "0329f6b6c0ae1bea0e4449dfcaafc2667f9c4111",
       "headRepository": "SamuelSchlesinger/draft-act",
       "headRefName": "samschles/privacypass-integration",
-      "headRefOid": "22c6d9504c421516cd922a286efb6a9cf170cdf6",
+      "headRefOid": "54af25007aee3c74870f21e6b9940ef58af6d062",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -1789,7 +1789,28 @@
           "updatedAt": "2025-10-13T16:45:50Z"
         }
       ],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOPc24Mc7HKP11",
+          "commit": {
+            "abbreviatedOid": "54af250"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "would be good enough for the first version: intro and motivation and clear to me",
+          "createdAt": "2025-10-15T16:29:48Z",
+          "updatedAt": "2025-10-15T16:30:08Z",
+          "comments": [
+            {
+              "originalPosition": 384,
+              "body": "note: this is indeed one number above `0xE5AC` which is for ARC\r\ncould be worth having a more distinct token_type",
+              "createdAt": "2025-10-15T16:29:48Z",
+              "updatedAt": "2025-10-15T16:30:08Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
