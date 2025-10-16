@@ -171,6 +171,49 @@ The Issuer Public Key ID, denoted `issuer_key_id`, is computed as the
 SHA-256 hash of the Issuer Public Key, i.e., `issuer_key_id = SHA-256(pkI_serialized)`,
 where `pkI_serialized` is the serialized version of `pk` as described in {{Section 4.1 of ACT}} (TODO actually write and sync serialization, CBOR and TLS seems weird).
 
+## Request Context Extension {#request-context-extension}
+
+This Privacy Pass integration binds credentials to application-specific contexts
+using a `request_context` parameter. This approach is inspired by the Anonymous
+Rate-Limited Credentials (ARC) protocol {{ARC_PP}}, which threads a similar
+context parameter through its cryptographic operations for domain separation.
+
+IMPORTANT: The current CFRG ACT specification {{ACT}} does not include
+`request_context` parameters in its cryptographic functions. To support the
+Privacy Pass integration described in this document, the ACT specification would
+need to be extended with the following changes:
+
+1. **IssueRequest**: No changes needed - the client generates a blinded commitment
+   without knowledge of the final context binding.
+
+2. **IssueResponse**: Add `request_context` as an input parameter alongside the
+   credit amount `c`. The issuer determines the appropriate context based on its
+   policy (e.g., derived from TokenChallenge fields) and binds the credential to
+   this context. The function would hash the context into a scalar and include it
+   in the credential signature, similar to how ARC hashes `requestContext` into `m2`.
+
+3. **VerifyAndRefund**: Add `request_context` as an input parameter to verify
+   that the spend proof is bound to the correct application context. The issuer
+   reconstructs the context from the TokenChallenge and uses it during verification.
+
+4. **Credential Structure**: The Anonymous Credit Token structure would be extended
+   to include the context-bound component within the BBS signature, analogous to
+   how ARC credentials include `m2` for presentation context binding.
+
+The key insight is that `request_context` is determined by the issuer (like the
+credit amount), not by the client. The issuer sets the context during IssueResponse
+based on the TokenChallenge requirements, and both parties reconstruct it from
+TokenChallenge fields during spending.
+
+Until these extensions are incorporated into the CFRG ACT specification, the
+function calls in this document should be understood as describing the intended
+behavior with request_context support. Implementations SHOULD coordinate with
+the CFRG ACT specification authors to ensure compatibility.
+
+For reference on how request context threading works in practice, see
+{{Section 3 of ARC_PP}}, which demonstrates the pattern of binding credentials
+to application-specific contexts through cryptographic commitments.
+
 # Token Challenge Requirements {#token-challenge-requirements}
 
 The ACT protocol uses a modified TokenChallenge structure from the one
@@ -244,11 +287,7 @@ the Client first creates a credential request message using the `IssueRequest`
 function from {{ACT}} as follows:
 
 ~~~
-request_context = concat(tokenChallenge.issuer_name,
-  tokenChallenge.origin_info,
-  tokenChallenge.credential_context,
-  issuer_key_id)
-(clientSecrets, request) = IssueRequest(request_context)
+(clientSecrets, request) = IssueRequest()
 ~~~
 
 The Client then creates a TokenRequest structure as follows:
@@ -306,12 +345,17 @@ If these conditions are met, the Issuer then tries to deserialize
 TokenRequest.encoded_request according to {{Section 4.1.1 of ACT}}, yielding `request`.
 If this fails, the Issuer MUST return an HTTP 422 (Unprocessable Content)
 error to the client. Otherwise, if the Issuer is willing to produce a credential
-for the Client, the Issuer determines the number of initial credits to issue
-based on its policy (e.g., based on attestation results or payment verification),
-and completes the issuance flow by an issuance response as follows:
+for the Client, the Issuer determines both the number of initial credits and the
+request_context based on its policy (e.g., based on attestation results, payment
+verification, or TokenChallenge requirements). The request_context binds the
+credential to the specific application context:
 
 ~~~
-response = IssueResponse(skI, request, initial_credits)
+request_context = concat(tokenChallenge.issuer_name,
+  tokenChallenge.origin_info,
+  tokenChallenge.credential_context,
+  issuer_key_id)
+response = IssueResponse(skI, request, initial_credits, request_context)
 ~~~
 
 The Issuer then creates a TokenResponse structured as follows:
