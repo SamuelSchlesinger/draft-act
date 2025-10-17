@@ -12,10 +12,10 @@ v: 3
 venue:
   group: PRIVACYPASS
   type: Privacy Pass
-  mail: WG@example.com
-  arch: https://example.com/WG
-  github: USER/REPO
-  latest: https://example.com/LATEST
+  mail: privacypass@ietf.org
+  arch: https://mailarchive.ietf.org/arch/browse/privacy-pass
+  github: SamuelSchlesinger/draft-act
+  latest:"https://SamuelSchlesinger.github.io/draft-act/draft-schlesinger-privacypass-act.html"
 
 author:
  -
@@ -132,14 +132,15 @@ ACT. This interaction is shown below.
 +---+----+          +-----+----+      |  +----+---+   +---+----+  |
     |                     |            `------|-----------|------'
     |                     |                   |           |
-    |--------------------- Request ---------------------->|
+    +--------------------- Request ---------------------->|
     |<---------------- TokenChallenge --------------------+
     |                     |                   |           |
     |<=== Attestation ===>|                   |           |
     +----------- CredentialRequest ---------->|           |
     |<---------- CredentialResponse ----------+           |
     |                     |                   |           |
-    |----------- Request + Token ------------------------>|
+    +----------- Request + Token ------------------------>|
+    |<---------- Response + TokenRefund ------------------+
     |                     |                   |           |
 ~~~
 {: #fig-overview title="Issuance and Redemption Overview"}
