@@ -11,21 +11,20 @@
        This document specifies the issuance and redemption protocols for
 tokens based on the Anonymous Credit Tokens (ACT) protocol. 
     " name="description">
-<meta content="xml2rfc 3.30.2" name="generator">
+<meta content="xml2rfc 3.31.0" name="generator">
 <meta content="draft-schlesinger-privacypass-act-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.30.2
-    Python 3.12.11
+  xml2rfc 3.31.0
+    Python 3.12.12
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
     intervaltree 3.1.0
     Jinja2 3.1.6
     lxml 5.3.1
-    platformdirs 4.4.0
+    platformdirs 4.5.0
     pycountry 24.6.1
     PyYAML 6.0.2
     requests 2.32.5
-    setuptools 80.9.0
     wcwidth 0.2.14
 -->
 <link href="draft-schlesinger-privacypass-act.xml" rel="alternate" type="application/rfc+xml">
@@ -1049,7 +1048,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger &amp; Katz</td>
-<td class="center">Expires 17 April 2026</td>
+<td class="center">Expires 21 April 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1062,12 +1061,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-schlesinger-privacypass-act-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-10-14" class="published">14 October 2025</time>
+<time datetime="2025-10-18" class="published">18 October 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-04-17">17 April 2026</time></dd>
+<dd class="expires"><time datetime="2026-04-21">21 April 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1121,7 +1120,7 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.<a href="#section-abs
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 17 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 21 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1164,6 +1163,11 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.<a href="#section-abs
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
             <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-configuration" class="internal xref">Configuration</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-request-context-extension" class="internal xref">Request Context Extension</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
             <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-token-challenge-requirement" class="internal xref">Token Challenge Requirements</a></p>
@@ -1424,6 +1428,55 @@ skI, pkI = SetupServer()
 <p id="section-5-3">The Issuer Public Key ID, denoted <code>issuer_key_id</code>, is computed as the
 SHA-256 hash of the Issuer Public Key, i.e., <code>issuer_key_id = SHA-256(pkI_serialized)</code>,
 where <code>pkI_serialized</code> is the serialized version of <code>pk</code> as described in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1" class="relref">Section 4.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> (TODO actually write and sync serialization, CBOR and TLS seems weird).<a href="#section-5-3" class="pilcrow">¶</a></p>
+<div id="request-context-extension">
+<section id="section-5.1">
+        <h3 id="name-request-context-extension">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-request-context-extension" class="section-name selfRef">Request Context Extension</a>
+        </h3>
+<p id="section-5.1-1">This Privacy Pass integration binds credentials to application-specific contexts
+using a <code>request_context</code> parameter. This approach is inspired by the Anonymous
+Rate-Limited Credentials (ARC) protocol <span>[<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>, which threads a similar
+context parameter through its cryptographic operations for domain separation.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">IMPORTANT: The current CFRG ACT specification <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> does not include
+<code>request_context</code> parameters in its cryptographic functions. To support the
+Privacy Pass integration described in this document, the ACT specification would
+need to be extended with the following changes:<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-5.1-3">
+<li id="section-5.1-3.1">
+            <p id="section-5.1-3.1.1"><strong>IssueRequest</strong>: No changes needed - the client generates a blinded commitment
+without knowledge of the final context binding.<a href="#section-5.1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-5.1-3.2">
+            <p id="section-5.1-3.2.1"><strong>IssueResponse</strong>: Add <code>request_context</code> as an input parameter alongside the
+credit amount <code>c</code>. The issuer determines the appropriate context based on its
+policy (e.g., derived from TokenChallenge fields) and binds the credential to
+this context. The function would hash the context into a scalar and include it
+in the credential signature, similar to how ARC hashes <code>requestContext</code> into <code>m2</code>.<a href="#section-5.1-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-5.1-3.3">
+            <p id="section-5.1-3.3.1"><strong>VerifyAndRefund</strong>: Add <code>request_context</code> as an input parameter to verify
+that the spend proof is bound to the correct application context. The issuer
+reconstructs the context from the TokenChallenge and uses it during verification.<a href="#section-5.1-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-5.1-3.4">
+            <p id="section-5.1-3.4.1"><strong>Credential Structure</strong>: The Anonymous Credit Token structure would be extended
+to include the context-bound component within the BBS signature, analogous to
+how ARC credentials include <code>m2</code> for presentation context binding.<a href="#section-5.1-3.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-5.1-4">The key insight is that <code>request_context</code> is determined by the issuer (like the
+credit amount), not by the client. The issuer sets the context during IssueResponse
+based on the TokenChallenge requirements, and both parties reconstruct it from
+TokenChallenge fields during spending.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+<p id="section-5.1-5">Until these extensions are incorporated into the CFRG ACT specification, the
+function calls in this document should be understood as describing the intended
+behavior with request_context support. Implementations <span class="bcp14">SHOULD</span> coordinate with
+the CFRG ACT specification authors to ensure compatibility.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">For reference on how request context threading works in practice, see
+<span><a href="https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-01#section-3" class="relref">Section 3</a> of [<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>, which demonstrates the pattern of binding credentials
+to application-specific contexts through cryptographic commitments.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="token-challenge-requirements">
@@ -1511,15 +1564,11 @@ this protocol to produce a credential are described below.<a href="#section-7-4"
 <a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-client-to-issuer-request" class="section-name selfRef">Client-to-Issuer Request</a>
         </h3>
 <p id="section-7.1-1">Given Origin-provided input <code>tokenChallenge</code> and the Issuer Public Key ID <code>issuer_key_id</code>,
-the Client first creates a credential request message using the <code>CredentialRequest</code>
+the Client first creates a credential request message using the <code>IssueRequest</code>
 function from <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> as follows:<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-7.1-2">
 <pre>
-request_context = concat(tokenChallenge.issuer_name,
-  tokenChallenge.origin_info,
-  tokenChallenge.credential_context,
-  issuer_key_id)
-(clientSecrets, request) = CredentialRequest(request_context)
+(clientSecrets, request) = IssueRequest()
 </pre><a href="#section-7.1-2" class="pilcrow">¶</a>
 </div>
 <p id="section-7.1-3">The Client then creates a TokenRequest structure as follows:<a href="#section-7.1-3" class="pilcrow">¶</a></p>
@@ -1546,7 +1595,7 @@ and referenced information for more details.<a href="#section-7.1-6.2.1" class="
 </li>
           <li class="normal" id="section-7.1-6.3">
             <p id="section-7.1-6.3.1">"encoded_request" is the Nrequest-octet request, computed as the serialization
-of the <code>request</code> value as defined in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.2" class="relref">Section 4.1.2</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-7.1-6.3.1" class="pilcrow">¶</a></p>
+of the <code>request</code> value as defined in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.1" class="relref">Section 4.1.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-7.1-6.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-7.1-7">The Client then generates an HTTP POST request to send to the Issuer Request URL,
@@ -1588,14 +1637,20 @@ the Issuer.<a href="#section-7.2-2.2.1" class="pilcrow">¶</a></p>
 <p id="section-7.2-3">If any of these conditions is not met, the Issuer <span class="bcp14">MUST</span> return an HTTP 422
 (Unprocessable Content) error to the client.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
 <p id="section-7.2-4">If these conditions are met, the Issuer then tries to deserialize
-TokenRequest.encoded_request according to <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-privacypass-arc-01#section-4.2.1" class="relref">Section 4.2.1</a> of [<a href="#ARC" class="cite xref">ARC</a>]</span>, yielding <code>request</code>.
+TokenRequest.encoded_request according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.1" class="relref">Section 4.1.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>, yielding <code>request</code>.
 If this fails, the Issuer <span class="bcp14">MUST</span> return an HTTP 422 (Unprocessable Content)
 error to the client. Otherwise, if the Issuer is willing to produce a credential
-for the Client, the Issuer completes the issuance flow by an issuance response
-as follows:<a href="#section-7.2-4" class="pilcrow">¶</a></p>
+for the Client, the Issuer determines both the number of initial credits and the
+request_context based on its policy (e.g., based on attestation results, payment
+verification, or TokenChallenge requirements). The request_context binds the
+credential to the specific application context:<a href="#section-7.2-4" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-7.2-5">
 <pre>
-response = CredentialResponse(skI, pkI, request)
+request_context = concat(tokenChallenge.issuer_name,
+  tokenChallenge.origin_info,
+  tokenChallenge.credential_context,
+  issuer_key_id)
+response = IssueResponse(skI, request, initial_credits, request_context)
 </pre><a href="#section-7.2-5" class="pilcrow">¶</a>
 </div>
 <p id="section-7.2-6">The Issuer then creates a TokenResponse structured as follows:<a href="#section-7.2-6" class="pilcrow">¶</a></p>
@@ -1633,12 +1688,12 @@ Content-Length: &lt;Length of TokenResponse&gt;
 <a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-credential-finalization" class="section-name selfRef">Credential Finalization</a>
         </h3>
 <p id="section-7.3-1">Upon receipt, the Client handles the response and, if successful, deserializes
-the content values <code>TokenResponse.encoded_response</code> according to <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-privacypass-arc-01#section-4.1.2" class="relref">Section 4.1.2</a> of [<a href="#ARC" class="cite xref">ARC</a>]</span>
+the content values <code>TokenResponse.encoded_response</code> according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.2" class="relref">Section 4.1.2</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>
 yielding <code>response</code>. If deserialization fails, the Client aborts the protocol.
 Otherwise, the Client processes the response as follows:<a href="#section-7.3-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-7.3-2">
 <pre>
-credential = VerifyIssuance(clientSecrets, pkI, request, response)
+credential = VerifyIssuance(pkI, request, response, clientSecrets)
 </pre><a href="#section-7.3-2" class="pilcrow">¶</a>
 </div>
 <p id="section-7.3-3">The Client then saves the credential structure, associated with the given Issuer
@@ -1665,11 +1720,11 @@ way, as well as verifying a resulting token, is described in the following secti
         </h3>
 <p id="section-8.1-1">Given a TokenChallenge value as input, denoted <code>challenge</code>, a cost,
 denoted <code>cost</code>, and a previously computed credential that is valid
-for the Issuer identifier in the challenge, denoted <code>credential</code>, containing at
+for the Issuer identifier in the challenge, denoted <code>token</code>, containing at
 least <code>cost</code> credits. Clients compute a spend request as follows:<a href="#section-8.1-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.1-2">
 <pre>
-spend_request, state = ProveSpend(credential, cost)
+spend_proof, state = ProveSpend(token, cost)
 </pre><a href="#section-8.1-2" class="pilcrow">¶</a>
 </div>
 <p id="section-8.1-3">This credential <span class="bcp14">MUST</span> only ever be used for a single spend request. When we
@@ -1683,28 +1738,26 @@ struct {
     uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
     uint8_t challenge_digest[32];
     uint8_t issuer_key_id[Nid];
-    uint8_t spend_request[Npresentation];
+    uint8_t encoded_spend_proof[Nspend_proof];
 } Token;
 </pre><a href="#section-8.1-5" class="pilcrow">¶</a>
 </div>
 <p id="section-8.1-6">The structure fields are defined as follows:<a href="#section-8.1-6" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.1-7.1">
-            <p id="section-8.1-7.1.1">"token_type" is a 2-octet integer, in network byte order, equal to 0xE5AC.<a href="#section-8.1-7.1.1" class="pilcrow">¶</a></p>
+            <p id="section-8.1-7.1.1">"token_type" is a 2-octet integer, in network byte order, equal to 0xE5AD.<a href="#section-8.1-7.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-7.2">
             <p id="section-8.1-7.2.1">"challenge_digest" is a 32-octet value containing the hash of the original TokenChallenge, SHA-256(TokenChallenge).<a href="#section-8.1-7.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-7.3">
-            <p id="section-8.1-7.3.1">"nullifier" is a 32-octet value containing the single-use nullifier from the credential.<a href="#section-8.1-7.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.1-7.3.1">"issuer_key_id" is a Nid-octet identifier for the Issuer Public Key, computed
+as defined in <a href="#setup" class="auto internal xref">Section 5</a>.<a href="#section-8.1-7.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-7.4">
-            <p id="section-8.1-7.4.1">"issuer_key_id" is a Nid-octet identifier for the Issuer Public Key, computed
-as defined in <a href="#setup" class="auto internal xref">Section 5</a>.<a href="#section-8.1-7.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.1-7.5">
-            <p id="section-8.1-7.5.1">"spend_request" is a Nspend_request-octet spend_request, set to the serialized
-<code>spend_request</code> value (see <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.3" class="relref">Section 4.1.3</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> for serialiation details).<a href="#section-8.1-7.5.1" class="pilcrow">¶</a></p>
+            <p id="section-8.1-7.4.1">"encoded_spend_proof" is a Nspend_proof-octet encoded spend proof, set to the serialized
+<code>spend_proof</code> value as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.3" class="relref">Section 4.1.3</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>. The spend proof contains
+the nullifier (field 1) and spend amount (field 2), among other cryptographic values.<a href="#section-8.1-7.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1714,33 +1767,42 @@ as defined in <a href="#setup" class="auto internal xref">Section 5</a>.<a href=
         <h3 id="name-token-refund">
 <a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-token-refund" class="section-name selfRef">Token Refund</a>
         </h3>
-<p id="section-8.2-1">Given a deserialized spend_request from the token, denoted <code>spend_request</code> and
-obtained by deserializing a spend_request according to <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-privacypass-arc-01#section-4.1.3" class="relref">Section 4.1.3</a> of [<a href="#ARC" class="cite xref">ARC</a>]</span>,
-a cost, denoted <code>cost</code>, a nullifier from a token, denoted <code>nullifier</code>, and the
-digest of a token challenge, denoted <code>challenge_digest</code>, verifying a Token requires
-invoking the VerifyAndRefund function from <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-3.4.2" class="relref">Section 3.4.2</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> in the following ways:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.2-1">Upon receiving a Token from the Client, the Origin deserializes the spend_proof
+according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.3" class="relref">Section 4.1.3</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>, yielding a SpendProofMsg structure. The
+Origin then extracts the relevant fields from the spend proof:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.2-2">
+<pre>
+// Extract fields from SpendProofMsg (see Section 4.1.3 of ACT)
+nullifier = spend_proof.k      // Field 1: nullifier (32 bytes)
+spend_amount = spend_proof.s   // Field 2: spend amount (32 bytes)
+</pre><a href="#section-8.2-2" class="pilcrow">¶</a>
+</div>
+<p id="section-8.2-3">The Origin <span class="bcp14">SHOULD</span> verify that the spend_amount matches the requested cost from
+the TokenChallenge to ensure the client is spending the expected amount.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
+<p id="section-8.2-4">To verify the Token and issue a refund, the Origin constructs the request_context
+and invokes VerifyAndRefund:<a href="#section-8.2-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-8.2-5">
 <pre>
 request_context = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
-refund = VerifyAndRefund(skI, requestContext, spend_proof, cost)
-</pre><a href="#section-8.2-2" class="pilcrow">¶</a>
+refund = VerifyAndRefund(skI, request_context, spend_proof)
+</pre><a href="#section-8.2-5" class="pilcrow">¶</a>
 </div>
-<p id="section-8.2-3">This function returns the <code>refund</code> serialized according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.4" class="relref">Section 4.1.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> if the CredentialToken is valid, and nil otherwise.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
-<p id="section-8.2-4">Implementation-specific steps: to prevent double spending, the Origin should perform a check that the
-nullifier (spend_proof.nullifier) has not previously been seen. It then stores the tag for use in future double
+<p id="section-8.2-6">This function returns the <code>refund</code> serialized according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.4" class="relref">Section 4.1.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> if the spend proof is valid, and nil otherwise.<a href="#section-8.2-6" class="pilcrow">¶</a></p>
+<p id="section-8.2-7">Implementation-specific steps: to prevent double spending, the Origin <span class="bcp14">MUST</span> perform a check that the
+nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier for use in future double
 spending checks. To reduce the overhead of performing double spend checks, the Origin can store and
-look up the tags corresponding to the associated request_context value.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-8.2-5">
+look up the nullifiers corresponding to the associated request_context value.<a href="#section-8.2-7" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-8.2-8">
 <pre>
 struct {
     uint8_t refund[Nrefund];
 } Refund;
-</pre><a href="#section-8.2-5" class="pilcrow">¶</a>
+</pre><a href="#section-8.2-8" class="pilcrow">¶</a>
 </div>
-<p id="section-8.2-6">Finally, we send down the refund back to the client encoded as the above <code>Refund</code> struct.<a href="#section-8.2-6" class="pilcrow">¶</a></p>
+<p id="section-8.2-9">Finally, we send down the refund back to the client encoded as the above <code>Refund</code> struct.<a href="#section-8.2-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="new-token-from-refund">
@@ -1749,7 +1811,7 @@ struct {
 <a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-new-token-from-refund" class="section-name selfRef">New Token from Refund</a>
         </h3>
 <p id="section-8.3-1">Differently from <span>[<a href="#ARC" class="cite xref">ARC</a>]</span>, we have to reconstruct our new token based on the <code>Refund</code> response. To do
-so, we invoke the <code>ConstructRefundToken</code> from <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-3.4.4" class="relref">Section 3.4.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> in the following ways:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
+so, we invoke the <code>ConstructRefundToken</code> from <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-3.3.4" class="relref">Section 3.3.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> in the following ways:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.3-2">
 <pre>
 token = ConstructRefundToken(pkI, spend_proof, refund, state)
