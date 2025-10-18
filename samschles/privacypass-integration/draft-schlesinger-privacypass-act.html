@@ -1162,58 +1162,100 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.<a href="#section-abs
             <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-protocol-overview" class="internal xref">Protocol Overview</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-configuration" class="internal xref">Configuration</a></p>
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-client-state-management" class="internal xref">Client State Management</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
-                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-request-context-extension" class="internal xref">Request Context Extension</a></p>
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-credential-lifecycle-and-di" class="internal xref">Credential Lifecycle and Distributed Transactions</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-client-state-transitions" class="internal xref">Client State Transitions</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-concurrency-control-through" class="internal xref">Concurrency Control Through Blocking</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.4">
+                <p id="section-toc.1-1.5.2.4.1"><a href="#section-5.4" class="auto internal xref">5.4</a>.  <a href="#name-multiple-credential-managem" class="internal xref">Multiple Credential Management</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.5">
+                <p id="section-toc.1-1.5.2.5.1"><a href="#section-5.5" class="auto internal xref">5.5</a>.  <a href="#name-error-handling" class="internal xref">Error Handling</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.5.2.1">
+                    <p id="section-toc.1-1.5.2.5.2.1.1"><a href="#section-5.5.1" class="auto internal xref">5.5.1</a>.  <a href="#name-delayed-or-missing-refunds" class="internal xref">Delayed or Missing Refunds</a></p>
+</li>
+                </ul>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
-            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-token-challenge-requirement" class="internal xref">Token Challenge Requirements</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
-            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-credential-issuance-protoco" class="internal xref">Credential Issuance Protocol</a></p>
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-configuration" class="internal xref">Configuration</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
-                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-client-to-issuer-request" class="internal xref">Client-to-Issuer Request</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
-                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-issuer-to-client-response" class="internal xref">Issuer-to-Client Response</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
-                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-credential-finalization" class="internal xref">Credential Finalization</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-request-context-extension" class="internal xref">Request Context Extension</a></p>
 </li>
             </ul>
 </li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-token-challenge-requirement" class="internal xref">Token Challenge Requirements</a></p>
+</li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
-            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-token-redemption-protocol" class="internal xref">Token Redemption Protocol</a></p>
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-credential-issuance-protoco" class="internal xref">Credential Issuance Protocol</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
-                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-token-creation" class="internal xref">Token Creation</a></p>
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-client-to-issuer-request" class="internal xref">Client-to-Issuer Request</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
-                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-token-refund" class="internal xref">Token Refund</a></p>
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-issuer-to-client-response" class="internal xref">Issuer-to-Client Response</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
-                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-new-credential-from-refund" class="internal xref">New Credential from Refund</a></p>
+                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-credential-finalization" class="internal xref">Credential Finalization</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
-            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-token-redemption-protocol" class="internal xref">Token Redemption Protocol</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
+                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-token-creation" class="internal xref">Token Creation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
+                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-token-refund" class="internal xref">Token Refund</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3">
+                <p id="section-toc.1-1.9.2.3.1"><a href="#section-9.3" class="auto internal xref">9.3</a>.  <a href="#name-new-credential-from-refund" class="internal xref">New Credential from Refund</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
-            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
+                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="auto internal xref">10.1</a>.  <a href="#name-privacy-properties" class="internal xref">Privacy Properties</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2">
+                <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="auto internal xref">10.2</a>.  <a href="#name-double-spend-prevention" class="internal xref">Double-Spend Prevention</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.3">
+                <p id="section-toc.1-1.10.2.3.1"><a href="#section-10.3" class="auto internal xref">10.3</a>.  <a href="#name-concurrency-control-and-cre" class="internal xref">Concurrency Control and Credential Sharing</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.4">
+                <p id="section-toc.1-1.10.2.4.1"><a href="#section-10.4" class="auto internal xref">10.4</a>.  <a href="#name-issuer-key-identification" class="internal xref">Issuer Key Identification</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.5">
+                <p id="section-toc.1-1.10.2.5.1"><a href="#section-10.5" class="auto internal xref">10.5</a>.  <a href="#name-dynamic-revocation-and-orig" class="internal xref">Dynamic Revocation and Origin Control</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
-            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
-            <p id="section-toc.1-1.12.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+            <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-normative-references" class="internal xref">Normative References</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
-            <p id="section-toc.1-1.13.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+            <p id="section-toc.1-1.13.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
+            <p id="section-toc.1-1.14.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
 </li>
         </ul>
 </nav>
@@ -1415,83 +1457,247 @@ be implemented in each of the relevant deployment models.<a href="#section-4-5" 
 <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-4-6" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="setup">
+<div id="state-management">
 <section id="section-5">
-      <h2 id="name-configuration">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-configuration" class="section-name selfRef">Configuration</a>
+      <h2 id="name-client-state-management">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-client-state-management" class="section-name selfRef">Client State Management</a>
       </h2>
-<p id="section-5-1">ACT Issuers are configured with key material used for issuance and credential
+<div id="credential-lifecycle-and-distributed-transactions">
+<section id="section-5.1">
+        <h3 id="name-credential-lifecycle-and-di">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-credential-lifecycle-and-di" class="section-name selfRef">Credential Lifecycle and Distributed Transactions</a>
+        </h3>
+<p id="section-5.1-1">ACT credentials follow a distributed transaction model where each spend operation
+creates a two-phase interaction between the client and the origin:<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-5.1-2">
+<li id="section-5.1-2.1">
+            <p id="section-5.1-2.1.1"><strong>Spend Phase</strong>: The client commits to spending a credential by generating a spend
+proof containing a nullifier. At this point, the credential <span class="bcp14">MUST</span> be considered
+invalid and cannot be reused.<a href="#section-5.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-5.1-2.2">
+            <p id="section-5.1-2.2.1"><strong>Refund Phase</strong>: The origin verifies the spend proof and, if valid, returns a
+refund that allows the client to construct a new credential with the remaining
+balance.<a href="#section-5.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-5.1-3">This two-phase model is critical for ACT's concurrency control properties. Because
+a credential becomes invalid immediately upon spend (before the refund is received),
+a client cannot perform multiple concurrent spend operations with the same credential.
+This enforces a strict serialization of operations per credential chain.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="client-state-transitions">
+<section id="section-5.2">
+        <h3 id="name-client-state-transitions">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-client-state-transitions" class="section-name selfRef">Client State Transitions</a>
+        </h3>
+<p id="section-5.2-1">A client managing an ACT credential progresses through the following states:<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.2-2">
+<pre>
+   +----------+
+   |  Initial |  (Credential with N credits)
+   +----------+
+        |
+        | ProveSpend(credential, cost)
+        v
+   +----------+
+   |   Spent  |  (Waiting for refund, credential invalid)
+   +----------+
+        |
+        | ConstructRefundToken(refund)
+        v
+   +----------+
+   | Refunded |  (New credential with N-cost credits)
+   +----------+
+</pre><a href="#section-5.2-2" class="pilcrow">¶</a>
+</div>
+<p id="section-5.2-3">State transitions:<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.2-4.1">
+            <p id="section-5.2-4.1.1"><strong>Initial</strong>: Client holds a valid credential with N credits (N &gt; 0). The credential
+can be spent.<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.2-4.2">
+            <p id="section-5.2-4.2.1"><strong>Spent</strong>: Client has generated a spend proof and sent it to the origin. The
+original credential is now invalid and <span class="bcp14">MUST NOT</span> be used again. The client is
+blocked waiting for a refund response.<a href="#section-5.2-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.2-4.3">
+            <p id="section-5.2-4.3.1"><strong>Refunded</strong>: Client has received a valid refund and constructed a new credential
+with the remaining balance. If the new balance is greater than 0, the client
+returns to the Initial state with the new credential. If the balance is 0, the
+credential is exhausted.<a href="#section-5.2-4.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-5.2-5">The transition from Spent to Refunded may fail if the origin does not provide a
+valid refund. Error handling for this case is described in <a href="#error-handling" class="auto internal xref">Section 5.5</a>.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="concurrency-control-through-blocking">
+<section id="section-5.3">
+        <h3 id="name-concurrency-control-through">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-concurrency-control-through" class="section-name selfRef">Concurrency Control Through Blocking</a>
+        </h3>
+<p id="section-5.3-1">The key insight enabling ACT's concurrency control is that each credential instance
+can only be in one state at a time. When a client calls ProveSpend, it must
+immediately transition the credential to the Spent state, making it unavailable for
+any other operations. The client cannot perform another spend until it receives a
+refund and transitions to the Refunded state with a new credential instance.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.3-2">This blocking behavior prevents credential sharing and concurrent usage:<a href="#section-5.3-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.3-3.1">
+            <p id="section-5.3-3.1.1">If a malicious party attempts to copy a credential and use it elsewhere, only one
+spend operation can succeed (whichever reaches the origin first). The second spend
+will be rejected as a double-spend when the origin checks the nullifier.<a href="#section-5.3-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.3-3.2">
+            <p id="section-5.3-3.2.1">Even if a single client attempts to perform concurrent spends with the same
+credential, the first spend invalidates the credential, preventing the second.<a href="#section-5.3-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-5.3-4">The origin can enforce session behavior by declining to issue a refund, effectively
+terminating the credential chain and preventing further operations.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="multiple-credential-management">
+<section id="section-5.4">
+        <h3 id="name-multiple-credential-managem">
+<a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-multiple-credential-managem" class="section-name selfRef">Multiple Credential Management</a>
+        </h3>
+<p id="section-5.4-1">Clients <span class="bcp14">MAY</span> maintain multiple independent credential chains simultaneously. This is
+useful when credentials are bound to different contexts via the credential_context
+field (<a href="#token-challenge-requirements" class="auto internal xref">Section 7</a>).<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+<p id="section-5.4-2">Example: A client might hold:<a href="#section-5.4-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.4-3.1">
+            <p id="section-5.4-3.1.1">Credential A: Bound to issuer1.example, origin1.example, credential_context =
+"session-2024-01", with 100 credits<a href="#section-5.4-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.4-3.2">
+            <p id="section-5.4-3.2.1">Credential B: Bound to issuer1.example, origin2.example, credential_context =
+"session-2024-01", with 50 credits<a href="#section-5.4-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.4-3.3">
+            <p id="section-5.4-3.3.1">Credential C: Bound to issuer1.example, origin1.example, credential_context =
+"session-2024-02", with 75 credits<a href="#section-5.4-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-5.4-4">Each credential chain operates independently with its own state machine. A spend
+operation on Credential A does not affect Credentials B or C. The client can perform
+spend operations on different credentials concurrently, but each individual credential
+chain is strictly serialized through the spend-refund cycle.<a href="#section-5.4-4" class="pilcrow">¶</a></p>
+<p id="section-5.4-5">When the client receives a TokenChallenge, it determines which credential to use
+based on the challenge's issuer_name, origin_info, and credential_context fields.
+If no matching credential exists or all matching credentials are in the Spent state
+(awaiting refund), the client must either wait for a refund or request a new
+credential through the issuance protocol.<a href="#section-5.4-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="error-handling">
+<section id="section-5.5">
+        <h3 id="name-error-handling">
+<a href="#section-5.5" class="section-number selfRef">5.5. </a><a href="#name-error-handling" class="section-name selfRef">Error Handling</a>
+        </h3>
+<div id="delayed-or-missing-refunds">
+<section id="section-5.5.1">
+          <h4 id="name-delayed-or-missing-refunds">
+<a href="#section-5.5.1" class="section-number selfRef">5.5.1. </a><a href="#name-delayed-or-missing-refunds" class="section-name selfRef">Delayed or Missing Refunds</a>
+          </h4>
+<p id="section-5.5.1-1">After a client sends a spend proof to the origin, the client must wait for the
+corresponding refund before it can continue using the credential chain. The spent
+credential instance is immediately invalid and <span class="bcp14">MUST NOT</span> be reused.<a href="#section-5.5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.5.1-2">Origins <span class="bcp14">MAY</span> retain spend proof state and serve delayed refund requests after service
+interruptions or failures. This allows credential chains to resume even if the initial
+refund response was not delivered due to network issues or temporary service outages.<a href="#section-5.5.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.5.1-3">However, origins <span class="bcp14">MAY</span> also implement a timeout after which they delete stored refund
+state. If a client's refund request arrives after this timeout, the origin will be
+unable to provide the refund, effectively terminating that credential chain. Clients
+in this situation will need to request a new credential through the issuance protocol
+(<a href="#credential-issuance-protocol" class="auto internal xref">Section 8</a>) to continue accessing the origin.<a href="#section-5.5.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="setup">
+<section id="section-6">
+      <h2 id="name-configuration">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-configuration" class="section-name selfRef">Configuration</a>
+      </h2>
+<p id="section-6-1">ACT Issuers are configured with key material used for issuance and credential
 verification. Concretely, Issuers run the <code>KeyGen</code> function from <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>
-to produce a private and public key, denoted skI and pkI, respectively.<a href="#section-5-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-5-2">
+to produce a private and public key, denoted skI and pkI, respectively.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-6-2">
 <pre>
 skI, pkI = SetupServer()
-</pre><a href="#section-5-2" class="pilcrow">¶</a>
+</pre><a href="#section-6-2" class="pilcrow">¶</a>
 </div>
-<p id="section-5-3">The Issuer Public Key ID, denoted <code>issuer_key_id</code>, is computed as the
+<p id="section-6-3">The Issuer Public Key ID, denoted <code>issuer_key_id</code>, is computed as the
 SHA-256 hash of the Issuer Public Key, i.e., <code>issuer_key_id = SHA-256(pkI_serialized)</code>,
-where <code>pkI_serialized</code> is the serialized version of <code>pkI</code> as described in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1" class="relref">Section 4.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-5-3" class="pilcrow">¶</a></p>
-<p id="section-5-4">OPEN ISSUE: Coordinate with ACT specification authors on the serialization format (CBOR vs TLS notation) to ensure consistency.<a href="#section-5-4" class="pilcrow">¶</a></p>
+where <code>pkI_serialized</code> is the serialized version of <code>pkI</code> as described in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1" class="relref">Section 4.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6-3" class="pilcrow">¶</a></p>
+<p id="section-6-4">OPEN ISSUE: Coordinate with ACT specification authors on the serialization format (CBOR vs TLS notation) to ensure consistency.<a href="#section-6-4" class="pilcrow">¶</a></p>
 <div id="request-context-extension">
-<section id="section-5.1">
+<section id="section-6.1">
         <h3 id="name-request-context-extension">
-<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-request-context-extension" class="section-name selfRef">Request Context Extension</a>
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-request-context-extension" class="section-name selfRef">Request Context Extension</a>
         </h3>
-<p id="section-5.1-1">This Privacy Pass integration binds credentials to application-specific contexts
+<p id="section-6.1-1">This Privacy Pass integration binds credentials to application-specific contexts
 using a <code>request_context</code> parameter. This approach is inspired by the Anonymous
 Rate-Limited Credentials (ARC) protocol <span>[<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>, which threads a similar
-context parameter through its cryptographic operations for domain separation.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
-<p id="section-5.1-2">IMPORTANT: The current CFRG ACT specification <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> does not include
+context parameter through its cryptographic operations for domain separation.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.1-2">IMPORTANT: The current CFRG ACT specification <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> does not include
 <code>request_context</code> parameters in its cryptographic functions. To support the
 Privacy Pass integration described in this document, the ACT specification would
-need to be extended with the following changes:<a href="#section-5.1-2" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-5.1-3">
-<li id="section-5.1-3.1">
-            <p id="section-5.1-3.1.1"><strong>IssueRequest</strong>: No changes needed - the client generates a blinded commitment
-without knowledge of the final context binding.<a href="#section-5.1-3.1.1" class="pilcrow">¶</a></p>
+need to be extended with the following changes:<a href="#section-6.1-2" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-6.1-3">
+<li id="section-6.1-3.1">
+            <p id="section-6.1-3.1.1"><strong>IssueRequest</strong>: No changes needed - the client generates a blinded commitment
+without knowledge of the final context binding.<a href="#section-6.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-5.1-3.2">
-            <p id="section-5.1-3.2.1"><strong>IssueResponse</strong>: Add <code>request_context</code> as an input parameter alongside the
+          <li id="section-6.1-3.2">
+            <p id="section-6.1-3.2.1"><strong>IssueResponse</strong>: Add <code>request_context</code> as an input parameter alongside the
 credit amount <code>c</code>. The issuer determines the appropriate context based on its
 policy (e.g., derived from TokenChallenge fields) and binds the credential to
 this context. The function would hash the context into a scalar and include it
-in the credential signature, similar to how ARC hashes <code>requestContext</code> into <code>m2</code>.<a href="#section-5.1-3.2.1" class="pilcrow">¶</a></p>
+in the credential signature, similar to how ARC hashes <code>requestContext</code> into <code>m2</code>.<a href="#section-6.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-5.1-3.3">
-            <p id="section-5.1-3.3.1"><strong>VerifyAndRefund</strong>: Add <code>request_context</code> as an input parameter to verify
+          <li id="section-6.1-3.3">
+            <p id="section-6.1-3.3.1"><strong>VerifyAndRefund</strong>: Add <code>request_context</code> as an input parameter to verify
 that the spend proof is bound to the correct application context. The issuer
-reconstructs the context from the TokenChallenge and uses it during verification.<a href="#section-5.1-3.3.1" class="pilcrow">¶</a></p>
+reconstructs the context from the TokenChallenge and uses it during verification.<a href="#section-6.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-5.1-3.4">
-            <p id="section-5.1-3.4.1"><strong>Credential Structure</strong>: The Anonymous Credit Token structure would be extended
+          <li id="section-6.1-3.4">
+            <p id="section-6.1-3.4.1"><strong>Credential Structure</strong>: The Anonymous Credit Token structure would be extended
 to include the context-bound component within the BBS signature, analogous to
-how ARC credentials include <code>m2</code> for presentation context binding.<a href="#section-5.1-3.4.1" class="pilcrow">¶</a></p>
+how ARC credentials include <code>m2</code> for presentation context binding.<a href="#section-6.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-5.1-4">The key insight is that <code>request_context</code> is determined by the issuer (like the
+<p id="section-6.1-4">The key insight is that <code>request_context</code> is determined by the issuer (like the
 credit amount), not by the client. The issuer sets the context during IssueResponse
 based on the TokenChallenge requirements, and both parties reconstruct it from
-TokenChallenge fields during spending.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
-<p id="section-5.1-5">Until these extensions are incorporated into the CFRG ACT specification, the
+TokenChallenge fields during spending.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
+<p id="section-6.1-5">Until these extensions are incorporated into the CFRG ACT specification, the
 function calls in this document should be understood as describing the intended
 behavior with request_context support. Implementations <span class="bcp14">SHOULD</span> coordinate with
-the CFRG ACT specification authors to ensure compatibility.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
-<p id="section-5.1-6">For reference on how request context threading works in practice, see
+the CFRG ACT specification authors to ensure compatibility.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
+<p id="section-6.1-6">For reference on how request context threading works in practice, see
 <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-01#section-3" class="relref">Section 3</a> of [<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>, which demonstrates the pattern of binding credentials
-to application-specific contexts through cryptographic commitments.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+to application-specific contexts through cryptographic commitments.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="token-challenge-requirements">
-<section id="section-6">
+<section id="section-7">
       <h2 id="name-token-challenge-requirement">
-<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-token-challenge-requirement" class="section-name selfRef">Token Challenge Requirements</a>
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-token-challenge-requirement" class="section-name selfRef">Token Challenge Requirements</a>
       </h2>
-<p id="section-6-1">The ACT protocol uses a modified TokenChallenge structure from the one
+<p id="section-7-1">The ACT protocol uses a modified TokenChallenge structure from the one
 specified in <span>[<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span>. In particular, the updated TokenChallenge
-structure is as follows:<a href="#section-6-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6-2">
+structure is as follows:<a href="#section-7-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7-2">
 <pre>
 struct {
     uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
@@ -1500,114 +1706,114 @@ struct {
     opaque origin_info&lt;0..2^16-1&gt;;
     opaque credential_context&lt;0..32&gt;;
 } TokenChallenge;
-</pre><a href="#section-6-2" class="pilcrow">¶</a>
+</pre><a href="#section-7-2" class="pilcrow">¶</a>
 </div>
-<p id="section-6-3">OPEN ISSUE: This token type value (0xE5AD) was chosen arbitrarily and may be too close to the ARC token type. This should be coordinated with IANA registry assignments.<a href="#section-6-3" class="pilcrow">¶</a></p>
-<p id="section-6-4">With the exception of <code>credential_context</code>, all fields are exactly as specified
+<p id="section-7-3">OPEN ISSUE: This token type value (0xE5AD) was chosen arbitrarily and may be too close to the ARC token type. This should be coordinated with IANA registry assignments.<a href="#section-7-3" class="pilcrow">¶</a></p>
+<p id="section-7-4">With the exception of <code>credential_context</code>, all fields are exactly as specified
 in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.1.1" class="relref">Section 2.1.1</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span>. The <code>credential_context</code> field is defined as
-follows:<a href="#section-6-4" class="pilcrow">¶</a></p>
+follows:<a href="#section-7-4" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6-5.1">
-          <p id="section-6-5.1.1">"credential_context" is a field that is either 0 or 32 bytes, prefixed with a single
+<li class="normal" id="section-7-5.1">
+          <p id="section-7-5.1.1">"credential_context" is a field that is either 0 or 32 bytes, prefixed with a single
 octet indicating the length (either 0 or 32). If the value is non-empty, it is a 32-byte value
 generated by the origin that allows the origin to require that clients fetch credentials
 bound to a specific context. Challenges with credential_context values of invalid lengths
-<span class="bcp14">MUST</span> be rejected.<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
+<span class="bcp14">MUST</span> be rejected.<a href="#section-7-5.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-6-6">Similar to the <code>redemption_context</code> field, the <code>credential_context</code> is used to bind
+<p id="section-7-6">Similar to the <code>redemption_context</code> field, the <code>credential_context</code> is used to bind
 information to the credential. This might be useful, for example, to enforce some
 expiration on the credential. Origins might do this by constructing <code>credential_context</code>
 as F(current time window), where F is a pseudorandom function. Semantically, this is
 equivalent to the Origin asking the Client for a token from a credential that is
-bound to "current time window."<a href="#section-6-6" class="pilcrow">¶</a></p>
-<p id="section-6-7">OPEN ISSUE: give more guidance about how to construct credential_context and redemption_context depending on the application's needs.<a href="#section-6-7" class="pilcrow">¶</a></p>
-<p id="section-6-8">In addition to this updated TokenChallenge, the HTTP authentication challenge
-also <span class="bcp14">SHOULD</span> contain the following additional attribute:<a href="#section-6-8" class="pilcrow">¶</a></p>
+bound to "current time window."<a href="#section-7-6" class="pilcrow">¶</a></p>
+<p id="section-7-7">OPEN ISSUE: give more guidance about how to construct credential_context and redemption_context depending on the application's needs.<a href="#section-7-7" class="pilcrow">¶</a></p>
+<p id="section-7-8">In addition to this updated TokenChallenge, the HTTP authentication challenge
+also <span class="bcp14">SHOULD</span> contain the following additional attribute:<a href="#section-7-8" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6-9.1">
-          <p id="section-6-9.1.1">"cost", which contains a JSON number indicating the amount of credits to
-spend out of the ACT credential.<a href="#section-6-9.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-7-9.1">
+          <p id="section-7-9.1.1">"cost", which contains a JSON number indicating the amount of credits to
+spend out of the ACT credential.<a href="#section-7-9.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-6-10">Implementation-specific steps: the client should store the Origin-provided input <code>tokenChallenge</code> so that when they receive a new <code>tokenChallenge</code> value, they can check if it has changed and which fields are different. This will inform the client's behavior - for example, if <code>credential_context</code> is being used to enforce an expiration on the credential, then if the <code>credential_context</code> has changed, this can prompt the client to request a new credential.<a href="#section-6-10" class="pilcrow">¶</a></p>
+<p id="section-7-10">Implementation-specific steps: the client should store the Origin-provided input <code>tokenChallenge</code> so that when they receive a new <code>tokenChallenge</code> value, they can check if it has changed and which fields are different. This will inform the client's behavior - for example, if <code>credential_context</code> is being used to enforce an expiration on the credential, then if the <code>credential_context</code> has changed, this can prompt the client to request a new credential.<a href="#section-7-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="credential-issuance-protocol">
-<section id="section-7">
+<section id="section-8">
       <h2 id="name-credential-issuance-protoco">
-<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-credential-issuance-protoco" class="section-name selfRef">Credential Issuance Protocol</a>
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-credential-issuance-protoco" class="section-name selfRef">Credential Issuance Protocol</a>
       </h2>
-<p id="section-7-1">Issuers provide an Issuer Private and Public Key, denoted <code>skI</code> and <code>pkI</code>
-respectively, used to produce credentials as input to the protocol. See <a href="#setup" class="auto internal xref">Section 5</a>
-for how these keys are generated.<a href="#section-7-1" class="pilcrow">¶</a></p>
-<p id="section-7-2">Clients provide the following as input to the issuance protocol:<a href="#section-7-2" class="pilcrow">¶</a></p>
+<p id="section-8-1">Issuers provide an Issuer Private and Public Key, denoted <code>skI</code> and <code>pkI</code>
+respectively, used to produce credentials as input to the protocol. See <a href="#setup" class="auto internal xref">Section 6</a>
+for how these keys are generated.<a href="#section-8-1" class="pilcrow">¶</a></p>
+<p id="section-8-2">Clients provide the following as input to the issuance protocol:<a href="#section-8-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7-3.1">
-          <p id="section-7-3.1.1">Issuer Request URL: A URL identifying the location to which issuance requests
+<li class="normal" id="section-8-3.1">
+          <p id="section-8-3.1.1">Issuer Request URL: A URL identifying the location to which issuance requests
 are sent. This can be a URL derived from the "issuer-request-uri" value in the
 Issuer's directory resource, or it can be another Client-configured URL. The value
 of this parameter depends on the Client configuration and deployment model.
 For example, in the 'Joint Origin and Issuer' deployment model, the Issuer
 Request URL might correspond to the Client's configured Attester, and the
-Attester is configured to relay requests to the Issuer.<a href="#section-7-3.1.1" class="pilcrow">¶</a></p>
+Attester is configured to relay requests to the Issuer.<a href="#section-8-3.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-7-3.2">
-          <p id="section-7-3.2.1">Issuer name: An identifier for the Issuer. This is typically a host name that
-can be used to construct HTTP requests to the Issuer.<a href="#section-7-3.2.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-8-3.2">
+          <p id="section-8-3.2.1">Issuer name: An identifier for the Issuer. This is typically a host name that
+can be used to construct HTTP requests to the Issuer.<a href="#section-8-3.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-7-3.3">
-          <p id="section-7-3.3.1">Issuer Public Key: <code>pkI</code>, with a key identifier <code>token_key_id</code> computed as
-described in <a href="#setup" class="auto internal xref">Section 5</a>.<a href="#section-7-3.3.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-8-3.3">
+          <p id="section-8-3.3.1">Issuer Public Key: <code>pkI</code>, with a key identifier <code>token_key_id</code> computed as
+described in <a href="#setup" class="auto internal xref">Section 6</a>.<a href="#section-8-3.3.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-7-4">Given this configuration and these inputs, the two messages exchanged in
-this protocol to produce a credential are described below.<a href="#section-7-4" class="pilcrow">¶</a></p>
+<p id="section-8-4">Given this configuration and these inputs, the two messages exchanged in
+this protocol to produce a credential are described below.<a href="#section-8-4" class="pilcrow">¶</a></p>
 <div id="client-to-issuer-request">
-<section id="section-7.1">
+<section id="section-8.1">
         <h3 id="name-client-to-issuer-request">
-<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-client-to-issuer-request" class="section-name selfRef">Client-to-Issuer Request</a>
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-client-to-issuer-request" class="section-name selfRef">Client-to-Issuer Request</a>
         </h3>
-<p id="section-7.1-1">Given Origin-provided input <code>tokenChallenge</code> and the Issuer Public Key ID <code>issuer_key_id</code>,
+<p id="section-8.1-1">Given Origin-provided input <code>tokenChallenge</code> and the Issuer Public Key ID <code>issuer_key_id</code>,
 the Client first creates a credential request message using the <code>IssueRequest</code>
-function from <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> as follows:<a href="#section-7.1-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-7.1-2">
+function from <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> as follows:<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-8.1-2">
 <pre>
 (clientSecrets, request) = IssueRequest()
-</pre><a href="#section-7.1-2" class="pilcrow">¶</a>
+</pre><a href="#section-8.1-2" class="pilcrow">¶</a>
 </div>
-<p id="section-7.1-3">The Client then creates a TokenRequest structure as follows:<a href="#section-7.1-3" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-7.1-4">
+<p id="section-8.1-3">The Client then creates a TokenRequest structure as follows:<a href="#section-8.1-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-8.1-4">
 <pre>
 struct {
   uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
   uint8_t truncated_issuer_key_id;
   uint8_t encoded_request[Nrequest];
 } TokenRequest;
-</pre><a href="#section-7.1-4" class="pilcrow">¶</a>
+</pre><a href="#section-8.1-4" class="pilcrow">¶</a>
 </div>
-<p id="section-7.1-5">The structure fields are defined as follows:<a href="#section-7.1-5" class="pilcrow">¶</a></p>
+<p id="section-8.1-5">The structure fields are defined as follows:<a href="#section-8.1-5" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7.1-6.1">
-            <p id="section-7.1-6.1.1">"token_type" is a 2-octet integer.<a href="#section-7.1-6.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.1-6.1">
+            <p id="section-8.1-6.1.1">"token_type" is a 2-octet integer.<a href="#section-8.1-6.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.1-6.2">
-            <p id="section-7.1-6.2.1">"truncated_issuer_key_id" is the least significant byte of the <code>issuer_key_id</code>
-(<a href="#setup" class="auto internal xref">Section 5</a>) in network byte order (in other words, the last 8
+          <li class="normal" id="section-8.1-6.2">
+            <p id="section-8.1-6.2.1">"truncated_issuer_key_id" is the least significant byte of the <code>issuer_key_id</code>
+(<a href="#setup" class="auto internal xref">Section 6</a>) in network byte order (in other words, the last 8
 bits of <code>issuer_key_id</code>). This value is truncated so that Issuers cannot use
-<code>issuer_key_id</code> as a way of uniquely identifying Clients; see <a href="#security" class="auto internal xref">Section 9</a>
-and referenced information for more details.<a href="#section-7.1-6.2.1" class="pilcrow">¶</a></p>
+<code>issuer_key_id</code> as a way of uniquely identifying Clients; see <a href="#security" class="auto internal xref">Section 10</a>
+and referenced information for more details.<a href="#section-8.1-6.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.1-6.3">
-            <p id="section-7.1-6.3.1">"encoded_request" is the Nrequest-octet request, computed as the serialization
-of the <code>request</code> value as defined in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.1" class="relref">Section 4.1.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-7.1-6.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.1-6.3">
+            <p id="section-8.1-6.3.1">"encoded_request" is the Nrequest-octet request, computed as the serialization
+of the <code>request</code> value as defined in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.1" class="relref">Section 4.1.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-8.1-6.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-7.1-7">The Client then generates an HTTP POST request to send to the Issuer Request URL,
+<p id="section-8.1-7">The Client then generates an HTTP POST request to send to the Issuer Request URL,
 with the TokenRequest as the content. The media type for this request is
 "application/private-credential-request". An example request for the Issuer Request URL
-"https://issuer.example.net/request" is shown below.<a href="#section-7.1-7" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-7.1-8">
+"https://issuer.example.net/request" is shown below.<a href="#section-8.1-7" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-8.1-8">
 <pre>
 POST /request HTTP/1.1
 Host: issuer.example.net
@@ -1616,128 +1822,128 @@ Content-Type: application/private-credential-request
 Content-Length: &lt;Length of TokenRequest&gt;
 
 &lt;Bytes containing the TokenRequest&gt;
-</pre><a href="#section-7.1-8" class="pilcrow">¶</a>
+</pre><a href="#section-8.1-8" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
 <div id="issuer-to-client-response">
-<section id="section-7.2">
+<section id="section-8.2">
         <h3 id="name-issuer-to-client-response">
-<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-issuer-to-client-response" class="section-name selfRef">Issuer-to-Client Response</a>
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-issuer-to-client-response" class="section-name selfRef">Issuer-to-Client Response</a>
         </h3>
-<p id="section-7.2-1">Upon receipt of the request, the Issuer validates the following conditions:<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.2-1">Upon receipt of the request, the Issuer validates the following conditions:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7.2-2.1">
-            <p id="section-7.2-2.1.1">The TokenRequest contains a supported token_type equal to value 0xE5AD.<a href="#section-7.2-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.2-2.1">
+            <p id="section-8.2-2.1.1">The TokenRequest contains a supported token_type equal to value 0xE5AD.<a href="#section-8.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.2-2.2">
-            <p id="section-7.2-2.2.1">The TokenRequest.truncated_token_key_id corresponds to the truncated key ID
+          <li class="normal" id="section-8.2-2.2">
+            <p id="section-8.2-2.2.1">The TokenRequest.truncated_token_key_id corresponds to the truncated key ID
 of an Issuer Public Key, with corresponding secret key <code>skI</code>, owned by
-the Issuer.<a href="#section-7.2-2.2.1" class="pilcrow">¶</a></p>
+the Issuer.<a href="#section-8.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.2-2.3">
-            <p id="section-7.2-2.3.1">The TokenRequest.encoded_request is of the correct size (<code>Nrequest</code>).<a href="#section-7.2-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.2-2.3">
+            <p id="section-8.2-2.3.1">The TokenRequest.encoded_request is of the correct size (<code>Nrequest</code>).<a href="#section-8.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-7.2-3">If any of these conditions is not met, the Issuer <span class="bcp14">MUST</span> return an HTTP 422
-(Unprocessable Content) error to the client.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
-<p id="section-7.2-4">If these conditions are met, the Issuer then tries to deserialize
+<p id="section-8.2-3">If any of these conditions is not met, the Issuer <span class="bcp14">MUST</span> return an HTTP 422
+(Unprocessable Content) error to the client.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
+<p id="section-8.2-4">If these conditions are met, the Issuer then tries to deserialize
 TokenRequest.encoded_request according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.1" class="relref">Section 4.1.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>, yielding <code>request</code>.
 If this fails, the Issuer <span class="bcp14">MUST</span> return an HTTP 422 (Unprocessable Content)
 error to the client. Otherwise, if the Issuer is willing to produce a credential
 for the Client, the Issuer determines both the number of initial credits and the
 request_context based on its policy (e.g., based on attestation results, payment
 verification, or TokenChallenge requirements). The request_context binds the
-credential to the specific application context:<a href="#section-7.2-4" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-7.2-5">
+credential to the specific application context:<a href="#section-8.2-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-8.2-5">
 <pre>
 request_context = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
 response = IssueResponse(skI, request, initial_credits, request_context)
-</pre><a href="#section-7.2-5" class="pilcrow">¶</a>
+</pre><a href="#section-8.2-5" class="pilcrow">¶</a>
 </div>
-<p id="section-7.2-6">The Issuer then creates a TokenResponse structured as follows:<a href="#section-7.2-6" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-7.2-7">
+<p id="section-8.2-6">The Issuer then creates a TokenResponse structured as follows:<a href="#section-8.2-6" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-8.2-7">
 <pre>
 struct {
    uint8_t encoded_response[Nresponse];
 } TokenResponse;
-</pre><a href="#section-7.2-7" class="pilcrow">¶</a>
+</pre><a href="#section-8.2-7" class="pilcrow">¶</a>
 </div>
-<p id="section-7.2-8">The structure fields are defined as follows:<a href="#section-7.2-8" class="pilcrow">¶</a></p>
+<p id="section-8.2-8">The structure fields are defined as follows:<a href="#section-8.2-8" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7.2-9.1">
-            <p id="section-7.2-9.1.1">"encoded_response" is the Nresponse-octet encoded issuance response message, computed
-as the serialization of <code>response</code> as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.2" class="relref">Section 4.1.2</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-7.2-9.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.2-9.1">
+            <p id="section-8.2-9.1.1">"encoded_response" is the Nresponse-octet encoded issuance response message, computed
+as the serialization of <code>response</code> as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.2" class="relref">Section 4.1.2</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-8.2-9.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-7.2-10">The Issuer generates an HTTP response with status code 200 whose content
+<p id="section-8.2-10">The Issuer generates an HTTP response with status code 200 whose content
 consists of TokenResponse, with the content type set as
-"application/private-credential-response".<a href="#section-7.2-10" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-7.2-11">
+"application/private-credential-response".<a href="#section-8.2-10" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-8.2-11">
 <pre>
 HTTP/1.1 200 OK
 Content-Type: application/private-credential-response
 Content-Length: &lt;Length of TokenResponse&gt;
 
 &lt;Bytes containing the TokenResponse&gt;
-</pre><a href="#section-7.2-11" class="pilcrow">¶</a>
+</pre><a href="#section-8.2-11" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
 <div id="credential-finalization">
-<section id="section-7.3">
+<section id="section-8.3">
         <h3 id="name-credential-finalization">
-<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-credential-finalization" class="section-name selfRef">Credential Finalization</a>
+<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-credential-finalization" class="section-name selfRef">Credential Finalization</a>
         </h3>
-<p id="section-7.3-1">Upon receipt, the Client handles the response and, if successful, deserializes
+<p id="section-8.3-1">Upon receipt, the Client handles the response and, if successful, deserializes
 the content values <code>TokenResponse.encoded_response</code> according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.2" class="relref">Section 4.1.2</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>
 yielding <code>response</code>. If deserialization fails, the Client aborts the protocol.
-Otherwise, the Client processes the response as follows:<a href="#section-7.3-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-7.3-2">
+Otherwise, the Client processes the response as follows:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-8.3-2">
 <pre>
 credential = VerifyIssuance(pkI, request, response, clientSecrets)
-</pre><a href="#section-7.3-2" class="pilcrow">¶</a>
+</pre><a href="#section-8.3-2" class="pilcrow">¶</a>
 </div>
-<p id="section-7.3-3">The Client then saves the credential structure, associated with the given Issuer
-Name, to use when producing Token values in response to future token challenges.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
+<p id="section-8.3-3">The Client then saves the credential structure, associated with the given Issuer
+Name, to use when producing Token values in response to future token challenges.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="token-redemption-protocol">
-<section id="section-8">
+<section id="section-9">
       <h2 id="name-token-redemption-protocol">
-<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-token-redemption-protocol" class="section-name selfRef">Token Redemption Protocol</a>
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-token-redemption-protocol" class="section-name selfRef">Token Redemption Protocol</a>
       </h2>
-<p id="section-8-1">The token redemption protocol takes as input TokenChallenge and cost
+<p id="section-9-1">The token redemption protocol takes as input TokenChallenge and cost
 values from <span>[<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>], <a href="https://rfc-editor.org/rfc/rfc9577#section-2.1" class="relref">Section 2.1</a></span>; the cost is sent as an additional
-attribute within the HTTP challenge as described in <a href="#token-challenge-requirements" class="auto internal xref">Section 6</a>.
+attribute within the HTTP challenge as described in <a href="#token-challenge-requirements" class="auto internal xref">Section 7</a>.
 Clients use credentials from the issuance protocol in producing tokens
 bound to the TokenChallenge. The process for producing a token in this
-way, as well as verifying a resulting token, is described in the following sections.<a href="#section-8-1" class="pilcrow">¶</a></p>
+way, as well as verifying a resulting token, is described in the following sections.<a href="#section-9-1" class="pilcrow">¶</a></p>
 <div id="token-creation">
-<section id="section-8.1">
+<section id="section-9.1">
         <h3 id="name-token-creation">
-<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-token-creation" class="section-name selfRef">Token Creation</a>
+<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-token-creation" class="section-name selfRef">Token Creation</a>
         </h3>
-<p id="section-8.1-1">Given a TokenChallenge value as input, denoted <code>challenge</code>, a cost,
+<p id="section-9.1-1">Given a TokenChallenge value as input, denoted <code>challenge</code>, a cost,
 denoted <code>cost</code>, and a previously obtained credential that is valid
 for the Issuer identifier in the challenge, denoted <code>credential</code>, containing at
-least <code>cost</code> credits, Clients compute a spend request as follows:<a href="#section-8.1-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-8.1-2">
+least <code>cost</code> credits, Clients compute a spend request as follows:<a href="#section-9.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-9.1-2">
 <pre>
 spend_proof, state = ProveSpend(credential, cost)
-</pre><a href="#section-8.1-2" class="pilcrow">¶</a>
+</pre><a href="#section-9.1-2" class="pilcrow">¶</a>
 </div>
-<p id="section-8.1-3">Each credential instance <span class="bcp14">MUST</span> only ever be used for a single spend request. When the client
+<p id="section-9.1-3">Each credential instance <span class="bcp14">MUST</span> only ever be used for a single spend request. When the client
 receives the refunded credential from the server, the client uses that new credential instance
 for the next spend. If the same credential instance is used more than once, the privacy
-assumptions of ACT are violated by presenting the same nullifier twice.<a href="#section-8.1-3" class="pilcrow">¶</a></p>
-<p id="section-8.1-4">The resulting Token value is then constructed as follows:<a href="#section-8.1-4" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-8.1-5">
+assumptions of ACT are violated by presenting the same nullifier twice.<a href="#section-9.1-3" class="pilcrow">¶</a></p>
+<p id="section-9.1-4">The resulting Token value is then constructed as follows:<a href="#section-9.1-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-9.1-5">
 <pre>
 struct {
     uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
@@ -1745,151 +1951,237 @@ struct {
     uint8_t issuer_key_id[Nid];
     uint8_t encoded_spend_proof[Nspend_proof];
 } Token;
-</pre><a href="#section-8.1-5" class="pilcrow">¶</a>
+</pre><a href="#section-9.1-5" class="pilcrow">¶</a>
 </div>
-<p id="section-8.1-6">The structure fields are defined as follows:<a href="#section-8.1-6" class="pilcrow">¶</a></p>
+<p id="section-9.1-6">The structure fields are defined as follows:<a href="#section-9.1-6" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.1-7.1">
-            <p id="section-8.1-7.1.1">"token_type" is a 2-octet integer, in network byte order, equal to 0xE5AD.<a href="#section-8.1-7.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.1-7.1">
+            <p id="section-9.1-7.1.1">"token_type" is a 2-octet integer, in network byte order, equal to 0xE5AD.<a href="#section-9.1-7.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.1-7.2">
-            <p id="section-8.1-7.2.1">"challenge_digest" is a 32-octet value containing the hash of the original TokenChallenge, SHA-256(TokenChallenge).<a href="#section-8.1-7.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-9.1-7.2">
+            <p id="section-9.1-7.2.1">"challenge_digest" is a 32-octet value containing the hash of the original TokenChallenge, SHA-256(TokenChallenge).<a href="#section-9.1-7.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.1-7.3">
-            <p id="section-8.1-7.3.1">"issuer_key_id" is a Nid-octet identifier for the Issuer Public Key, computed
-as defined in <a href="#setup" class="auto internal xref">Section 5</a>.<a href="#section-8.1-7.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-9.1-7.3">
+            <p id="section-9.1-7.3.1">"issuer_key_id" is a Nid-octet identifier for the Issuer Public Key, computed
+as defined in <a href="#setup" class="auto internal xref">Section 6</a>.<a href="#section-9.1-7.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.1-7.4">
-            <p id="section-8.1-7.4.1">"encoded_spend_proof" is a Nspend_proof-octet encoded spend proof, set to the serialized
+          <li class="normal" id="section-9.1-7.4">
+            <p id="section-9.1-7.4.1">"encoded_spend_proof" is a Nspend_proof-octet encoded spend proof, set to the serialized
 <code>spend_proof</code> value as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.3" class="relref">Section 4.1.3</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>. The spend proof contains
-the nullifier (field 1) and spend amount (field 2), among other cryptographic values.<a href="#section-8.1-7.4.1" class="pilcrow">¶</a></p>
+the nullifier (field 1) and spend amount (field 2), among other cryptographic values.<a href="#section-9.1-7.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="refund">
-<section id="section-8.2">
+<section id="section-9.2">
         <h3 id="name-token-refund">
-<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-token-refund" class="section-name selfRef">Token Refund</a>
+<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-token-refund" class="section-name selfRef">Token Refund</a>
         </h3>
-<p id="section-8.2-1">Upon receiving a Token from the Client, the Origin deserializes the spend_proof
+<p id="section-9.2-1">Upon receiving a Token from the Client, the Origin deserializes the spend_proof
 according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.3" class="relref">Section 4.1.3</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>, yielding a SpendProofMsg structure. The
-Origin then extracts the relevant fields from the spend proof:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-8.2-2">
+Origin then extracts the relevant fields from the spend proof:<a href="#section-9.2-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-9.2-2">
 <pre>
 // Extract fields from SpendProofMsg (see Section 4.1.3 of ACT)
 nullifier = spend_proof.k      // Field 1: nullifier (32 bytes)
 spend_amount = spend_proof.s   // Field 2: spend amount (32 bytes)
-</pre><a href="#section-8.2-2" class="pilcrow">¶</a>
+</pre><a href="#section-9.2-2" class="pilcrow">¶</a>
 </div>
-<p id="section-8.2-3">The Origin <span class="bcp14">SHOULD</span> verify that the spend_amount matches the requested cost from
-TokenChallenge to ensure the client is spending the expected amount.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
-<p id="section-8.2-4">To verify the Token and issue a refund, the Origin constructs the request_context
-and invokes VerifyAndRefund:<a href="#section-8.2-4" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-8.2-5">
+<p id="section-9.2-3">The Origin <span class="bcp14">SHOULD</span> verify that the spend_amount matches the requested cost from
+TokenChallenge to ensure the client is spending the expected amount.<a href="#section-9.2-3" class="pilcrow">¶</a></p>
+<p id="section-9.2-4">To verify the Token and issue a refund, the Origin constructs the request_context
+and invokes VerifyAndRefund:<a href="#section-9.2-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-9.2-5">
 <pre>
 request_context = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
 refund = VerifyAndRefund(skI, request_context, spend_proof)
-</pre><a href="#section-8.2-5" class="pilcrow">¶</a>
+</pre><a href="#section-9.2-5" class="pilcrow">¶</a>
 </div>
-<p id="section-8.2-6">This function returns the <code>refund</code> serialized according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.4" class="relref">Section 4.1.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> if the spend proof is valid, and nil otherwise.<a href="#section-8.2-6" class="pilcrow">¶</a></p>
-<p id="section-8.2-7">Implementation-specific steps: to prevent double spending, the Origin <span class="bcp14">MUST</span> perform a check that the
+<p id="section-9.2-6">This function returns the <code>refund</code> serialized according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.4" class="relref">Section 4.1.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> if the spend proof is valid, and nil otherwise.<a href="#section-9.2-6" class="pilcrow">¶</a></p>
+<p id="section-9.2-7">Implementation-specific steps: to prevent double spending, the Origin <span class="bcp14">MUST</span> perform a check that the
 nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier for use in future double
 spending checks. To reduce the overhead of performing double spend checks, the Origin can store and
-look up the nullifiers corresponding to the associated request_context value.<a href="#section-8.2-7" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-8.2-8">
+look up the nullifiers corresponding to the associated request_context value.<a href="#section-9.2-7" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-9.2-8">
 <pre>
 struct {
     uint8_t refund[Nrefund];
 } Refund;
-</pre><a href="#section-8.2-8" class="pilcrow">¶</a>
+</pre><a href="#section-9.2-8" class="pilcrow">¶</a>
 </div>
-<p id="section-8.2-9">The Origin sends the refund back to the client encoded as the above <code>Refund</code> struct.<a href="#section-8.2-9" class="pilcrow">¶</a></p>
+<p id="section-9.2-9">The Origin sends the refund back to the client encoded as the above <code>Refund</code> struct.<a href="#section-9.2-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="new-credential-from-refund">
-<section id="section-8.3">
+<section id="section-9.3">
         <h3 id="name-new-credential-from-refund">
-<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-new-credential-from-refund" class="section-name selfRef">New Credential from Refund</a>
+<a href="#section-9.3" class="section-number selfRef">9.3. </a><a href="#name-new-credential-from-refund" class="section-name selfRef">New Credential from Refund</a>
         </h3>
-<p id="section-8.3-1">Unlike <span>[<a href="#ARC" class="cite xref">ARC</a>]</span>, clients must construct a new credential instance based on the <code>Refund</code> response. To do
-so, clients invoke the <code>ConstructRefundToken</code> function from <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-3.3.4" class="relref">Section 3.3.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> as follows:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-8.3-2">
+<p id="section-9.3-1">Unlike <span>[<a href="#ARC" class="cite xref">ARC</a>]</span>, clients must construct a new credential instance based on the <code>Refund</code> response. To do
+so, clients invoke the <code>ConstructRefundToken</code> function from <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-3.3.4" class="relref">Section 3.3.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> as follows:<a href="#section-9.3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-9.3-2">
 <pre>
 credential = ConstructRefundToken(pkI, spend_proof, refund, state)
-</pre><a href="#section-8.3-2" class="pilcrow">¶</a>
+</pre><a href="#section-9.3-2" class="pilcrow">¶</a>
 </div>
-<p id="section-8.3-3">The client then uses this new credential instance for subsequent spend operations.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
+<p id="section-9.3-3">The client then uses this new credential instance for subsequent spend operations.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="security">
-<section id="section-9">
+<section id="section-10">
       <h2 id="name-security-considerations">
-<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<p id="section-9-1">Privacy considerations for tokens based on deployment details, such as issuer configuration
+<div id="privacy-properties">
+<section id="section-10.1">
+        <h3 id="name-privacy-properties">
+<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-privacy-properties" class="section-name selfRef">Privacy Properties</a>
+        </h3>
+<p id="section-10.1-1">Privacy considerations for tokens based on deployment details, such as issuer configuration
 and issuer selection, are discussed in <span><a href="https://rfc-editor.org/rfc/rfc9576#section-6.1" class="relref">Section 6.1</a> of [<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span>. Note that ACT
-requires a joint Origin and Issuer configuration given that it is privately verifiable.<a href="#section-9-1" class="pilcrow">¶</a></p>
-<p id="section-9-2">ACT offers Origin-Client unlinkability, Issuer-Client unlinkability, and redemption context
-unlinkability, as described in <span><a href="https://rfc-editor.org/rfc/rfc9576#section-3.3" class="relref">Section 3.3</a> of [<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span>.<a href="#section-9-2" class="pilcrow">¶</a></p>
+requires a joint Origin and Issuer configuration (where the Issuer and Origin are operated
+by the same entity) given that tokens produced from credentials are not publicly verifiable.<a href="#section-10.1-1" class="pilcrow">¶</a></p>
+<p id="section-10.1-2">ACT credentials offer Origin-Client unlinkability, Issuer-Client unlinkability, and
+redemption context unlinkability, as described in <span><a href="https://rfc-editor.org/rfc/rfc9576#section-3.3" class="relref">Section 3.3</a> of [<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span>. The
+cryptographic security properties of the underlying ACT protocol, including unforgeability
+and unlinkability guarantees, are analyzed in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-10.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="double-spend-prevention">
+<section id="section-10.2">
+        <h3 id="name-double-spend-prevention">
+<a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-double-spend-prevention" class="section-name selfRef">Double-Spend Prevention</a>
+        </h3>
+<p id="section-10.2-1">The security of ACT's double-spend prevention mechanism relies on Origins maintaining
+state to track nullifiers. As described in <a href="#refund" class="auto internal xref">Section 9.2</a>, Origins <span class="bcp14">MUST</span> check that a nullifier
+has not been previously seen before accepting a spend proof. This check is critical for
+preventing credential reuse attacks.<a href="#section-10.2-1" class="pilcrow">¶</a></p>
+<p id="section-10.2-2">The nullifier space is large (32 bytes), making random collisions computationally
+infeasible. However, Origins <span class="bcp14">MUST</span> ensure that their nullifier storage is persistent and
+survives server restarts. If an Origin loses nullifier state (e.g., due to data loss or
+cache eviction), it becomes vulnerable to replay attacks where an attacker can resubmit
+previously spent credentials.<a href="#section-10.2-2" class="pilcrow">¶</a></p>
+<p id="section-10.2-3">Origins <span class="bcp14">SHOULD</span> scope nullifier storage by request_context to improve lookup performance
+and enable efficient storage management. Since nullifiers are only meaningful within the
+context of a specific credential binding (determined by issuer_name, origin_info,
+credential_context, and issuer_key_id), Origins can partition nullifier storage accordingly.<a href="#section-10.2-3" class="pilcrow">¶</a></p>
+<p id="section-10.2-4">When an Origin implements a timeout for refund state (as described in <a href="#error-handling" class="auto internal xref">Section 5.5</a>),
+it <span class="bcp14">MAY</span> also expire the corresponding nullifier after the same timeout period, provided
+that no future spend attempts with that nullifier are possible.<a href="#section-10.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="concurrency-control-and-credential-sharing">
+<section id="section-10.3">
+        <h3 id="name-concurrency-control-and-cre">
+<a href="#section-10.3" class="section-number selfRef">10.3. </a><a href="#name-concurrency-control-and-cre" class="section-name selfRef">Concurrency Control and Credential Sharing</a>
+        </h3>
+<p id="section-10.3-1">The state machine described in <a href="#state-management" class="auto internal xref">Section 5</a> enforces that each credential instance
+can only be spent once. This prevents multiple parties from using the same credential
+concurrently, which is critical for preventing credential sharing attacks.<a href="#section-10.3-1" class="pilcrow">¶</a></p>
+<p id="section-10.3-2">If an attacker copies a credential and attempts to use it from multiple locations
+simultaneously, only the first spend operation to reach the Origin will succeed. The
+Origin's nullifier check will reject all subsequent spends with the same credential as
+double-spend attempts. This property holds even if the spend operations occur in parallel
+from different network locations.<a href="#section-10.3-2" class="pilcrow">¶</a></p>
+<p id="section-10.3-3">Clients <span class="bcp14">MUST</span> implement the state machine correctly and transition credentials to the Spent
+state immediately upon calling ProveSpend. A client implementation that allows multiple
+concurrent ProveSpend calls on the same credential would enable double-spend attempts and
+violate ACT's privacy guarantees by revealing that the same credential is being used
+multiple times.<a href="#section-10.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="issuer-key-identification">
+<section id="section-10.4">
+        <h3 id="name-issuer-key-identification">
+<a href="#section-10.4" class="section-number selfRef">10.4. </a><a href="#name-issuer-key-identification" class="section-name selfRef">Issuer Key Identification</a>
+        </h3>
+<p id="section-10.4-1">As described in <a href="#credential-issuance-protocol" class="auto internal xref">Section 8</a>, the TokenRequest includes only a
+truncated issuer_key_id (the least significant byte) to prevent Issuers from using the
+key identifier as a client tracking mechanism.<a href="#section-10.4-1" class="pilcrow">¶</a></p>
+<p id="section-10.4-2">Issuers <span class="bcp14">MUST</span> prevent truncated key ID collisions among simultaneously active keys. This
+can be accomplished by generating keys until the truncated key ID does not collide with
+any existing active key's truncated ID. With a 1-byte (256 value) truncated key space,
+this is straightforward for reasonable numbers of concurrent keys.<a href="#section-10.4-2" class="pilcrow">¶</a></p>
+<p id="section-10.4-3">Additionally, Issuers <span class="bcp14">SHOULD</span> limit the total number of simultaneously active keys for
+privacy reasons, as a large number of active keys can enable partitioning attacks.<a href="#section-10.4-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="dynamic-revocation-and-origin-control">
+<section id="section-10.5">
+        <h3 id="name-dynamic-revocation-and-orig">
+<a href="#section-10.5" class="section-number selfRef">10.5. </a><a href="#name-dynamic-revocation-and-orig" class="section-name selfRef">Dynamic Revocation and Origin Control</a>
+        </h3>
+<p id="section-10.5-1">ACT's design allows Origins to terminate credential chains by declining to issue refunds.
+While this enables the dynamic revocation property described in <a href="#motivation" class="auto internal xref">Section 2</a>, it also
+gives Origins significant control over client access.<a href="#section-10.5-1" class="pilcrow">¶</a></p>
+<p id="section-10.5-2">Clients have no cryptographic recourse if an Origin refuses to provide refunds after
+accepting valid spend proofs. This is an intentional design property that enables Origins
+to enforce access policies and shed abusive traffic, but it does mean that clients must
+trust Origins to behave correctly within the protocol.<a href="#section-10.5-2" class="pilcrow">¶</a></p>
+<p id="section-10.5-3">Clients <span class="bcp14">MAY</span> implement reputation systems or other mechanisms to track Origin behavior and
+avoid Origins that consistently fail to provide refunds. However, such mechanisms are
+outside the scope of this specification.<a href="#section-10.5-3" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="iana-considerations">
-<section id="section-10">
+<section id="section-11">
       <h2 id="name-iana-considerations">
-<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-10-1">This document updates the "Privacy Pass Token Type" Registry with the
-following entries.<a href="#section-10-1" class="pilcrow">¶</a></p>
+<p id="section-11-1">This document updates the "Privacy Pass Token Type" Registry with the
+following entries.<a href="#section-11-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-10-2.1">
-          <p id="section-10-2.1.1">Value: 0xE5AD<a href="#section-10-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11-2.1">
+          <p id="section-11-2.1.1">Value: 0xE5AD<a href="#section-11-2.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-10-2.2">
-          <p id="section-10-2.2.1">Name: ACT (Ristretto255)<a href="#section-10-2.2.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-11-2.2">
+          <p id="section-11-2.2.1">Name: ACT (Ristretto255)<a href="#section-11-2.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-10-2.3">
-          <p id="section-10-2.3.1">Token Structure: As defined in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2" class="relref">Section 2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span><a href="#section-10-2.3.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-11-2.3">
+          <p id="section-11-2.3.1">Token Structure: As defined in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2" class="relref">Section 2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span><a href="#section-11-2.3.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-10-2.4">
-          <p id="section-10-2.4.1">Token Key Encoding: Serialized as described in <a href="#setup" class="auto internal xref">Section 5</a><a href="#section-10-2.4.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-11-2.4">
+          <p id="section-11-2.4.1">Token Key Encoding: Serialized as described in <a href="#setup" class="auto internal xref">Section 6</a><a href="#section-11-2.4.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-10-2.5">
-          <p id="section-10-2.5.1">TokenChallenge Structure: As defined in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.1" class="relref">Section 2.1</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span><a href="#section-10-2.5.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-11-2.5">
+          <p id="section-11-2.5.1">TokenChallenge Structure: As defined in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.1" class="relref">Section 2.1</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span><a href="#section-11-2.5.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-10-2.6">
-          <p id="section-10-2.6.1">Public Verifiability: N<a href="#section-10-2.6.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-11-2.6">
+          <p id="section-11-2.6.1">Public Verifiability: N<a href="#section-11-2.6.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-10-2.7">
-          <p id="section-10-2.7.1">Public Metadata: N<a href="#section-10-2.7.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-11-2.7">
+          <p id="section-11-2.7.1">Public Metadata: N<a href="#section-11-2.7.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-10-2.8">
-          <p id="section-10-2.8.1">Private Metadata: N<a href="#section-10-2.8.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-11-2.8">
+          <p id="section-11-2.8.1">Private Metadata: N<a href="#section-11-2.8.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-10-2.9">
-          <p id="section-10-2.9.1">Nk: 0 (not applicable)<a href="#section-10-2.9.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-11-2.9">
+          <p id="section-11-2.9.1">Nk: 0 (not applicable)<a href="#section-11-2.9.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-10-2.10">
-          <p id="section-10-2.10.1">Nid: 32<a href="#section-10-2.10.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-11-2.10">
+          <p id="section-11-2.10.1">Nid: 32<a href="#section-11-2.10.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-10-2.11">
-          <p id="section-10-2.11.1">Reference: This document<a href="#section-10-2.11.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-11-2.11">
+          <p id="section-11-2.11.1">Reference: This document<a href="#section-11-2.11.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-10-2.12">
-          <p id="section-10-2.12.1">Notes: None<a href="#section-10-2.12.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-11-2.12">
+          <p id="section-11-2.12.1">Notes: None<a href="#section-11-2.12.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
 </div>
 <div id="sec-normative-references">
-<section id="section-11">
+<section id="section-12">
       <h2 id="name-normative-references">
-<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
       </h2>
 <dl class="references">
 <dt id="ACT">[ACT]</dt>
