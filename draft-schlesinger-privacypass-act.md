@@ -51,14 +51,15 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.
 {{ARCHITECTURE}} describes the Privacy Pass architecture, and {{ISSUANCE}} and
 {{AUTHSCHEME}} describe the issuance and redemption protocols for basic Privacy
 Pass tokens, i.e., those computed using blind RSA signatures as specified in
-{{Section 6 of ISSUANCE}} or verifiable oblivious pseudorandom functions as specified in {{Section 5 of ISSUANCE}}. Further, {{ARC}} scheme, and its associated integration in {{ARCHITECTURE}} {{ARC_PP}}, extends these approaches to multi-use
+{{Section 6 of ISSUANCE}} or verifiable oblivious pseudorandom functions as specified in {{Section 5 of ISSUANCE}}. Further, the {{ARC}} scheme and its associated integration in {{ARCHITECTURE}} ({{ARC_PP}}) extend these approaches to multi-use
 tokens.
 
 The Anonymous Credit Tokens (ACT) protocol, as specified in {{ACT}}, offers a
 differentiated approach to rate limiting from {{ARC}}. In particular,
-ACT credentials can be presented up-to N times. When they
-spend a certain number of credits from their token, their old token is
-invalidated and they redeem a new token with the new balance.
+a credential initially holding N credits, along with its subsequent refunded credentials,
+can be presented up to N times. When a client spends a certain number of credits from
+a credential, that credential is invalidated and the client receives a new credential
+with the remaining balance.
 
 This document specifies the issuance and redemption protocols for ACT. {{motivation}}
 describes motivation for this new type of token, {{overview}} presents an overview
@@ -66,18 +67,20 @@ of the protocols, and the remainder of the document specifies the protocols them
 
 # Motivation
 
-To demonstrate how ACT is useful, one can use a similar example to the
-the one presented in {{Section 2 of ARC_PP}}: a client that wishes to keep its IP address private while accessing a service. {{ARC_PP}} offers the origin to limit the number of requests a client can make to N. This is enforced by each origin getting its own presentation context, and limiting the number of presentations per context to N. This means that, from a single token, we
+To demonstrate how ACT is useful, one can use a similar example to
+the one presented in {{Section 2 of ARC_PP}}: a client that wishes to keep its IP address private while accessing a service. {{ARC_PP}} offers the origin to limit the number of requests a client can make to N. This is enforced by each origin getting its own presentation context, and limiting the number of presentations per context to N. This means that, from a single credential, a client
 can produce N presentations and access the system N times,
 unlinkably. These presentations can be generated in parallel.
 
-On the other hand, consider the case of an ACT with N credits in it. A client willing to redeem N different credits has to spend `1`, then get a refund, spend
-`1`, then get a refund, and so on. Because the client can't spend `1` until they
-get a refund for their previous credit, a single live
-session is enforced per ACT. This provides
-concurrency control. A client is also able to spend more than `1`, allowing for a more efficient redemption of multipe tokens.
-Finally, as new presentation requires the obtention of a previous refund,
-the origin gains the ability to invalidate a session by declining said refund.
+On the other hand, consider a credential initially holding N credits. A client redeeming
+all N credits individually has to spend `1`, receive a refunded credential with N-1 credits,
+spend `1` from that credential, receive a refunded credential with N-2 credits, and so on.
+Because the client cannot spend from a credential until they receive the refunded credential
+from their previous spend, a single live session is enforced per initial credential.
+This provides concurrency control. A client is also able to spend more than `1` credit at once,
+allowing for more efficient redemption of multiple credits.
+Finally, as each new presentation requires obtaining a refunded credential from the previous spend,
+the origin gains the ability to invalidate a session by declining to issue a refunded credential.
 This creates the
 ability to shed harmful future traffic or redirect it in a favorable way.
 
@@ -85,15 +88,15 @@ One such use case for this is a privacy proxy, another is privately accessing
 web APIs like the artificial intelligence models, and finally zero trust networks
 which act as forward proxies for their user traffic.
 
-Therefore, ACT provides the following properties
+Therefore, ACT provides the following properties:
 
 1. Concurrency control: Preventing multiple simultaneous uses of the same
-credential, mitigating abuse from token sharing or replay.
-2. Dynamic Revocation: Enabling immediate invalidation of tokens in response to
-origin policy, without waiting for token expiry.
+credential, mitigating abuse from credential sharing or replay.
+2. Dynamic Revocation: Enabling immediate invalidation of credentials in response to
+origin policy, without waiting for credential expiry.
 3. Per-Session Rate Limiting: Enforcing access policies that adapt to user,
-device, or risk context, rather than static per-token limits. This creates incentives
-for platform to deploy such methods.
+device, or risk context, rather than static per-credential limits. This creates incentives
+for platforms to deploy such methods.
 
 # Terminology
 
@@ -115,15 +118,15 @@ network byte order.
 # Protocol Overview {#overview}
 
 The issuance and redemption protocols defined in this document are built on
-the Anonymous Credit Tokens (ACT) protocol. ACT tokens can be thought of as
-single use tokens, similar to the RSA Blind Signatures protocol. However,
-by another viewpoint, they might be thought of as stateful, multi-use tokens.
+the Anonymous Credit Tokens (ACT) protocol. ACT credentials can be thought of as
+single use credentials, similar to the RSA Blind Signatures protocol. However,
+by another viewpoint, they might be thought of as stateful, multi-use credentials.
 
 With ACT, Clients receive TokenChallenge inputs from the redemption protocol
-({{AUTHSCHEME, Section 2.1}}). If they have a valid ACT for the designated
+({{AUTHSCHEME, Section 2.1}}). If they have a valid ACT credential for the designated
 Issuer, Clients can use the TokenChallenge to produce a single token for
 presentation. Otherwise, Clients invoke the issuance protocol to obtain an
-ACT. This interaction is shown below.
+ACT credential. This interaction is shown below.
 
 ~~~ aasvg
                                       +--------------------------.
@@ -159,7 +162,7 @@ The issuance and redemption protocols in this document are built on
 
 # Configuration {#setup}
 
-ACT Issuers are configured with key material used for issuance and token
+ACT Issuers are configured with key material used for issuance and credential
 verification. Concretely, Issuers run the `KeyGen` function from {{ACT}}
 to produce a private and public key, denoted skI and pkI, respectively.
 
@@ -169,7 +172,9 @@ skI, pkI = SetupServer()
 
 The Issuer Public Key ID, denoted `issuer_key_id`, is computed as the
 SHA-256 hash of the Issuer Public Key, i.e., `issuer_key_id = SHA-256(pkI_serialized)`,
-where `pkI_serialized` is the serialized version of `pk` as described in {{Section 4.1 of ACT}} (TODO actually write and sync serialization, CBOR and TLS seems weird).
+where `pkI_serialized` is the serialized version of `pkI` as described in {{Section 4.1 of ACT}}.
+
+OPEN ISSUE: Coordinate with ACT specification authors on the serialization format (CBOR vs TLS notation) to ensure consistency.
 
 ## Request Context Extension {#request-context-extension}
 
@@ -222,7 +227,7 @@ structure is as follows:
 
 ~~~
 struct {
-    uint16_t token_type = 0xE5AC; /* Type ACT(Ristretto255) */
+    uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
     opaque issuer_name<1..2^16-1>;
     opaque redemption_context<0..32>;
     opaque origin_info<0..2^16-1>;
@@ -230,15 +235,17 @@ struct {
 } TokenChallenge;
 ~~~
 
+OPEN ISSUE: This token type value (0xE5AD) was chosen arbitrarily and may be too close to the ARC token type. This should be coordinated with IANA registry assignments.
+
 With the exception of `credential_context`, all fields are exactly as specified
 in {{Section 2.1.1 of AUTHSCHEME}}. The `credential_context` field is defined as
 follows:
 
 - "credential_context" is a field that is either 0 or 32 bytes, prefixed with a single
-octet indicating the length (either 0 or 32). If value is non-empty, it is a 32-byte value
+octet indicating the length (either 0 or 32). If the value is non-empty, it is a 32-byte value
 generated by the origin that allows the origin to require that clients fetch credentials
 bound to a specific context. Challenges with credential_context values of invalid lengths
-MUST be ignored.
+MUST be rejected.
 
 Similar to the `redemption_context` field, the `credential_context` is used to bind
 information to the credential. This might be useful, for example, to enforce some
@@ -253,14 +260,14 @@ In addition to this updated TokenChallenge, the HTTP authentication challenge
 also SHOULD contain the following additional attribute:
 
 - "cost", which contains a JSON number indicating the amount of credits to
-  to spend out of the ACT.
+  spend out of the ACT credential.
 
 Implementation-specific steps: the client should store the Origin-provided input `tokenChallenge` so that when they receive a new `tokenChallenge` value, they can check if it has changed and which fields are different. This will inform the client's behavior - for example, if `credential_context` is being used to enforce an expiration on the credential, then if the `credential_context` has changed, this can prompt the client to request a new credential.
 
 # Credential Issuance Protocol
 
 Issuers provide an Issuer Private and Public Key, denoted `skI` and `pkI`
-respectively, used to produce tokens as input to the protocol. See {{setup}}
+respectively, used to produce credentials as input to the protocol. See {{setup}}
 for how these keys are generated.
 
 Clients provide the following as input to the issuance protocol:
@@ -409,18 +416,18 @@ way, as well as verifying a resulting token, is described in the following secti
 ## Token Creation
 
 Given a TokenChallenge value as input, denoted `challenge`, a cost,
-denoted `cost`, and a previously computed credential that is valid
-for the Issuer identifier in the challenge, denoted `token`, containing at
-least `cost` credits. Clients compute a spend request as follows:
+denoted `cost`, and a previously obtained credential that is valid
+for the Issuer identifier in the challenge, denoted `credential`, containing at
+least `cost` credits, Clients compute a spend request as follows:
 
 ~~~
-spend_proof, state = ProveSpend(token, cost)
+spend_proof, state = ProveSpend(credential, cost)
 ~~~
 
-This credential MUST only ever be used for a single spend request. When we
-receive the refund from the server, we will be able to use this credential
-instead. If we use the same credential more than once, we violate the privacy
-assumptions of ACT by presenting the same nullifier twice.
+Each credential instance MUST only ever be used for a single spend request. When the client
+receives the refunded credential from the server, the client uses that new credential instance
+for the next spend. If the same credential instance is used more than once, the privacy
+assumptions of ACT are violated by presenting the same nullifier twice.
 
 The resulting Token value is then constructed as follows:
 
@@ -459,7 +466,7 @@ spend_amount = spend_proof.s   // Field 2: spend amount (32 bytes)
 ~~~
 
 The Origin SHOULD verify that the spend_amount matches the requested cost from
-the TokenChallenge to ensure the client is spending the expected amount.
+TokenChallenge to ensure the client is spending the expected amount.
 
 To verify the Token and issue a refund, the Origin constructs the request_context
 and invokes VerifyAndRefund:
@@ -485,18 +492,18 @@ struct {
 } Refund;
 ~~~
 
-Finally, we send down the refund back to the client encoded as the above `Refund` struct.
+The Origin sends the refund back to the client encoded as the above `Refund` struct.
 
-## New Token from Refund
+## New Credential from Refund
 
-Differently from {{ARC}}, we have to reconstruct our new token based on the `Refund` response. To do
-so, we invoke the `ConstructRefundToken` from {{Section 3.3.4 of ACT}} in the following ways:
+Unlike {{ARC}}, clients must construct a new credential instance based on the `Refund` response. To do
+so, clients invoke the `ConstructRefundToken` function from {{Section 3.3.4 of ACT}} as follows:
 
 ~~~
-token = ConstructRefundToken(pkI, spend_proof, refund, state)
+credential = ConstructRefundToken(pkI, spend_proof, refund, state)
 ~~~
 
-Now, finally, we can replace our old credential with this new one and this one can be properly used.
+The client then uses this new credential instance for subsequent spend operations.
 
 # Security Considerations {#security}
 
