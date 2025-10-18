@@ -1196,7 +1196,7 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.<a href="#section-abs
                 <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-token-refund" class="internal xref">Token Refund</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
-                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-new-token-from-refund" class="internal xref">New Token from Refund</a></p>
+                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-new-credential-from-refund" class="internal xref">New Credential from Refund</a></p>
 </li>
             </ul>
 </li>
@@ -1227,13 +1227,14 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.<a href="#section-abs
 <p id="section-1-1"><span>[<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span> describes the Privacy Pass architecture, and <span>[<a href="#ISSUANCE" class="cite xref">ISSUANCE</a>]</span> and
 <span>[<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span> describe the issuance and redemption protocols for basic Privacy
 Pass tokens, i.e., those computed using blind RSA signatures as specified in
-<span><a href="https://rfc-editor.org/rfc/rfc9578#section-6" class="relref">Section 6</a> of [<a href="#ISSUANCE" class="cite xref">ISSUANCE</a>]</span> or verifiable oblivious pseudorandom functions as specified in <span><a href="https://rfc-editor.org/rfc/rfc9578#section-5" class="relref">Section 5</a> of [<a href="#ISSUANCE" class="cite xref">ISSUANCE</a>]</span>. Further, <span>[<a href="#ARC" class="cite xref">ARC</a>]</span> scheme, and its associated integration in <span>[<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span> <span>[<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>, extends these approaches to multi-use
+<span><a href="https://rfc-editor.org/rfc/rfc9578#section-6" class="relref">Section 6</a> of [<a href="#ISSUANCE" class="cite xref">ISSUANCE</a>]</span> or verifiable oblivious pseudorandom functions as specified in <span><a href="https://rfc-editor.org/rfc/rfc9578#section-5" class="relref">Section 5</a> of [<a href="#ISSUANCE" class="cite xref">ISSUANCE</a>]</span>. Further, the <span>[<a href="#ARC" class="cite xref">ARC</a>]</span> scheme and its associated integration in <span>[<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span> (<span>[<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>) extend these approaches to multi-use
 tokens.<a href="#section-1-1" class="pilcrow">¶</a></p>
 <p id="section-1-2">The Anonymous Credit Tokens (ACT) protocol, as specified in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>, offers a
 differentiated approach to rate limiting from <span>[<a href="#ARC" class="cite xref">ARC</a>]</span>. In particular,
-ACT credentials can be presented up-to N times. When they
-spend a certain number of credits from their token, their old token is
-invalidated and they redeem a new token with the new balance.<a href="#section-1-2" class="pilcrow">¶</a></p>
+a credential initially holding N credits, along with its subsequent refunded credentials,
+can be presented up to N times. When a client spends a certain number of credits from
+a credential, that credential is invalidated and the client receives a new credential
+with the remaining balance.<a href="#section-1-2" class="pilcrow">¶</a></p>
 <p id="section-1-3">This document specifies the issuance and redemption protocols for ACT. <a href="#motivation" class="auto internal xref">Section 2</a>
 describes motivation for this new type of token, <a href="#overview" class="auto internal xref">Section 4</a> presents an overview
 of the protocols, and the remainder of the document specifies the protocols themselves.<a href="#section-1-3" class="pilcrow">¶</a></p>
@@ -1244,36 +1245,38 @@ of the protocols, and the remainder of the document specifies the protocols them
       <h2 id="name-motivation">
 <a href="#section-2" class="section-number selfRef">2. </a><a href="#name-motivation" class="section-name selfRef">Motivation</a>
       </h2>
-<p id="section-2-1">To demonstrate how ACT is useful, one can use a similar example to the
-the one presented in <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-01#section-2" class="relref">Section 2</a> of [<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>: a client that wishes to keep its IP address private while accessing a service. <span>[<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span> offers the origin to limit the number of requests a client can make to N. This is enforced by each origin getting its own presentation context, and limiting the number of presentations per context to N. This means that, from a single token, we
+<p id="section-2-1">To demonstrate how ACT is useful, one can use a similar example to
+the one presented in <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-01#section-2" class="relref">Section 2</a> of [<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>: a client that wishes to keep its IP address private while accessing a service. <span>[<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span> offers the origin to limit the number of requests a client can make to N. This is enforced by each origin getting its own presentation context, and limiting the number of presentations per context to N. This means that, from a single credential, a client
 can produce N presentations and access the system N times,
 unlinkably. These presentations can be generated in parallel.<a href="#section-2-1" class="pilcrow">¶</a></p>
-<p id="section-2-2">On the other hand, consider the case of an ACT with N credits in it. A client willing to redeem N different credits has to spend <code>1</code>, then get a refund, spend
-<code>1</code>, then get a refund, and so on. Because the client can't spend <code>1</code> until they
-get a refund for their previous credit, a single live
-session is enforced per ACT. This provides
-concurrency control. A client is also able to spend more than <code>1</code>, allowing for a more efficient redemption of multipe tokens.
-Finally, as new presentation requires the obtention of a previous refund,
-the origin gains the ability to invalidate a session by declining said refund.
+<p id="section-2-2">On the other hand, consider a credential initially holding N credits. A client redeeming
+all N credits individually has to spend <code>1</code>, receive a refunded credential with N-1 credits,
+spend <code>1</code> from that credential, receive a refunded credential with N-2 credits, and so on.
+Because the client cannot spend from a credential until they receive the refunded credential
+from their previous spend, a single live session is enforced per initial credential.
+This provides concurrency control. A client is also able to spend more than <code>1</code> credit at once,
+allowing for more efficient redemption of multiple credits.
+Finally, as each new presentation requires obtaining a refunded credential from the previous spend,
+the origin gains the ability to invalidate a session by declining to issue a refunded credential.
 This creates the
 ability to shed harmful future traffic or redirect it in a favorable way.<a href="#section-2-2" class="pilcrow">¶</a></p>
 <p id="section-2-3">One such use case for this is a privacy proxy, another is privately accessing
 web APIs like the artificial intelligence models, and finally zero trust networks
 which act as forward proxies for their user traffic.<a href="#section-2-3" class="pilcrow">¶</a></p>
-<p id="section-2-4">Therefore, ACT provides the following properties<a href="#section-2-4" class="pilcrow">¶</a></p>
+<p id="section-2-4">Therefore, ACT provides the following properties:<a href="#section-2-4" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-2-5">
 <li id="section-2-5.1">
           <p id="section-2-5.1.1">Concurrency control: Preventing multiple simultaneous uses of the same
-credential, mitigating abuse from token sharing or replay.<a href="#section-2-5.1.1" class="pilcrow">¶</a></p>
+credential, mitigating abuse from credential sharing or replay.<a href="#section-2-5.1.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-2-5.2">
-          <p id="section-2-5.2.1">Dynamic Revocation: Enabling immediate invalidation of tokens in response to
-origin policy, without waiting for token expiry.<a href="#section-2-5.2.1" class="pilcrow">¶</a></p>
+          <p id="section-2-5.2.1">Dynamic Revocation: Enabling immediate invalidation of credentials in response to
+origin policy, without waiting for credential expiry.<a href="#section-2-5.2.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-2-5.3">
           <p id="section-2-5.3.1">Per-Session Rate Limiting: Enforcing access policies that adapt to user,
-device, or risk context, rather than static per-token limits. This creates incentives
-for platform to deploy such methods.<a href="#section-2-5.3.1" class="pilcrow">¶</a></p>
+device, or risk context, rather than static per-credential limits. This creates incentives
+for platforms to deploy such methods.<a href="#section-2-5.3.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
 </section>
@@ -1311,14 +1314,14 @@ network byte order.<a href="#section-3-4" class="pilcrow">¶</a></p>
 <a href="#section-4" class="section-number selfRef">4. </a><a href="#name-protocol-overview" class="section-name selfRef">Protocol Overview</a>
       </h2>
 <p id="section-4-1">The issuance and redemption protocols defined in this document are built on
-the Anonymous Credit Tokens (ACT) protocol. ACT tokens can be thought of as
-single use tokens, similar to the RSA Blind Signatures protocol. However,
-by another viewpoint, they might be thought of as stateful, multi-use tokens.<a href="#section-4-1" class="pilcrow">¶</a></p>
+the Anonymous Credit Tokens (ACT) protocol. ACT credentials can be thought of as
+single use credentials, similar to the RSA Blind Signatures protocol. However,
+by another viewpoint, they might be thought of as stateful, multi-use credentials.<a href="#section-4-1" class="pilcrow">¶</a></p>
 <p id="section-4-2">With ACT, Clients receive TokenChallenge inputs from the redemption protocol
-(<span>[<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>], <a href="https://rfc-editor.org/rfc/rfc9577#section-2.1" class="relref">Section 2.1</a></span>). If they have a valid ACT for the designated
+(<span>[<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>], <a href="https://rfc-editor.org/rfc/rfc9577#section-2.1" class="relref">Section 2.1</a></span>). If they have a valid ACT credential for the designated
 Issuer, Clients can use the TokenChallenge to produce a single token for
 presentation. Otherwise, Clients invoke the issuance protocol to obtain an
-ACT. This interaction is shown below.<a href="#section-4-2" class="pilcrow">¶</a></p>
+ACT credential. This interaction is shown below.<a href="#section-4-2" class="pilcrow">¶</a></p>
 <span id="name-issuance-and-redemption-ove"></span><div id="fig-overview">
 <figure id="figure-1">
         <div id="section-4-3.1">
@@ -1417,7 +1420,7 @@ be implemented in each of the relevant deployment models.<a href="#section-4-5" 
       <h2 id="name-configuration">
 <a href="#section-5" class="section-number selfRef">5. </a><a href="#name-configuration" class="section-name selfRef">Configuration</a>
       </h2>
-<p id="section-5-1">ACT Issuers are configured with key material used for issuance and token
+<p id="section-5-1">ACT Issuers are configured with key material used for issuance and credential
 verification. Concretely, Issuers run the <code>KeyGen</code> function from <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>
 to produce a private and public key, denoted skI and pkI, respectively.<a href="#section-5-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-5-2">
@@ -1427,7 +1430,8 @@ skI, pkI = SetupServer()
 </div>
 <p id="section-5-3">The Issuer Public Key ID, denoted <code>issuer_key_id</code>, is computed as the
 SHA-256 hash of the Issuer Public Key, i.e., <code>issuer_key_id = SHA-256(pkI_serialized)</code>,
-where <code>pkI_serialized</code> is the serialized version of <code>pk</code> as described in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1" class="relref">Section 4.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> (TODO actually write and sync serialization, CBOR and TLS seems weird).<a href="#section-5-3" class="pilcrow">¶</a></p>
+where <code>pkI_serialized</code> is the serialized version of <code>pkI</code> as described in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1" class="relref">Section 4.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<p id="section-5-4">OPEN ISSUE: Coordinate with ACT specification authors on the serialization format (CBOR vs TLS notation) to ensure consistency.<a href="#section-5-4" class="pilcrow">¶</a></p>
 <div id="request-context-extension">
 <section id="section-5.1">
         <h3 id="name-request-context-extension">
@@ -1490,7 +1494,7 @@ structure is as follows:<a href="#section-6-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-6-2">
 <pre>
 struct {
-    uint16_t token_type = 0xE5AC; /* Type ACT(Ristretto255) */
+    uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
     opaque issuer_name&lt;1..2^16-1&gt;;
     opaque redemption_context&lt;0..32&gt;;
     opaque origin_info&lt;0..2^16-1&gt;;
@@ -1498,34 +1502,35 @@ struct {
 } TokenChallenge;
 </pre><a href="#section-6-2" class="pilcrow">¶</a>
 </div>
-<p id="section-6-3">With the exception of <code>credential_context</code>, all fields are exactly as specified
+<p id="section-6-3">OPEN ISSUE: This token type value (0xE5AD) was chosen arbitrarily and may be too close to the ARC token type. This should be coordinated with IANA registry assignments.<a href="#section-6-3" class="pilcrow">¶</a></p>
+<p id="section-6-4">With the exception of <code>credential_context</code>, all fields are exactly as specified
 in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.1.1" class="relref">Section 2.1.1</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span>. The <code>credential_context</code> field is defined as
-follows:<a href="#section-6-3" class="pilcrow">¶</a></p>
+follows:<a href="#section-6-4" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6-4.1">
-          <p id="section-6-4.1.1">"credential_context" is a field that is either 0 or 32 bytes, prefixed with a single
-octet indicating the length (either 0 or 32). If value is non-empty, it is a 32-byte value
+<li class="normal" id="section-6-5.1">
+          <p id="section-6-5.1.1">"credential_context" is a field that is either 0 or 32 bytes, prefixed with a single
+octet indicating the length (either 0 or 32). If the value is non-empty, it is a 32-byte value
 generated by the origin that allows the origin to require that clients fetch credentials
 bound to a specific context. Challenges with credential_context values of invalid lengths
-<span class="bcp14">MUST</span> be ignored.<a href="#section-6-4.1.1" class="pilcrow">¶</a></p>
+<span class="bcp14">MUST</span> be rejected.<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-6-5">Similar to the <code>redemption_context</code> field, the <code>credential_context</code> is used to bind
+<p id="section-6-6">Similar to the <code>redemption_context</code> field, the <code>credential_context</code> is used to bind
 information to the credential. This might be useful, for example, to enforce some
 expiration on the credential. Origins might do this by constructing <code>credential_context</code>
 as F(current time window), where F is a pseudorandom function. Semantically, this is
 equivalent to the Origin asking the Client for a token from a credential that is
-bound to "current time window."<a href="#section-6-5" class="pilcrow">¶</a></p>
-<p id="section-6-6">OPEN ISSUE: give more guidance about how to construct credential_context and redemption_context depending on the application's needs.<a href="#section-6-6" class="pilcrow">¶</a></p>
-<p id="section-6-7">In addition to this updated TokenChallenge, the HTTP authentication challenge
-also <span class="bcp14">SHOULD</span> contain the following additional attribute:<a href="#section-6-7" class="pilcrow">¶</a></p>
+bound to "current time window."<a href="#section-6-6" class="pilcrow">¶</a></p>
+<p id="section-6-7">OPEN ISSUE: give more guidance about how to construct credential_context and redemption_context depending on the application's needs.<a href="#section-6-7" class="pilcrow">¶</a></p>
+<p id="section-6-8">In addition to this updated TokenChallenge, the HTTP authentication challenge
+also <span class="bcp14">SHOULD</span> contain the following additional attribute:<a href="#section-6-8" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6-8.1">
-          <p id="section-6-8.1.1">"cost", which contains a JSON number indicating the amount of credits to
-to spend out of the ACT.<a href="#section-6-8.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6-9.1">
+          <p id="section-6-9.1.1">"cost", which contains a JSON number indicating the amount of credits to
+spend out of the ACT credential.<a href="#section-6-9.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-6-9">Implementation-specific steps: the client should store the Origin-provided input <code>tokenChallenge</code> so that when they receive a new <code>tokenChallenge</code> value, they can check if it has changed and which fields are different. This will inform the client's behavior - for example, if <code>credential_context</code> is being used to enforce an expiration on the credential, then if the <code>credential_context</code> has changed, this can prompt the client to request a new credential.<a href="#section-6-9" class="pilcrow">¶</a></p>
+<p id="section-6-10">Implementation-specific steps: the client should store the Origin-provided input <code>tokenChallenge</code> so that when they receive a new <code>tokenChallenge</code> value, they can check if it has changed and which fields are different. This will inform the client's behavior - for example, if <code>credential_context</code> is being used to enforce an expiration on the credential, then if the <code>credential_context</code> has changed, this can prompt the client to request a new credential.<a href="#section-6-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="credential-issuance-protocol">
@@ -1534,7 +1539,7 @@ to spend out of the ACT.<a href="#section-6-8.1.1" class="pilcrow">¶</a></p>
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-credential-issuance-protoco" class="section-name selfRef">Credential Issuance Protocol</a>
       </h2>
 <p id="section-7-1">Issuers provide an Issuer Private and Public Key, denoted <code>skI</code> and <code>pkI</code>
-respectively, used to produce tokens as input to the protocol. See <a href="#setup" class="auto internal xref">Section 5</a>
+respectively, used to produce credentials as input to the protocol. See <a href="#setup" class="auto internal xref">Section 5</a>
 for how these keys are generated.<a href="#section-7-1" class="pilcrow">¶</a></p>
 <p id="section-7-2">Clients provide the following as input to the issuance protocol:<a href="#section-7-2" class="pilcrow">¶</a></p>
 <ul class="normal">
@@ -1719,18 +1724,18 @@ way, as well as verifying a resulting token, is described in the following secti
 <a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-token-creation" class="section-name selfRef">Token Creation</a>
         </h3>
 <p id="section-8.1-1">Given a TokenChallenge value as input, denoted <code>challenge</code>, a cost,
-denoted <code>cost</code>, and a previously computed credential that is valid
-for the Issuer identifier in the challenge, denoted <code>token</code>, containing at
-least <code>cost</code> credits. Clients compute a spend request as follows:<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+denoted <code>cost</code>, and a previously obtained credential that is valid
+for the Issuer identifier in the challenge, denoted <code>credential</code>, containing at
+least <code>cost</code> credits, Clients compute a spend request as follows:<a href="#section-8.1-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.1-2">
 <pre>
-spend_proof, state = ProveSpend(token, cost)
+spend_proof, state = ProveSpend(credential, cost)
 </pre><a href="#section-8.1-2" class="pilcrow">¶</a>
 </div>
-<p id="section-8.1-3">This credential <span class="bcp14">MUST</span> only ever be used for a single spend request. When we
-receive the refund from the server, we will be able to use this credential
-instead. If we use the same credential more than once, we violate the privacy
-assumptions of ACT by presenting the same nullifier twice.<a href="#section-8.1-3" class="pilcrow">¶</a></p>
+<p id="section-8.1-3">Each credential instance <span class="bcp14">MUST</span> only ever be used for a single spend request. When the client
+receives the refunded credential from the server, the client uses that new credential instance
+for the next spend. If the same credential instance is used more than once, the privacy
+assumptions of ACT are violated by presenting the same nullifier twice.<a href="#section-8.1-3" class="pilcrow">¶</a></p>
 <p id="section-8.1-4">The resulting Token value is then constructed as follows:<a href="#section-8.1-4" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.1-5">
 <pre>
@@ -1778,7 +1783,7 @@ spend_amount = spend_proof.s   // Field 2: spend amount (32 bytes)
 </pre><a href="#section-8.2-2" class="pilcrow">¶</a>
 </div>
 <p id="section-8.2-3">The Origin <span class="bcp14">SHOULD</span> verify that the spend_amount matches the requested cost from
-the TokenChallenge to ensure the client is spending the expected amount.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
+TokenChallenge to ensure the client is spending the expected amount.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
 <p id="section-8.2-4">To verify the Token and issue a refund, the Origin constructs the request_context
 and invokes VerifyAndRefund:<a href="#section-8.2-4" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.2-5">
@@ -1802,22 +1807,22 @@ struct {
 } Refund;
 </pre><a href="#section-8.2-8" class="pilcrow">¶</a>
 </div>
-<p id="section-8.2-9">Finally, we send down the refund back to the client encoded as the above <code>Refund</code> struct.<a href="#section-8.2-9" class="pilcrow">¶</a></p>
+<p id="section-8.2-9">The Origin sends the refund back to the client encoded as the above <code>Refund</code> struct.<a href="#section-8.2-9" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="new-token-from-refund">
+<div id="new-credential-from-refund">
 <section id="section-8.3">
-        <h3 id="name-new-token-from-refund">
-<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-new-token-from-refund" class="section-name selfRef">New Token from Refund</a>
+        <h3 id="name-new-credential-from-refund">
+<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-new-credential-from-refund" class="section-name selfRef">New Credential from Refund</a>
         </h3>
-<p id="section-8.3-1">Differently from <span>[<a href="#ARC" class="cite xref">ARC</a>]</span>, we have to reconstruct our new token based on the <code>Refund</code> response. To do
-so, we invoke the <code>ConstructRefundToken</code> from <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-3.3.4" class="relref">Section 3.3.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> in the following ways:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
+<p id="section-8.3-1">Unlike <span>[<a href="#ARC" class="cite xref">ARC</a>]</span>, clients must construct a new credential instance based on the <code>Refund</code> response. To do
+so, clients invoke the <code>ConstructRefundToken</code> function from <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-3.3.4" class="relref">Section 3.3.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> as follows:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.3-2">
 <pre>
-token = ConstructRefundToken(pkI, spend_proof, refund, state)
+credential = ConstructRefundToken(pkI, spend_proof, refund, state)
 </pre><a href="#section-8.3-2" class="pilcrow">¶</a>
 </div>
-<p id="section-8.3-3">Now, finally, we can replace our old credential with this new one and this one can be properly used.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
+<p id="section-8.3-3">The client then uses this new credential instance for subsequent spend operations.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
