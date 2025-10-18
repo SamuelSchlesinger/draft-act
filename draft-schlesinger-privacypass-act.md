@@ -160,6 +160,129 @@ be implemented in each of the relevant deployment models.
 The issuance and redemption protocols in this document are built on
 {{ACT}}.
 
+# Client State Management {#state-management}
+
+## Credential Lifecycle and Distributed Transactions
+
+ACT credentials follow a distributed transaction model where each spend operation
+creates a two-phase interaction between the client and the origin:
+
+1. **Spend Phase**: The client commits to spending a credential by generating a spend
+   proof containing a nullifier. At this point, the credential MUST be considered
+   invalid and cannot be reused.
+
+2. **Refund Phase**: The origin verifies the spend proof and, if valid, returns a
+   refund that allows the client to construct a new credential with the remaining
+   balance.
+
+This two-phase model is critical for ACT's concurrency control properties. Because
+a credential becomes invalid immediately upon spend (before the refund is received),
+a client cannot perform multiple concurrent spend operations with the same credential.
+This enforces a strict serialization of operations per credential chain.
+
+## Client State Transitions
+
+A client managing an ACT credential progresses through the following states:
+
+~~~
+   +----------+
+   |  Initial |  (Credential with N credits)
+   +----------+
+        |
+        | ProveSpend(credential, cost)
+        v
+   +----------+
+   |   Spent  |  (Waiting for refund, credential invalid)
+   +----------+
+        |
+        | ConstructRefundToken(refund)
+        v
+   +----------+
+   | Refunded |  (New credential with N-cost credits)
+   +----------+
+~~~
+
+State transitions:
+
+- **Initial**: Client holds a valid credential with N credits (N > 0). The credential
+  can be spent.
+
+- **Spent**: Client has generated a spend proof and sent it to the origin. The
+  original credential is now invalid and MUST NOT be used again. The client is
+  blocked waiting for a refund response.
+
+- **Refunded**: Client has received a valid refund and constructed a new credential
+  with the remaining balance. If the new balance is greater than 0, the client
+  returns to the Initial state with the new credential. If the balance is 0, the
+  credential is exhausted.
+
+The transition from Spent to Refunded may fail if the origin does not provide a
+valid refund. Error handling for this case is described in {{error-handling}}.
+
+## Concurrency Control Through Blocking
+
+The key insight enabling ACT's concurrency control is that each credential instance
+can only be in one state at a time. When a client calls ProveSpend, it must
+immediately transition the credential to the Spent state, making it unavailable for
+any other operations. The client cannot perform another spend until it receives a
+refund and transitions to the Refunded state with a new credential instance.
+
+This blocking behavior prevents credential sharing and concurrent usage:
+
+- If a malicious party attempts to copy a credential and use it elsewhere, only one
+  spend operation can succeed (whichever reaches the origin first). The second spend
+  will be rejected as a double-spend when the origin checks the nullifier.
+
+- Even if a single client attempts to perform concurrent spends with the same
+  credential, the first spend invalidates the credential, preventing the second.
+
+The origin can enforce session behavior by declining to issue a refund, effectively
+terminating the credential chain and preventing further operations.
+
+## Multiple Credential Management
+
+Clients MAY maintain multiple independent credential chains simultaneously. This is
+useful when credentials are bound to different contexts via the credential_context
+field ({{token-challenge-requirements}}).
+
+Example: A client might hold:
+
+- Credential A: Bound to issuer1.example, origin1.example, credential_context =
+  "session-2024-01", with 100 credits
+- Credential B: Bound to issuer1.example, origin2.example, credential_context =
+  "session-2024-01", with 50 credits
+- Credential C: Bound to issuer1.example, origin1.example, credential_context =
+  "session-2024-02", with 75 credits
+
+Each credential chain operates independently with its own state machine. A spend
+operation on Credential A does not affect Credentials B or C. The client can perform
+spend operations on different credentials concurrently, but each individual credential
+chain is strictly serialized through the spend-refund cycle.
+
+When the client receives a TokenChallenge, it determines which credential to use
+based on the challenge's issuer_name, origin_info, and credential_context fields.
+If no matching credential exists or all matching credentials are in the Spent state
+(awaiting refund), the client must either wait for a refund or request a new
+credential through the issuance protocol.
+
+## Error Handling {#error-handling}
+
+### Delayed or Missing Refunds
+
+After a client sends a spend proof to the origin, the client must wait for the
+corresponding refund before it can continue using the credential chain. The spent
+credential instance is immediately invalid and MUST NOT be reused.
+
+Origins MAY retain spend proof state and serve delayed refund requests after service
+interruptions or failures. This allows credential chains to resume even if the initial
+refund response was not delivered due to network issues or temporary service outages.
+
+However, origins MAY also implement a timeout after which they delete stored refund
+state. If a client's refund request arrives after this timeout, the origin will be
+unable to provide the refund, effectively terminating that credential chain. Clients
+in this situation will need to request a new credential through the issuance protocol
+({{credential-issuance-protocol}}) to continue accessing the origin.
+
 # Configuration {#setup}
 
 ACT Issuers are configured with key material used for issuance and credential
@@ -507,12 +630,86 @@ The client then uses this new credential instance for subsequent spend operation
 
 # Security Considerations {#security}
 
+## Privacy Properties
+
 Privacy considerations for tokens based on deployment details, such as issuer configuration
 and issuer selection, are discussed in {{Section 6.1 of ARCHITECTURE}}. Note that ACT
-requires a joint Origin and Issuer configuration given that it is privately verifiable.
+requires a joint Origin and Issuer configuration (where the Issuer and Origin are operated
+by the same entity) given that tokens produced from credentials are not publicly verifiable.
 
-ACT offers Origin-Client unlinkability, Issuer-Client unlinkability, and redemption context
-unlinkability, as described in {{Section 3.3 of ARCHITECTURE}}.
+ACT credentials offer Origin-Client unlinkability, Issuer-Client unlinkability, and
+redemption context unlinkability, as described in {{Section 3.3 of ARCHITECTURE}}. The
+cryptographic security properties of the underlying ACT protocol, including unforgeability
+and unlinkability guarantees, are analyzed in {{ACT}}.
+
+## Double-Spend Prevention
+
+The security of ACT's double-spend prevention mechanism relies on Origins maintaining
+state to track nullifiers. As described in {{refund}}, Origins MUST check that a nullifier
+has not been previously seen before accepting a spend proof. This check is critical for
+preventing credential reuse attacks.
+
+The nullifier space is large (32 bytes), making random collisions computationally
+infeasible. However, Origins MUST ensure that their nullifier storage is persistent and
+survives server restarts. If an Origin loses nullifier state (e.g., due to data loss or
+cache eviction), it becomes vulnerable to replay attacks where an attacker can resubmit
+previously spent credentials.
+
+Origins SHOULD scope nullifier storage by request_context to improve lookup performance
+and enable efficient storage management. Since nullifiers are only meaningful within the
+context of a specific credential binding (determined by issuer_name, origin_info,
+credential_context, and issuer_key_id), Origins can partition nullifier storage accordingly.
+
+When an Origin implements a timeout for refund state (as described in {{error-handling}}),
+it MAY also expire the corresponding nullifier after the same timeout period, provided
+that no future spend attempts with that nullifier are possible.
+
+## Concurrency Control and Credential Sharing
+
+The state machine described in {{state-management}} enforces that each credential instance
+can only be spent once. This prevents multiple parties from using the same credential
+concurrently, which is critical for preventing credential sharing attacks.
+
+If an attacker copies a credential and attempts to use it from multiple locations
+simultaneously, only the first spend operation to reach the Origin will succeed. The
+Origin's nullifier check will reject all subsequent spends with the same credential as
+double-spend attempts. This property holds even if the spend operations occur in parallel
+from different network locations.
+
+Clients MUST implement the state machine correctly and transition credentials to the Spent
+state immediately upon calling ProveSpend. A client implementation that allows multiple
+concurrent ProveSpend calls on the same credential would enable double-spend attempts and
+violate ACT's privacy guarantees by revealing that the same credential is being used
+multiple times.
+
+## Issuer Key Identification
+
+As described in {{credential-issuance-protocol}}, the TokenRequest includes only a
+truncated issuer_key_id (the least significant byte) to prevent Issuers from using the
+key identifier as a client tracking mechanism.
+
+Issuers MUST prevent truncated key ID collisions among simultaneously active keys. This
+can be accomplished by generating keys until the truncated key ID does not collide with
+any existing active key's truncated ID. With a 1-byte (256 value) truncated key space,
+this is straightforward for reasonable numbers of concurrent keys.
+
+Additionally, Issuers SHOULD limit the total number of simultaneously active keys for
+privacy reasons, as a large number of active keys can enable partitioning attacks.
+
+## Dynamic Revocation and Origin Control
+
+ACT's design allows Origins to terminate credential chains by declining to issue refunds.
+While this enables the dynamic revocation property described in {{motivation}}, it also
+gives Origins significant control over client access.
+
+Clients have no cryptographic recourse if an Origin refuses to provide refunds after
+accepting valid spend proofs. This is an intentional design property that enables Origins
+to enforce access policies and shed abusive traffic, but it does mean that clients must
+trust Origins to behave correctly within the protocol.
+
+Clients MAY implement reputation systems or other mechanisms to track Origin behavior and
+avoid Origins that consistently fail to provide refunds. However, such mechanisms are
+outside the scope of this specification.
 
 # IANA Considerations
 
