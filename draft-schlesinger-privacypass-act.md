@@ -290,7 +290,7 @@ verification. Concretely, Issuers run the `KeyGen` function from {{ACT}}
 to produce a private and public key, denoted skI and pkI, respectively.
 
 ~~~
-skI, pkI = SetupServer()
+skI, pkI = KeyGen()
 ~~~
 
 The Issuer Public Key ID, denoted `issuer_key_id`, is computed as the
