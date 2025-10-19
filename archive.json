@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-10-16T00:05:38.167602+00:00",
+  "timestamp": "2025-10-19T00:06:04.924188+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -1769,13 +1769,13 @@
       "labels": [],
       "body": "First (rough) draft, wanted to post for visibility as I work but I'll likely make revisions and changes myself as well.",
       "createdAt": "2025-10-13T16:25:18Z",
-      "updatedAt": "2025-10-15T16:30:08Z",
+      "updatedAt": "2025-10-18T19:52:13Z",
       "baseRepository": "SamuelSchlesinger/draft-act",
       "baseRefName": "main",
       "baseRefOid": "0329f6b6c0ae1bea0e4449dfcaafc2667f9c4111",
       "headRepository": "SamuelSchlesinger/draft-act",
       "headRefName": "samschles/privacypass-integration",
-      "headRefOid": "54af25007aee3c74870f21e6b9940ef58af6d062",
+      "headRefOid": "5f9364bafd3d0b2fb55e98ed2c6c461753937493",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -1787,6 +1787,13 @@
           "body": "For some context, this is basically a carbon copy of ARC's privacy pass integration with only the changes needed to support ACTs. The biggest change is the introduction of a response that contains what is needed to refund the token, but that was simple to add. There are missing bits and the API of ACT crypto isn't exactly what we need, we basically need to add in the request context.",
           "createdAt": "2025-10-13T16:45:50Z",
           "updatedAt": "2025-10-13T16:45:50Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "Improved, edited, and added a lot of this text. @thibmeu, @cjpatton happy to get a review on this before the deadline, but I'll submit to datatracker Monday either way so we have something for 124. Looks like some build errors need to be fixed in the meantime.",
+          "createdAt": "2025-10-18T19:52:13Z",
+          "updatedAt": "2025-10-18T19:52:13Z"
         }
       ],
       "reviews": [
@@ -1809,6 +1816,70 @@
               "updatedAt": "2025-10-15T16:30:08Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7HPuwx",
+          "commit": {
+            "abbreviatedOid": "54af250"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-10-16T01:28:12Z",
+          "updatedAt": "2025-10-16T01:28:13Z",
+          "comments": [
+            {
+              "originalPosition": 384,
+              "body": "yeah, this was just a placeholder, not sure if they found this token_type id in a principled way like hashing some string related to the protocol",
+              "createdAt": "2025-10-16T01:28:12Z",
+              "updatedAt": "2025-10-16T01:28:13Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 16,
+      "id": "PR_kwDOPc24Mc6uWWfi",
+      "title": "Privacy Pass integration with frontmatter and refund flow",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/pull/16",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [],
+      "body": "Update privacy pass integration frontmatter so the draft metadata are correct\r\n\r\nAlso update the overview diagram to include te refund flow",
+      "createdAt": "2025-10-17T16:57:41Z",
+      "updatedAt": "2025-10-18T19:49:31Z",
+      "baseRepository": "SamuelSchlesinger/draft-act",
+      "baseRefName": "samschles/privacypass-integration",
+      "baseRefOid": "54af25007aee3c74870f21e6b9940ef58af6d062",
+      "headRepository": "SamuelSchlesinger/draft-act",
+      "headRefName": "thibmeu/privacypass-nits",
+      "headRefOid": "ffa0593abae66a4b4a9c1660dc55d7fda8f6bbbb",
+      "closedAt": "2025-10-18T19:49:31Z",
+      "mergedAt": "2025-10-18T19:49:30Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "5f9364bafd3d0b2fb55e98ed2c6c461753937493"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOPc24Mc7H5fq1",
+          "commit": {
+            "abbreviatedOid": "ffa0593"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "APPROVED",
+          "body": "Thank you! LGTM.",
+          "createdAt": "2025-10-18T19:49:25Z",
+          "updatedAt": "2025-10-18T19:49:25Z",
+          "comments": []
         }
       ]
     }
