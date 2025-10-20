@@ -24,10 +24,10 @@ author:
     organization: Google
     email: samschlesinger@google.com
  -
-    ins: J. Katz
-    name: Jonathan Katz
-    org: Google
-    email: jkcrypto@google.com
+    ins: T. Meunier
+    name: Thibault Meunier
+    org: Cloudflare Inc.
+    email: ot-ietf@thibault.uk
 
 normative:
   ACT: I-D.draft-schlesinger-cfrg-act

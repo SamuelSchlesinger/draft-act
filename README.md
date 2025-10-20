@@ -1,14 +1,22 @@
-<!-- regenerate: on (set to off if you edit this file) -->
+<!-- regenerate: off (set to off if you edit this file) -->
 
 # Anonymous Credit Tokens
 
 This is the working area for the individual Internet-Draft, "Anonymous Credit Tokens".
+
+## CFRG Draft (Crypto Stuff)
 
 * [Editor's Copy](https://SamuelSchlesinger.github.io/draft-act/#go.draft-schlesinger-cfrg-act.html)
 * [Datatracker Page](https://datatracker.ietf.org/doc/draft-schlesinger-cfrg-act)
 * [Individual Draft](https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act)
 * [Compare Editor's Copy to Individual Draft](https://SamuelSchlesinger.github.io/draft-act/#go.draft-schlesinger-cfrg-act.diff)
 
+## Privacy Pass Draft (Deployment Stuff)
+
+* [Editor's Copy](https://SamuelSchlesinger.github.io/draft-act/#go.draft-schlesinger-privacypass-act.html)
+* [Datatracker Page](https://datatracker.ietf.org/doc/draft-schlesinger-privacypass-act)
+* [Individual Draft](https://datatracker.ietf.org/doc/html/draft-schlesinger-privacypass-act)
+* [Compare Editor's Copy to Individual Draft](https://SamuelSchlesinger.github.io/draft-act/#go.draft-schlesinger-privacypass-act.diff)
 
 ## Contributing
 
