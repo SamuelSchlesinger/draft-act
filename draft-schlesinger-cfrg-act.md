@@ -31,6 +31,8 @@ normative:
     title: "BLAKE3: One Function, Fast Everywhere"
     target: https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf
     date: 2020-01-09
+  SIGMA: I-D.irtf-cfrg-sigma-protocols-00
+  FIAT-SHAMIR: I-D.irtf-cfrg-fiat-shamir-00
 
 informative:
   FST: DOI.10.1007/3-540-47721-7_12
@@ -178,9 +180,9 @@ This protocol builds upon several cryptographic primitives:
   proofs of possession. We use a variant that is privately verifiable, which
   avoids the need for pairings and makes our protocol more efficient.
 
-- **Sigma Protocols** {{!SIGMA=I-D.irtf-cfrg-sigma-protocols-00}}: The zero-knowledge proof framework used for issuing and spending credits.
+- **Sigma Protocols** {{SIGMA}}: The zero-knowledge proof framework used for issuing and spending credits.
 
-- **Fiat-Shamir Transform** {{!FIAT-SHAMIR=I-D.irtf-cfrg-fiat-shamir-00}}: The technique to make the interactive
+- **Fiat-Shamir Transform** {{FIAT-SHAMIR}}: The technique to make the interactive
   proofs non-interactive.
 
 The protocol can be viewed as a specialized instantiation of keyed-verification
@@ -230,60 +232,28 @@ key parameters are:
 - **G**: The standard generator of the Ristretto group
 - **L**: The bit length for credit values
 
-## Sigma Proofs and Fiat-Shamir Transform {#sigma-and-fs}
+## Zero-knowledge Proofs of Knowledge {#zk-pok}
 
 Proofs of knowledge are based on interactive sigma protocols, which
 are made non-interactive through the Fiat-Shamir transform {{FST}}.
-The concrete construction uses two interfaces:
-one for describing the sigma protocol, and
-another for generating non-interactive zero-knowledge proofs.
-
-A proof of knowledge is constructed for the relation
-$$R = {(x, w) : x \in L, w \in W(x)}$$
-where the language (`L`) is the set of linear relations between the
-statement (`x`) and the witness (`w`) in the set (`W(x)`) of valid
-witnesses for `x`.
-The statement is expressed as linear combinations of scalars and group
-elements, while the witness is represented as a list of scalars.
-The LinearRelation interface, described in {{Section 2.2.6 of SIGMA}},
-allows constructing a sigma protocol for the relation above.
-
-~~~
-+--------------------------------------------------+
-| LinearRelation                                   |
-+--------------------------------------------------+
-| LinearRelation(group: Group)                     |
-| allocate_scalars(n: int): list[int]              |
-| allocate_elements(n: int): list[int]             |
-| append_equation(lhs: int, rhs: list[(int, int)]) |
-| set_elements(e: list[(int, Group.Element)])      |
-+--------------------------------------------------+
-~~~
-
-The NISigmaProtocol interface, described in {{Section 5 of FIAT-SHAMIR}},
-converts an interactive sigma protocol created with the LinearRelation
+The concrete proofs use two interfaces:
+the LinearRelation interface, described in {{Section 2.2.6 of SIGMA}},
+for building an interactive sigma protocol, and
+the NISigmaProtocol interface, described in {{Section 5 of FIAT-SHAMIR}},
+for converting the protocol created with the LinearRelation
 interface into a non-interactive proof.
-The NISigmaProtocol requires an initialization vector (`iv`) that
-uniquely identifies the protocol.
+
+The NISigmaProtocol requires a session identifier that
+uniquely identifies the session being proven.
 Once initialized, the Prover can generate proofs of knowledge
 of a witness statisfying the statement, while the Verifier can validate
 these proofs.
+The NISigmaProtocol is parametrized with a Codec that
+encodes prover messages and verifier challenges, and
+a DuplexSponge interface that computes challenges.
+See {{FIAT-SHAMIR}} for requirements of these parameters.
 
-~~~
-+------------------------------------------------------+
-| NISigmaProtocol                                      |
-+------------------------------------------------------+
-| NISigmaProtocol(iv: list[byte], rel: LinearRelation) |
-| prove(witness: list[Group.Scalar]): list[byte]       |
-| verify(proof: list[byte]): boolean                   |
-+------------------------------------------------------+
-~~~
-
-The NISigmaProtocol is parametrized with a Codec, which specifies
-how to encode prover messages and verifier challenges.
-See {{Section 5.1 of FIAT-SHAMIR}} for requirements of this codec.
-
-### Pedersen Commitment
+### Pedersen Proof
 
 A proof of knowledge derived from a Pedersen commitment shows that
 the prover knows witness scalars `(k0, k1)` such that `R = k0*P + k1*Q`,
@@ -291,7 +261,7 @@ for group elements `P`, `Q`, and `R`.
 
 The {{append_pedersen}}{:format="title"} function appends linear relations
 to the statement to instantiate a Pedersen proof,
-as shown in {{Section 2.2.9 of !SIGMA}}.
+as shown in {{Section 2.2.9 of SIGMA}}.
 
 ~~~ pseudocode
 append_pedersen(statement, P, Q, R):
@@ -317,7 +287,7 @@ for group elements `P`, `Q`, `X`, and `Y`.
 
 The {{append_dleq}}{:format="title"} function appends linear relations
 to the statement to instantiate a DLEQ proof,
-as shown in {{Section 2.2.8 of !SIGMA}}.
+as shown in {{Section 2.2.8 of SIGMA}}.
 
 ~~~ pseudocode
 append_dleq(statement, P, Q, X, Y):
@@ -459,12 +429,13 @@ IssueRequest():
     // Generate proof of knowledge of (k, r) such that K = H2 * k + H3 * r
     4. statement = LinearRelation(group)
     5. append_pedersen(statement, H2, H3, K)
-    6. prover = NISigmaProtocol("request", statement)
-    7. witness = [k, r]
-    8. pok = prover.prove(witness)
-    9. request = (K, pok)
-   10. state = (k, r, K)
-   11. return (request, state)
+    6. session_id = domain_separator + "request"
+    7. prover = NISigmaProtocol(session_id, statement)
+    8. witness = [k, r]
+    9. pok = prover.prove(witness, rng)
+   10. request = (K, pok)
+   11. state = (k, r, K)
+   12. return (request, state)
 ~~~
 
 ### Issuer: Issuance Response
@@ -485,24 +456,26 @@ IssueResponse(sk, request, c):
     1. Parse request as (K, pok)
     2. statement = LinearRelation(group)
     3. append_pedersen(statement, H2, H3, K)
-    4. verifier = NISigmaProtocol("request", statement)
-    5. if not verifier.verify(pok):
-    6.     raise InvalidIssuanceRequestProof
+    4. session_id = domain_separator + "request"
+    5. verifier = NISigmaProtocol(session_id, statement)
+    6. if not verifier.verify(pok):
+    7.     raise InvalidIssuanceRequestProof
 
     // Create BBS signature on (c, k, r)
-    7. e <- Zq
-    8. X_A = G + H1 * c + K    // K = H2 * k + H3 * r
-    9. A = X_A * (1/(e + sk))
-   10. X_G = G * (e + sk)
+    8. e <- Zq
+    9. X_A = G + H1 * c + K    // K = H2 * k + H3 * r
+   10. A = X_A * (1/(e + sk))
+   11. X_G = G * (e + sk)
 
    // Generate proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G * (e+sk)
-   11. statement = LinearRelation(group)
-   12. append_dleq(statement, A, G, X_A, X_G)
-   13. prover = NISigmaProtocol("respond", statement)
-   14. witness = [e + sk]
-   15. pok = prover.prove(witness)
-   16. response = (A, e, c, pok)
-   17. return response
+   12. statement = LinearRelation(group)
+   13. append_dleq(statement, A, G, X_A, X_G)
+   14. session_id = domain_separator + "respond"
+   15. prover = NISigmaProtocol(session_id, statement)
+   16. witness = [e + sk]
+   17. pok = prover.prove(witness, rng)
+   18. response = (A, e, c, pok)
+   19. return response
 ~~~
 
 ### Client: Token Verification
@@ -527,11 +500,12 @@ VerifyIssuance(pk, response, state):
     4. X_G = G * e + pk
     5. statement = LinearRelation(group)
     6. append_dleq(statement, A, G, X_A, X_G)
-    7. verifier = NISigmaProtocol("respond", statement)
-    8. if not verifier.verify(pok):
-    9.     raise InvalidIssuanceResponseProof
-   10. token = (A, e, k, r, c)
-   11. return token
+    7. session_id = domain_separator + "respond"
+    8. verifier = NISigmaProtocol(session_id, statement)
+    9. if not verifier.verify(pok):
+   10.     raise InvalidIssuanceResponseProof
+   11. token = (A, e, k, r, c)
+   12. return token
 ~~~
 
 ## Token Spending
@@ -741,11 +715,12 @@ IssueRefund(sk, K'):
     // Generate proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G * (e + sk)
     5. statement = LinearRelation(group)
     6. append_dleq(statement, A, G, X_A, X_G)
-    7. prover = NISigmaProtocol("refund", statement)
-    8. witness = [e + sk]
-    9. pok = prover.prove(witness)
-   10. refund = (A, e, pok)
-   11. return refund
+    7. session_id = domain_separator + "refund"
+    8. prover = NISigmaProtocol(session_id, statement)
+    9. witness = [e + sk]
+   10. pok = prover.prove(witness, rng)
+   11. refund = (A, e, pok)
+   12. return refund
 ~~~
 
 ### Client: Refund Token Construction
@@ -776,13 +751,14 @@ ConstructRefundToken(pk, spend_proof, refund, state):
     // Verify proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G * (e + sk)
     6. statement = LinearRelation(group)
     7. append_dleq(statement, A, G, X_A, X_G)
-    8. verifier = NISigmaProtocol("refund", statement)
-    9. if not verifier.verify(pok):
-   10.     raise InvalidRefundProof
+    8. session_id = domain_separator + "refund"
+    9. verifier = NISigmaProtocol(session_id, statement)
+   10. if not verifier.verify(pok):
+   11.     raise InvalidRefundProof
 
    // Construct new token
-   11. token = (A, e, k*, r*, m)
-   12. return token
+   12. token = (A, e, k*, r*, m)
+   13. return token
 ~~~
 
 ### Spend Proof Verification {#spend-verification}
