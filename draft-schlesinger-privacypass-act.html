@@ -1346,9 +1346,10 @@ the Issuer for issuing and verifying Tokens.<a href="#section-3-3.1.1" class="pi
 the Issuer for issuing and verifying Tokens.<a href="#section-3-3.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-3-4">Unless otherwise specified, this document encodes protocol messages in TLS
+<p id="section-3-4">OPEN ISSUE: Consider taking them from <span>[<a href="#ACT" class="cite xref">ACT</a>]</span><a href="#section-3-4" class="pilcrow">¶</a></p>
+<p id="section-3-5">Unless otherwise specified, this document encodes protocol messages in TLS
 notation from <span><a href="https://rfc-editor.org/rfc/rfc8446#section-3" class="relref">Section 3</a> of [<a href="#TLS13" class="cite xref">TLS13</a>]</span>. Moreover, all constants are in
-network byte order.<a href="#section-3-4" class="pilcrow">¶</a></p>
+network byte order.<a href="#section-3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="overview">
@@ -1499,24 +1500,49 @@ This enforces a strict serialization of operations per credential chain.<a href=
 <a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-client-state-transitions" class="section-name selfRef">Client State Transitions</a>
         </h3>
 <p id="section-5.2-1">A client managing an ACT credential progresses through the following states:<a href="#section-5.2-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-5.2-2">
-<pre>
-   +----------+
-   |  Initial |  (Credential with N credits)
-   +----------+
-        |
-        | ProveSpend(credential, cost)
-        v
-   +----------+
-   |   Spent  |  (Waiting for refund, credential invalid)
-   +----------+
-        |
-        | ConstructRefundToken(refund)
-        v
-   +----------+
-   | Refunded |  (New credential with N-cost credits)
-   +----------+
-</pre><a href="#section-5.2-2" class="pilcrow">¶</a>
+<div id="section-5.2-2">
+          <div class="alignLeft art-svg artwork" id="section-5.2-2.1">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="288" width="440" viewBox="0 0 440 288" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+              <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
+              <path d="M 8,128 L 8,160" fill="none" stroke="black"></path>
+              <path d="M 8,224 L 8,256" fill="none" stroke="black"></path>
+              <path d="M 48,64 L 48,120" fill="none" stroke="black"></path>
+              <path d="M 48,160 L 48,216" fill="none" stroke="black"></path>
+              <path d="M 96,32 L 96,64" fill="none" stroke="black"></path>
+              <path d="M 96,128 L 96,160" fill="none" stroke="black"></path>
+              <path d="M 96,224 L 96,256" fill="none" stroke="black"></path>
+              <path d="M 8,32 L 96,32" fill="none" stroke="black"></path>
+              <path d="M 8,64 L 96,64" fill="none" stroke="black"></path>
+              <path d="M 8,128 L 96,128" fill="none" stroke="black"></path>
+              <path d="M 8,160 L 96,160" fill="none" stroke="black"></path>
+              <path d="M 8,224 L 96,224" fill="none" stroke="black"></path>
+              <path d="M 8,256 L 96,256" fill="none" stroke="black"></path>
+              <polygon class="arrowhead" points="56,216 44,210.4 44,221.6" fill="black" transform="rotate(90,48,216)"></polygon>
+              <polygon class="arrowhead" points="56,120 44,114.4 44,125.6" fill="black" transform="rotate(90,48,120)"></polygon>
+              <g class="text">
+                <text x="56" y="52">Initial</text>
+                <text x="160" y="52">(Credential</text>
+                <text x="228" y="52">with</text>
+                <text x="256" y="52">N</text>
+                <text x="300" y="52">credits)</text>
+                <text x="148" y="100">ProveSpend(credential,</text>
+                <text x="264" y="100">cost)</text>
+                <text x="56" y="148">Spent</text>
+                <text x="148" y="148">(Waiting</text>
+                <text x="200" y="148">for</text>
+                <text x="248" y="148">refund,</text>
+                <text x="324" y="148">credential</text>
+                <text x="404" y="148">invalid)</text>
+                <text x="172" y="196">ConstructRefundToken(refund)</text>
+                <text x="52" y="244">Refunded</text>
+                <text x="132" y="244">(New</text>
+                <text x="196" y="244">credential</text>
+                <text x="260" y="244">with</text>
+                <text x="308" y="244">N-cost</text>
+                <text x="372" y="244">credits)</text>
+              </g>
+            </svg><a href="#section-5.2-2.1" class="pilcrow">¶</a>
+</div>
 </div>
 <p id="section-5.2-3">State transitions:<a href="#section-5.2-3" class="pilcrow">¶</a></p>
 <ul class="normal">
@@ -1593,10 +1619,10 @@ field (<a href="#token-challenge-requirements" class="auto internal xref">Sectio
 operation on Credential A does not affect Credentials B or C. The client can perform
 spend operations on different credentials concurrently, but each individual credential
 chain is strictly serialized through the spend-refund cycle.<a href="#section-5.4-4" class="pilcrow">¶</a></p>
-<p id="section-5.4-5">When the client receives a TokenChallenge, it determines which credential to use
-based on the challenge's issuer_name, origin_info, and credential_context fields.
-If no matching credential exists or all matching credentials are in the Spent state
-(awaiting refund), the client must either wait for a refund or request a new
+<p id="section-5.4-5">When the client receives a <code>TokenChallenge</code>, it determines which credential to use
+based on the challenge's <code>issuer_name</code>, <code>origin_info</code>, and <code>credential_context</code> fields.
+If no matching credential exists or all matching credentials are in the <code>Spent</code> state
+(awaiting refund), the client <span class="bcp14">SHOULD</span> either wait for a refund or request a new
 credential through the issuance protocol.<a href="#section-5.4-5" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1643,7 +1669,7 @@ skI, pkI = KeyGen()
 <p id="section-6-3">The Issuer Public Key ID, denoted <code>issuer_key_id</code>, is computed as the
 SHA-256 hash of the Issuer Public Key, i.e., <code>issuer_key_id = SHA-256(pkI_serialized)</code>,
 where <code>pkI_serialized</code> is the serialized version of <code>pkI</code> as described in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1" class="relref">Section 4.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6-3" class="pilcrow">¶</a></p>
-<p id="section-6-4">OPEN ISSUE: Coordinate with ACT specification authors on the serialization format (CBOR vs TLS notation) to ensure consistency.<a href="#section-6-4" class="pilcrow">¶</a></p>
+<p id="section-6-4">OPEN ISSUE: Coordinate with <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> specification authors on the serialization format (CBOR vs TLS presentation language) to ensure consistency.<a href="#section-6-4" class="pilcrow">¶</a></p>
 <div id="request-context-extension">
 <section id="section-6.1">
         <h3 id="name-request-context-extension">
@@ -2008,9 +2034,10 @@ refund = VerifyAndRefund(skI, request_context, spend_proof)
 </pre><a href="#section-9.2-5" class="pilcrow">¶</a>
 </div>
 <p id="section-9.2-6">This function returns the <code>refund</code> serialized according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.4" class="relref">Section 4.1.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> if the spend proof is valid, and nil otherwise.<a href="#section-9.2-6" class="pilcrow">¶</a></p>
-<p id="section-9.2-7">Implementation-specific steps: to prevent double spending, the Origin <span class="bcp14">MUST</span> perform a check that the
-nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier for use in future double
-spending checks. To reduce the overhead of performing double spend checks, the Origin can store and
+<p id="section-9.2-7">As mentioned in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2.2" class="relref">Section 2.2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span>, Origins <span class="bcp14">SHOULD</span> implement some form of double-spend prevention that prevents a token with the same nonce from being redeemed twice.
+With ACT, the Origin <span class="bcp14">SHOULD</span> check that the nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier
+for  use in future double-spending checks.
+To reduce the overhead of performing double spend checks, the Origin <span class="bcp14">MAY</span> store and
 look up the nullifiers corresponding to the associated request_context value.<a href="#section-9.2-7" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-9.2-8">
 <pre>
@@ -2064,22 +2091,24 @@ and unlinkability guarantees, are analyzed in <span>[<a href="#ACT" class="cite 
         <h3 id="name-double-spend-prevention">
 <a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-double-spend-prevention" class="section-name selfRef">Double-Spend Prevention</a>
         </h3>
-<p id="section-10.2-1">The security of ACT's double-spend prevention mechanism relies on Origins maintaining
-state to track nullifiers. As described in <a href="#refund" class="auto internal xref">Section 9.2</a>, Origins <span class="bcp14">MUST</span> check that a nullifier
+<p id="section-10.2-1"><span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2.2" class="relref">Section 2.2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span> specifies double spending requirements that Origin <span class="bcp14">SHOULD</span>
+follow.<a href="#section-10.2-1" class="pilcrow">¶</a></p>
+<p id="section-10.2-2">For ACT, the double-spend prevention mechanism relies on Origins maintaining
+state to track nullifiers. As described in <a href="#refund" class="auto internal xref">Section 9.2</a>, Origins <span class="bcp14">SHOULD</span> check that a nullifier
 has not been previously seen before accepting a spend proof. This check is critical for
-preventing credential reuse attacks.<a href="#section-10.2-1" class="pilcrow">¶</a></p>
-<p id="section-10.2-2">The nullifier space is large (32 bytes), making random collisions computationally
-infeasible. However, Origins <span class="bcp14">MUST</span> ensure that their nullifier storage is persistent and
+preventing credential reuse attacks.<a href="#section-10.2-2" class="pilcrow">¶</a></p>
+<p id="section-10.2-3">The nullifier space is large (32 bytes), making random collisions computationally
+unlikely. However, Origins <span class="bcp14">SHOULD</span> ensure that their nullifier storage is persistent and
 survives server restarts. If an Origin loses nullifier state (e.g., due to data loss or
 cache eviction), it becomes vulnerable to replay attacks where an attacker can resubmit
-previously spent credentials.<a href="#section-10.2-2" class="pilcrow">¶</a></p>
-<p id="section-10.2-3">Origins <span class="bcp14">SHOULD</span> scope nullifier storage by request_context to improve lookup performance
+previously spent credentials during the credential validity period.<a href="#section-10.2-3" class="pilcrow">¶</a></p>
+<p id="section-10.2-4">Origins <span class="bcp14">MAY</span> scope nullifier storage by request_context to improve lookup performance
 and enable efficient storage management. Since nullifiers are only meaningful within the
-context of a specific credential binding (determined by issuer_name, origin_info,
-credential_context, and issuer_key_id), Origins can partition nullifier storage accordingly.<a href="#section-10.2-3" class="pilcrow">¶</a></p>
-<p id="section-10.2-4">When an Origin implements a timeout for refund state (as described in <a href="#error-handling" class="auto internal xref">Section 5.5</a>),
+context of a specific credential binding (determined by <code>issuer_name</code>, <code>origin_info</code>,
+<code>credential_context</code>, and <code>issuer_key_id</code>), Origins can partition nullifier storage accordingly.<a href="#section-10.2-4" class="pilcrow">¶</a></p>
+<p id="section-10.2-5">When an Origin implements a timeout for refund state (as described in <a href="#error-handling" class="auto internal xref">Section 5.5</a>),
 it <span class="bcp14">MAY</span> also expire the corresponding nullifier after the same timeout period, provided
-that no future spend attempts with that nullifier are possible.<a href="#section-10.2-4" class="pilcrow">¶</a></p>
+that no future spend attempts with that nullifier are possible.<a href="#section-10.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="concurrency-control-and-credential-sharing">

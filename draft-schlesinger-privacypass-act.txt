@@ -190,6 +190,8 @@ Table of Contents
    *  Issuer Private Key: The private key (from a private-public key
       pair) used by the Issuer for issuing and verifying Tokens.
 
+   OPEN ISSUE: Consider taking them from [ACT]
+
    Unless otherwise specified, this document encodes protocol messages
    in TLS notation from Section 3 of [TLS13].  Moreover, all constants
    are in network byte order.
@@ -271,13 +273,13 @@ Table of Contents
 
       +----------+
       |  Initial |  (Credential with N credits)
-      +----------+
+      +----+-----+
            |
            | ProveSpend(credential, cost)
            v
       +----------+
       |   Spent  |  (Waiting for refund, credential invalid)
-      +----------+
+      +----+-----+
            |
            | ConstructRefundToken(refund)
            v
@@ -356,8 +358,8 @@ Table of Contents
    credential to use based on the challenge's issuer_name, origin_info,
    and credential_context fields.  If no matching credential exists or
    all matching credentials are in the Spent state (awaiting refund),
-   the client must either wait for a refund or request a new credential
-   through the issuance protocol.
+   the client SHOULD either wait for a refund or request a new
+   credential through the issuance protocol.
 
 5.5.  Error Handling
 
@@ -394,8 +396,9 @@ Table of Contents
    256(pkI_serialized), where pkI_serialized is the serialized version
    of pkI as described in Section 4.1 of [ACT].
 
-   OPEN ISSUE: Coordinate with ACT specification authors on the
-   serialization format (CBOR vs TLS notation) to ensure consistency.
+   OPEN ISSUE: Coordinate with [ACT] specification authors on the
+   serialization format (CBOR vs TLS presentation language) to ensure
+   consistency.
 
 6.1.  Request Context Extension
 
@@ -729,12 +732,14 @@ response = IssueResponse(skI, request, initial_credits, request_context)
    Section 4.1.4 of [ACT] if the spend proof is valid, and nil
    otherwise.
 
-   Implementation-specific steps: to prevent double spending, the Origin
-   MUST perform a check that the nullifier has not previously been seen
-   before calling VerifyAndRefund.  It then stores the nullifier for use
-   in future double spending checks.  To reduce the overhead of
-   performing double spend checks, the Origin can store and look up the
-   nullifiers corresponding to the associated request_context value.
+   As mentioned in Section 2.2.2 of [AUTHSCHEME], Origins SHOULD
+   implement some form of double-spend prevention that prevents a token
+   with the same nonce from being redeemed twice.  With ACT, the Origin
+   SHOULD check that the nullifier has not previously been seen before
+   calling VerifyAndRefund.  It then stores the nullifier for use in
+   future double-spending checks.  To reduce the overhead of performing
+   double spend checks, the Origin MAY store and look up the nullifiers
+   corresponding to the associated request_context value.
 
    struct {
        uint8_t refund[Nrefund];
@@ -773,20 +778,24 @@ response = IssueResponse(skI, request, initial_credits, request_context)
 
 10.2.  Double-Spend Prevention
 
-   The security of ACT's double-spend prevention mechanism relies on
-   Origins maintaining state to track nullifiers.  As described in
-   Section 9.2, Origins MUST check that a nullifier has not been
-   previously seen before accepting a spend proof.  This check is
-   critical for preventing credential reuse attacks.
+   Section 2.2.2 of [AUTHSCHEME] specifies double spending requirements
+   that Origin SHOULD follow.
+
+   For ACT, the double-spend prevention mechanism relies on Origins
+   maintaining state to track nullifiers.  As described in Section 9.2,
+   Origins SHOULD check that a nullifier has not been previously seen
+   before accepting a spend proof.  This check is critical for
+   preventing credential reuse attacks.
 
    The nullifier space is large (32 bytes), making random collisions
-   computationally infeasible.  However, Origins MUST ensure that their
+   computationally unlikely.  However, Origins SHOULD ensure that their
    nullifier storage is persistent and survives server restarts.  If an
    Origin loses nullifier state (e.g., due to data loss or cache
    eviction), it becomes vulnerable to replay attacks where an attacker
-   can resubmit previously spent credentials.
+   can resubmit previously spent credentials during the credential
+   validity period.
 
-   Origins SHOULD scope nullifier storage by request_context to improve
+   Origins MAY scope nullifier storage by request_context to improve
    lookup performance and enable efficient storage management.  Since
    nullifiers are only meaningful within the context of a specific
    credential binding (determined by issuer_name, origin_info,
