@@ -3,9 +3,10 @@
 
 
 Network Working Group                                     S. Schlesinger
-Internet-Draft                                                   J. Katz
-Intended status: Standards Track                                  Google
-Expires: 23 April 2026                                   20 October 2025
+Internet-Draft                                                    Google
+Intended status: Standards Track                              T. Meunier
+Expires: 23 April 2026                                   Cloudflare Inc.
+                                                         20 October 2025
 
 
        Privacy Pass Issuance Protocol for Anonymous Credit Tokens
@@ -943,6 +944,6 @@ Authors' Addresses
    Email: samschlesinger@google.com
 
 
-   Jonathan Katz
-   Google
-   Email: jkcrypto@google.com
+   Thibault Meunier
+   Cloudflare Inc.
+   Email: ot-ietf@thibault.uk
