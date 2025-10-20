@@ -752,7 +752,7 @@ response = IssueResponse(skI, request, initial_credits, request_context)
 
    Unlike [ARC], clients must construct a new credential instance based
    on the Refund response.  To do so, clients invoke the
-   ConstructRefundToken function from Section 3.3.4 of [ACT] as follows:
+   ConstructRefundToken function from Section 3.4.4 of [ACT] as follows:
 
    credential = ConstructRefundToken(pkI, spend_proof, refund, state)
 
@@ -902,9 +902,9 @@ response = IssueResponse(skI, request, initial_credits, request_context)
 
    [ARC]      Yun, C. and C. A. Wood, "Privacy Pass Issuance Protocol
               for Anonymous Rate-Limited Credentials", Work in Progress,
-              Internet-Draft, draft-yun-privacypass-arc-01, 6 August
+              Internet-Draft, draft-yun-privacypass-arc-02, 20 October
               2025, <https://datatracker.ietf.org/doc/html/draft-yun-
-              privacypass-arc-01>.
+              privacypass-arc-02>.
 
    [ARCHITECTURE]
               Davidson, A., Iyengar, J., and C. A. Wood, "The Privacy
