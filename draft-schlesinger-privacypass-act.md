@@ -624,7 +624,7 @@ The Origin sends the refund back to the client encoded as the above `Refund` str
 ## New Credential from Refund
 
 Unlike {{ARC}}, clients must construct a new credential instance based on the `Refund` response. To do
-so, clients invoke the `ConstructRefundToken` function from {{Section 3.3.4 of ACT}} as follows:
+so, clients invoke the `ConstructRefundToken` function from {{Section 3.4.4 of ACT}} as follows:
 
 ~~~
 credential = ConstructRefundToken(pkI, spend_proof, refund, state)
