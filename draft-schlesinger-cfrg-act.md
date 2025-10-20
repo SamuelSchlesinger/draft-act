@@ -25,7 +25,7 @@ author:
     fullname: Jonathan Katz
     organization: Google
     email: jkcrypto@google.com
--
+ -
     fullname: Armando Faz-Hernandez
     organization: Cloudflare, Inc.
     email: armfazh@cloudflare.com
@@ -202,40 +202,39 @@ spending.
 
 This document uses the following notation:
 
-- `||`: Concatenation of byte strings
+- `||`: Concatenation of byte arrays.
 
-- `x <- S`: Sampling x uniformly from the set S
+- `x <- S`: Uniformly sampling x from the set S.
 
-- `x := y`: Assignment of the value y to the variable x
+- `x = y`: Assignment of the value y to the variable x.
 
 - `[n]`: The set of integers {0, 1, ..., n-1}
 
-- `|x|`: The length of byte string x
+- `|x|`: The length of byte array x.
 
-- `0x` prefix: Hexadecimal values
+- `0x` is a prefix to denote integer values in hexadecimal base.
 
 - We use additive notation for group operations, so group elements are added
   together like `a + b` and scalar multiplication of a group element by a scalar
   is written as `a * n`, with group element `a` and scalar `n`.
 
-## Data Types
-
 The protocol uses the following data types:
 
-- **Scalar**: An integer modulo the group order q
-- **Element**: An element of the Ristretto255 group
-- **ByteString**: A sequence of bytes
+- **Byte Array**: A sequence of bytes.
+- **Group**: An interface of a prime-order group as defined
+in {{Section 2.1 of !RFC9497}}.
+- **Group Element**: An element of the group.
+- **Scalar**: An element from the scalar field of the group.
+- **LinearRelation**: An interface for building an interactive sigma
+protocol as defined in {{Section 5 of SIGMA}}.
+- **NISigmaProtocol**: An interface that implements the Fiat-Shamir
+transform as defined in {{Section 2.2.6 of FIAT-SHAMIR}}.
+This interface is parametrized with a Codec that
+encodes prover messages and verifier challenges, and
+a function used to compute challenges.
+See {{FIAT-SHAMIR}} for requirements of these parameters.
 
-## Cryptographic Parameters
-
-The protocol uses the Ristretto group {{!RFC9496}}, which provides a prime-order
-group abstraction over Curve25519. It would be easy to adapt this approach to
-using any other prime order group based on the contents of this document. The
-key parameters are:
-
-- **q**: The prime order of the group (2^252 + 27742317777372353535851937790883648493)
-- **G**: The standard generator of the Ristretto group
-- **L**: The bit length for credit values
+The specific parameters and implementations are defined in {{suites}}.
 
 ## Zero-knowledge Proofs of Knowledge {#zk-pok}
 
@@ -253,10 +252,6 @@ uniquely identifies the session being proven.
 Once initialized, the Prover can generate proofs of knowledge
 of a witness statisfying the statement, while the Verifier can validate
 these proofs.
-The NISigmaProtocol is parametrized with a Codec that
-encodes prover messages and verifier challenges, and
-a DuplexSponge interface that computes challenges.
-See {{FIAT-SHAMIR}} for requirements of these parameters.
 
 ### Pedersen Proof
 
@@ -316,60 +311,48 @@ append_dleq(statement, P, Q, X, Y):
 
 ## System Parameters
 
-The protocol requires the following system parameters:
+Each instance of the protocol defines the following parameters:
 
-~~~
-Parameters:
-  - G: Generator of the Ristretto group
-  - H1, H2, H3: Additional generators for commitments
-  - L: Bit length for credit values (configurable, must satisfy L <= 252)
-~~~
+- `domain_separator` is a non-empty byte array that uniquely identifies
+an instance of the protocol.
+It ensures cryptographic separation between different ACT instances.
+- `L` is the bit length for representing credit values, such
+that `L <= MAX_BIT_LENGTH`, where `MAX_BIT_LENGTH` is defined per suite.
+- `H1`, `H2`, `H3` are auxiliary group generators used for commitments.
+The {{SetGenerators}}{:format="title"} function deterministically
+generates them through hashing.
+No discrete-logarithm relation MUST be known between them and with the main generator.
+This prevents attacks whereby malicious parameters could compromise security.
 
-The generators H1, H2, and H3 MUST be generated deterministically from a
-nothing-up-my-sleeve value to ensure they are independent of each other and of
-G. This prevents attacks whereby malicious parameters could compromise security. Note that these generators are independent of the choice of L.
-
-~~~
-GenerateParameters(domain_separator):
+~~~ pseudocode
+SetGenerators(G, domain_separator):
   Input:
-    - domain_separator: ByteString identifying the deployment
+    - G: Group.
+    - domain_separator: Byte Array.
   Output:
-    - params: System parameters (H1, H2, H3)
+    - H1, H2, H3: Group Element.
 
   Steps:
-    1. seed = BLAKE3(LengthPrefixed(domain_separator))
-    2. counter = 0
-    3. H1 = HashToRistretto255(seed, counter++)
-    4. H2 = HashToRistretto255(seed, counter++)
-    5. H3 = HashToRistretto255(seed, counter++)
-    6. return (H1, H2, H3)
-
-HashToRistretto255(seed, counter):
-  Input:
-    - seed: 32-byte seed value
-    - counter: Integer counter for domain separation
-  Output:
-    - P: A valid Ristretto255 point
-
-  Steps:
-    1. hasher = BLAKE3.new()
-    2. hasher.update(LengthPrefixed(domain_separator))
-    3. hasher.update(LengthPrefixed(seed))
-    4. hasher.update(LengthPrefixed(counter.to_le_bytes(4)))
-    5. uniform_bytes = hasher.finalize_xof(64)
-    6. P = OneWayMap(uniform_bytes)
-    7. return P
+    1. G0 = G.Generator()
+    2. H1, H2, H3 = [G0]*3
+    3. counter = 0
+    4. while G0 == H1 == H2 == H3:
+    5.   ctr = I2OSP(counter, 1)
+    6.   H1 = G.HashToGroup("H1", "GenH1" || ctr || domain_separator)
+    7.   H2 = G.HashToGroup("H2", "GenH2" || ctr || domain_separator)
+    8.   H3 = G.HashToGroup("H3", "GenH3" || ctr || domain_separator)
+    9.   counter += 1
+   10. return H1, H2, H3
 ~~~
+{: #SetGenerators }
 
-The domain_separator MUST be unique for each deployment to ensure
-cryptographic isolation between different services. The domain separator SHOULD
-follow this structured format:
+The `domain_separator` SHOULD follow this structured format:
 
 ~~~
 domain_separator = "ACT-v1:" || organization || ":" || service || ":" || deployment_id || ":" || version
 ~~~
 
-Where:
+where:
 
 - `organization`: A unique identifier for the organization (e.g., "example-corp", "acme-inc")
 - `service`: The specific service or application name (e.g., "payment-api", "rate-limiter")
@@ -379,6 +362,7 @@ Where:
 Example: `"ACT-v1:example-corp:payment-api:production:2024-01-15"`
 
 This structured format ensures:
+
 1. Protocol identification through the "ACT-v1:" prefix
 2. Organizational namespace isolation
 3. Service-level separation within organizations
@@ -390,28 +374,24 @@ parameter collision and MUST NOT be used. When parameters need to be updated
 (e.g., for security reasons or protocol upgrades), a new version date MUST be
 used, creating entirely new parameters.
 
-The OneWayMap function is defined in {{Section 4.3.4 of !RFC9496}}, which provides a
-cryptographically secure mapping from uniformly random byte strings to valid
-Ristretto255 points.
-
 ## Key Generation
 
 The issuer generates a key pair as follows:
 
-~~~
-KeyGen():
-  Input: None
+~~~ pseudocode
+KeyGen(G):
+  Input:
+    - G: Group.
   Output:
-    - sk: Private key (Scalar)
-    - pk: Public key (Group Element)
+    - sk: Scalar.        # Private key
+    - pk: Group Element. # Public key
 
   Steps:
-    1. x <- Zq
-    2. W = G * x
-    3. sk = x
-    4. pk = W
-    5. return (sk, pk)
+    1. sk = G.RandomScalar()
+    2. pk = sk * G.Generator()
+    3. return sk, pk
 ~~~
+{: #KeyGen }
 
 ## Token Issuance
 
@@ -1314,10 +1294,12 @@ in {{Section 3.1 of !RFC9380}}.
 - NISigmaProtocol: These are parameters used to implement the
 Fiat-Shamir transform in accordance the recommendations
 in {{FIAT-SHAMIR}}.
+- MAX_BIT_LENGTH: Specifies the maximum number of bits allowed to
+represent credits.
 
 ## ACT(ristretto255, SHAKE128)
 
-The group is ristretto255 as specified in {{RFC9496}}.
+The group is ristretto255 as specified in {{!RFC9496}}.
 It also specifies the `Order()`, `Identity()`, and `Generator()` functions.
 
 The HashToGroup(msg, DST) function uses hash_to_ristretto255 {{!RFC9380}}
@@ -1325,10 +1307,10 @@ with DST = "HashToGroup-" || domain_separator, and
 expand_message = expand_message_xmd using SHA-512.
 
 SerializeElement(A) is the 'Encode' function
-from {{Section 4.3.2 of RFC9496}} producing an array of `Ne=32` bytes.
+from {{Section 4.3.2 of !RFC9496}} producing an array of `Ne=32` bytes.
 
 DeserializeElement(bytes) is the 'Decode' function
-from {{Section 4.3.1 of RFC9496}}.
+from {{Section 4.3.1 of !RFC9496}}.
 This function must validate that the input is the valid canonical
 byte representation of an element of the group.
 This function must raise an error if deserialization fails,
@@ -1357,6 +1339,8 @@ class NISchnorrProofShake128Ris255(NISigmaProtocol):
 ~~~
 
 where SHAKE128 is the extendable-output function defined in {{FIPS202}}.
+
+Set `MAX_BIT_LENGTH=252` bits.
 
 # Security Considerations
 
