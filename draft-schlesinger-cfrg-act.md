@@ -35,6 +35,7 @@ normative:
     title: "BLAKE3: One Function, Fast Everywhere"
     target: https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf
     date: 2020-01-09
+  FIPS202: DOI.10.6028/NIST.FIPS.202
   SIGMA: I-D.irtf-cfrg-sigma-protocols-00
   FIAT-SHAMIR: I-D.irtf-cfrg-fiat-shamir-00
 
@@ -1295,6 +1296,67 @@ Note: L is the configurable bit length for credit values.
 | Nullifier database entry | 32 bytes per spent token |
 
 Note: Token size is independent of L.
+
+# Suites for ACT {#suites}
+
+A suite for ACT specifies the parameters used to implement the
+functionality required for the protocol to take place.
+The suite should be available to both the client and server,
+and agreement on the specific instantiation is assumed throughout.
+
+A suite contains instantiations of the following functionalities:
+
+- Group: A prime-order group exposing the interface detailed
+in {{Section 2.1 of !RFC9497}}.
+For the HashToGroup function, the domain separation tag (DST) is
+constructed in accordance with the recommendations
+in {{Section 3.1 of !RFC9380}}.
+- NISigmaProtocol: These are parameters used to implement the
+Fiat-Shamir transform in accordance the recommendations
+in {{FIAT-SHAMIR}}.
+
+## ACT(ristretto255, SHAKE128)
+
+The group is ristretto255 as specified in {{RFC9496}}.
+It also specifies the `Order()`, `Identity()`, and `Generator()` functions.
+
+The HashToGroup(msg, DST) function uses hash_to_ristretto255 {{!RFC9380}}
+with DST = "HashToGroup-" || domain_separator, and
+expand_message = expand_message_xmd using SHA-512.
+
+SerializeElement(A) is the 'Encode' function
+from {{Section 4.3.2 of RFC9496}} producing an array of `Ne=32` bytes.
+
+DeserializeElement(bytes) is the 'Decode' function
+from {{Section 4.3.1 of RFC9496}}.
+This function must validate that the input is the valid canonical
+byte representation of an element of the group.
+This function must raise an error if deserialization fails,
+or if the resulting element is the group identity element.
+
+SerializeScalar(s) outputs a `Ns=32` byte array representing the
+little-endian encoding of the scalar value with the top three bits
+set to zero.
+
+DeserializeScalar(bytes) attempts to deserialize a scalar from a
+little-endian 32-byte string.
+This function must fail if the input does not represent an integer
+between zero and `Order()-1` inclusive.
+Note that this means the top three bits of the input MUST be zero.
+
+The NISigmaProtocol interface is implemented by NISchnorrProofShake128Ris255 as follows:
+
+~~~ pseudocode
+class Ristretto255Codec(ByteSchnorrCodec):
+    GG = ristretto255
+
+class NISchnorrProofShake128Ris255(NISigmaProtocol):
+    Protocol = SchnorrProof
+    Codec = Ristretto255Codec
+    Hash = SHAKE128
+~~~
+
+where SHAKE128 is the extendable-output function defined in {{FIPS202}}.
 
 # Security Considerations
 
