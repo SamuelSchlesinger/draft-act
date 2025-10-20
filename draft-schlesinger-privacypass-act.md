@@ -15,7 +15,7 @@ venue:
   mail: privacypass@ietf.org
   arch: https://mailarchive.ietf.org/arch/browse/privacy-pass
   github: SamuelSchlesinger/draft-act
-  latest:"https://SamuelSchlesinger.github.io/draft-act/draft-schlesinger-privacypass-act.html"
+  latest: "https://SamuelSchlesinger.github.io/draft-act/draft-schlesinger-privacypass-act.html"
 
 author:
  -
