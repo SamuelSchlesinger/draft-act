@@ -111,6 +111,8 @@ used throughout this document.
 - Issuer Private Key: The private key (from a private-public key pair) used by
   the Issuer for issuing and verifying Tokens.
 
+OPEN ISSUE: Consider taking them from {{ACT}}
+
 Unless otherwise specified, this document encodes protocol messages in TLS
 notation from {{Section 3 of !TLS13=RFC8446}}. Moreover, all constants are in
 network byte order.
@@ -185,16 +187,16 @@ This enforces a strict serialization of operations per credential chain.
 
 A client managing an ACT credential progresses through the following states:
 
-~~~
+~~~aasvg
    +----------+
    |  Initial |  (Credential with N credits)
-   +----------+
+   +----+-----+
         |
         | ProveSpend(credential, cost)
         v
    +----------+
    |   Spent  |  (Waiting for refund, credential invalid)
-   +----------+
+   +----+-----+
         |
         | ConstructRefundToken(refund)
         v
@@ -260,10 +262,10 @@ operation on Credential A does not affect Credentials B or C. The client can per
 spend operations on different credentials concurrently, but each individual credential
 chain is strictly serialized through the spend-refund cycle.
 
-When the client receives a TokenChallenge, it determines which credential to use
-based on the challenge's issuer_name, origin_info, and credential_context fields.
-If no matching credential exists or all matching credentials are in the Spent state
-(awaiting refund), the client must either wait for a refund or request a new
+When the client receives a `TokenChallenge`, it determines which credential to use
+based on the challenge's `issuer_name`, `origin_info`, and `credential_context` fields.
+If no matching credential exists or all matching credentials are in the `Spent` state
+(awaiting refund), the client SHOULD either wait for a refund or request a new
 credential through the issuance protocol.
 
 ## Error Handling {#error-handling}
@@ -298,7 +300,7 @@ The Issuer Public Key ID, denoted `issuer_key_id`, is computed as the
 SHA-256 hash of the Issuer Public Key, i.e., `issuer_key_id = SHA-256(pkI_serialized)`,
 where `pkI_serialized` is the serialized version of `pkI` as described in {{Section 4.1 of ACT}}.
 
-OPEN ISSUE: Coordinate with ACT specification authors on the serialization format (CBOR vs TLS notation) to ensure consistency.
+OPEN ISSUE: Coordinate with {{ACT}} specification authors on the serialization format (CBOR vs TLS presentation language) to ensure consistency.
 
 ## Request Context Extension {#request-context-extension}
 
@@ -605,9 +607,10 @@ refund = VerifyAndRefund(skI, request_context, spend_proof)
 
 This function returns the `refund` serialized according to {{Section 4.1.4 of ACT}} if the spend proof is valid, and nil otherwise.
 
-Implementation-specific steps: to prevent double spending, the Origin MUST perform a check that the
-nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier for use in future double
-spending checks. To reduce the overhead of performing double spend checks, the Origin can store and
+As mentioned in {{Section 2.2.2 of AUTHSCHEME}}, Origins SHOULD implement some form of double-spend prevention that prevents a token with the same nonce from being redeemed twice.
+With ACT, the Origin SHOULD check that the nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier
+for  use in future double-spending checks.
+To reduce the overhead of performing double spend checks, the Origin MAY store and
 look up the nullifiers corresponding to the associated request_context value.
 
 ~~~
@@ -645,21 +648,24 @@ and unlinkability guarantees, are analyzed in {{ACT}}.
 
 ## Double-Spend Prevention
 
-The security of ACT's double-spend prevention mechanism relies on Origins maintaining
-state to track nullifiers. As described in {{refund}}, Origins MUST check that a nullifier
+{{Section 2.2.2 of AUTHSCHEME}} specifies double spending requirements that Origin SHOULD
+follow.
+
+For ACT, the double-spend prevention mechanism relies on Origins maintaining
+state to track nullifiers. As described in {{refund}}, Origins SHOULD check that a nullifier
 has not been previously seen before accepting a spend proof. This check is critical for
 preventing credential reuse attacks.
 
 The nullifier space is large (32 bytes), making random collisions computationally
-infeasible. However, Origins MUST ensure that their nullifier storage is persistent and
+unlikely. However, Origins SHOULD ensure that their nullifier storage is persistent and
 survives server restarts. If an Origin loses nullifier state (e.g., due to data loss or
 cache eviction), it becomes vulnerable to replay attacks where an attacker can resubmit
-previously spent credentials.
+previously spent credentials during the credential validity period.
 
-Origins SHOULD scope nullifier storage by request_context to improve lookup performance
+Origins MAY scope nullifier storage by request_context to improve lookup performance
 and enable efficient storage management. Since nullifiers are only meaningful within the
-context of a specific credential binding (determined by issuer_name, origin_info,
-credential_context, and issuer_key_id), Origins can partition nullifier storage accordingly.
+context of a specific credential binding (determined by `issuer_name`, `origin_info`,
+`credential_context`, and `issuer_key_id`), Origins can partition nullifier storage accordingly.
 
 When an Origin implements a timeout for refund state (as described in {{error-handling}}),
 it MAY also expire the corresponding nullifier after the same timeout period, provided
