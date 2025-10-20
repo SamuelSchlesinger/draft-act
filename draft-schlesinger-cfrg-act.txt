@@ -5,7 +5,7 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                   J. Katz
 Intended status: Informational                                    Google
-Expires: 5 March 2026                                   1 September 2025
+Expires: 23 April 2026                                   20 October 2025
 
 
                         Anonymous Credit Tokens
@@ -67,7 +67,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 5 March 2026.
+   This Internet-Draft will expire on 23 April 2026.
 
 Copyright Notice
 
