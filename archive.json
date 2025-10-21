@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-10-19T00:06:04.924188+00:00",
+  "timestamp": "2025-10-21T00:05:53.869922+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -576,13 +576,13 @@
       "labels": [],
       "body": "Partially addresses issue #5\r\n\r\nAdds compaitbiity with Sigma proofs and Fiat-Shamir drafts.\r\n\r\nThese changes only applies to Credit Issuance.\r\n\r\nThe correspondent implementation is at: https://github.com/SamuelSchlesinger/anonymous-credit-tokens/pull/6",
       "createdAt": "2025-09-11T19:23:27Z",
-      "updatedAt": "2025-09-24T03:52:53Z",
+      "updatedAt": "2025-10-20T21:22:31Z",
       "baseRepository": "SamuelSchlesinger/draft-act",
       "baseRefName": "main",
-      "baseRefOid": "0329f6b6c0ae1bea0e4449dfcaafc2667f9c4111",
+      "baseRefOid": "3bb2451c29a30a546e7f91366f1bf1cc4cb73f03",
       "headRepository": "armfazh/draft-act",
       "headRefName": "adoptSigmaProofs_issuance",
-      "headRefOid": "ecfe4405f1e1267f1d78953baf5c131513521b32",
+      "headRefOid": "357d55e509b4bfc62fc55e540211c3fec0e6dcd4",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -1708,6 +1708,79 @@
               "updatedAt": "2025-09-24T03:52:59Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7H_int",
+          "commit": {
+            "abbreviatedOid": "0726b1f"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-10-20T07:44:16Z",
+          "updatedAt": "2025-10-20T07:44:17Z",
+          "comments": [
+            {
+              "originalPosition": 74,
+              "body": "I just removed it wasn't needed indeed.",
+              "createdAt": "2025-10-20T07:44:16Z",
+              "updatedAt": "2025-10-20T07:44:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7H_kcJ",
+          "commit": {
+            "abbreviatedOid": "0726b1f"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-10-20T07:47:23Z",
+          "updatedAt": "2025-10-20T07:47:23Z",
+          "comments": [
+            {
+              "originalPosition": 107,
+              "body": "either way works. Being normative is easier for future references and avoids duplication of work.\r\nBeing informative allows more flexibility to define other functionality with the same name. ",
+              "createdAt": "2025-10-20T07:47:23Z",
+              "updatedAt": "2025-10-20T08:12:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7H_zKc",
+          "commit": {
+            "abbreviatedOid": "ecfe440"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-10-20T08:10:26Z",
+          "updatedAt": "2025-10-20T08:10:26Z",
+          "comments": [
+            {
+              "originalPosition": 350,
+              "body": "The new ciphersuites/instances for NISigmaProtocol only cover P256 and BLS12381.\r\nFor ACT, we may want to either be generic on the group, or to define an instance for the Ristretto group.\r\n\r\n",
+              "createdAt": "2025-10-20T08:10:26Z",
+              "updatedAt": "2025-10-20T08:10:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7IJqbY",
+          "commit": {
+            "abbreviatedOid": "357d55e"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "APPROVED",
+          "body": "LGTM, please feel free to add yourself as an author in this PR as well!",
+          "createdAt": "2025-10-20T21:22:31Z",
+          "updatedAt": "2025-10-20T21:22:31Z",
+          "comments": []
         }
       ]
     },
@@ -1762,24 +1835,26 @@
       "id": "PR_kwDOPc24Mc6tfzcP",
       "title": "Privacy Pass Integration",
       "url": "https://github.com/SamuelSchlesinger/draft-act/pull/15",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "SamuelSchlesinger",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "First (rough) draft, wanted to post for visibility as I work but I'll likely make revisions and changes myself as well.",
       "createdAt": "2025-10-13T16:25:18Z",
-      "updatedAt": "2025-10-18T19:52:13Z",
+      "updatedAt": "2025-10-20T03:08:30Z",
       "baseRepository": "SamuelSchlesinger/draft-act",
       "baseRefName": "main",
       "baseRefOid": "0329f6b6c0ae1bea0e4449dfcaafc2667f9c4111",
       "headRepository": "SamuelSchlesinger/draft-act",
       "headRefName": "samschles/privacypass-integration",
-      "headRefOid": "5f9364bafd3d0b2fb55e98ed2c6c461753937493",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "ff6bb1808896e6a69462ecb3a15d45715dc155b9",
+      "closedAt": "2025-10-20T03:08:30Z",
+      "mergedAt": "2025-10-20T03:08:30Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "18c923ee796082163fa902e2766c60d8e38fce56"
+      },
       "comments": [
         {
           "author": "SamuelSchlesinger",
@@ -1882,6 +1957,64 @@
           "comments": []
         }
       ]
+    },
+    {
+      "number": 17,
+      "id": "PR_kwDOPc24Mc6urD-y",
+      "title": "fix nits in the presentation",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/pull/17",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "enhancement"
+      ],
+      "body": "",
+      "createdAt": "2025-10-20T17:01:52Z",
+      "updatedAt": "2025-10-20T18:42:56Z",
+      "baseRepository": "SamuelSchlesinger/draft-act",
+      "baseRefName": "main",
+      "baseRefOid": "3bb2451c29a30a546e7f91366f1bf1cc4cb73f03",
+      "headRepository": "thibmeu/draft-act",
+      "headRefName": "fix-nits",
+      "headRefOid": "1f7c3c3fc37412cc6a839398c24c2e0ab326381e",
+      "closedAt": "2025-10-20T18:42:56Z",
+      "mergedAt": "2025-10-20T18:42:56Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "869cccc3fb2668ed43ddf17c06aa42365124e960"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 18,
+      "id": "PR_kwDOPc24Mc6uu11x",
+      "title": "Add suites section and abstract group interface.",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/pull/18",
+      "state": "OPEN",
+      "author": "armfazh",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This brings a section for ACT suites. Currently only ristretto group is allowed. \r\nThis avoids to add the boilerplate text for groups by just making a reference to the VOPRF draft.\r\nAlso redefines how to build the additonal generators based on a generic HashToGroup function.\r\n\r\nFixes #1 \r\nFixes #3 \r\n\r\nOn top of https://github.com/SamuelSchlesinger/draft-act/pull/12",
+      "createdAt": "2025-10-20T23:44:36Z",
+      "updatedAt": "2025-10-20T23:46:47Z",
+      "baseRepository": "SamuelSchlesinger/draft-act",
+      "baseRefName": "main",
+      "baseRefOid": "071d75d9ac78fd8bd4eb692b0db6daa57ff1305f",
+      "headRepository": "armfazh/draft-act",
+      "headRefName": "addSuites",
+      "headRefOid": "e4ac24930ec8d390659f3941d3dcfdd96efe6547",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
