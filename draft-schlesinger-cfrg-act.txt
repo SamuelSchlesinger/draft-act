@@ -5,7 +5,7 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                   J. Katz
 Intended status: Informational                                    Google
-Expires: 23 April 2026                                   20 October 2025
+Expires: 24 April 2026                                   21 October 2025
 
 
                         Anonymous Credit Tokens
@@ -67,7 +67,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 April 2026.
+   This Internet-Draft will expire on 24 April 2026.
 
 Copyright Notice
 
@@ -92,6 +92,9 @@ Table of Contents
      2.1.  Notation
      2.2.  Data Types
      2.3.  Cryptographic Parameters
+     2.4.  Zero-knowledge Proofs of Knowledge
+       2.4.1.  Pedersen Proof
+       2.4.2.  DLEQ Proof
    3.  Protocol Specification
      3.1.  System Parameters
      3.2.  Key Generation
@@ -269,10 +272,10 @@ Table of Contents
       privately verifiable, which avoids the need for pairings and makes
       our protocol more efficient.
 
-   *  *Sigma Protocols* [ORRU-SIGMA]: The zero-knowledge proof framework
-      used for spending proofs.
+   *  *Sigma Protocols* [SIGMA]: The zero-knowledge proof framework used
+      for issuing and spending credits.
 
-   *  *Fiat-Shamir Transform* [ORRU-FS]: The technique to make the
+   *  *Fiat-Shamir Transform* [FIAT-SHAMIR]: The technique to make the
       interactive proofs non-interactive.
 
    The protocol can be viewed as a specialized instantiation of keyed-
@@ -331,6 +334,76 @@ Table of Contents
    *  *G*: The standard generator of the Ristretto group
 
    *  *L*: The bit length for credit values
+
+2.4.  Zero-knowledge Proofs of Knowledge
+
+   Proofs of knowledge are based on interactive sigma protocols, which
+   are made non-interactive through the Fiat-Shamir transform [FST].
+   The concrete proofs use two interfaces: the LinearRelation interface,
+   described in Section 2.2.6 of [SIGMA], for building an interactive
+   sigma protocol, and the NISigmaProtocol interface, described in
+   Section 5 of [FIAT-SHAMIR], for converting the protocol created with
+   the LinearRelation interface into a non-interactive proof.
+
+   The NISigmaProtocol requires a session identifier that uniquely
+   identifies the session being proven.  Once initialized, the Prover
+   can generate proofs of knowledge of a witness statisfying the
+   statement, while the Verifier can validate these proofs.  The
+   NISigmaProtocol is parametrized with a Codec that encodes prover
+   messages and verifier challenges, and a DuplexSponge interface that
+   computes challenges.  See [FIAT-SHAMIR] for requirements of these
+   parameters.
+
+2.4.1.  Pedersen Proof
+
+   A proof of knowledge derived from a Pedersen commitment shows that
+   the prover knows witness scalars (k0, k1) such that R = k0*P + k1*Q,
+   for group elements P, Q, and R.
+
+   The append_pedersen function appends linear relations to the
+   statement to instantiate a Pedersen proof, as shown in Section 2.2.9
+   of [SIGMA].
+
+   append_pedersen(statement, P, Q, R):
+     Input:
+       - statement: LinearRelation.
+       - P: Group Element.
+       - Q: Group Element.
+       - R: Group Element.
+
+     Steps:
+       1. k0_var, k1_var = statement.allocate_scalars(2)
+       2. P_var, Q_var, R_var = statement.allocate_elements(3)
+       3. statement.append_equation(R_var, [(k0_var, P_var), (k1_var, Q_var)])
+       4. statement.set_elements([(P_var, P), (Q_var, Q), (R_var, R)])
+
+                                  Figure 1
+
+2.4.2.  DLEQ Proof
+
+   A proof of knowledge of a Discrete Logarithm Equivalence (DLEQ) shows
+   that the prover knows a witness scalar k such that X = k*P and Y =
+   k*Q, for group elements P, Q, X, and Y.
+
+   The append_dleq function appends linear relations to the statement to
+   instantiate a DLEQ proof, as shown in Section 2.2.8 of [SIGMA].
+
+   append_dleq(statement, P, Q, X, Y):
+     Input:
+       - statement: LinearRelation.
+       - P: Group Element.
+       - Q: Group Element.
+       - X: Group Element.
+       - Y: Group Element.
+
+     Steps:
+       1. k_var = statement.allocate_scalars(1)
+       2. P_var, Q_var, X_var, Y_var = statement.allocate_elements(4)
+       3. statement.append_equation(X_var, [(k_var, P_var)])
+       4. statement.append_equation(Y_var, [(k_var, Q_var)])
+       5. statement.set_elements([(P_var, P), (Q_var, Q), (X_var, X), (Y_var, Y)])
+
+                                  Figure 2
 
 3.  Protocol Specification
 
@@ -413,9 +486,9 @@ domain_separator = "ACT-v1:" || organization || ":" || service || ":" || deploym
    upgrades), a new version date MUST be used, creating entirely new
    parameters.
 
-   The OneWayMap function is defined in [RFC9496] Section 4.3.4, which
-   provides a cryptographically secure mapping from uniformly random
-   byte strings to valid Ristretto255 points.
+   The OneWayMap function is defined in Section 4.3.4 of [RFC9496],
+   which provides a cryptographically secure mapping from uniformly
+   random byte strings to valid Ristretto255 points.
 
 3.2.  Key Generation
 
@@ -441,28 +514,26 @@ domain_separator = "ACT-v1:" || organization || ":" || service || ":" || deploym
 
 3.3.1.  Client: Issuance Request
 
-   IssueRequest():
-     Output:
-       - request: Issuance request
-       - state: Client state for later verification
+IssueRequest():
+  Output:
+    - request: Issuance request
+    - state: Client state for later verification
 
-     Steps:
-       1. k <- Zq  // Nullifier (will prevent double-spending)
-       2. r <- Zq  // Blinding factor
-       3. K = H2 * k + H3 * r
-       4. // Generate proof of knowledge of k, r
-       5. k' <- Zq
-       6. r' <- Zq
-       7. K1 = H2 * k' + H3 * r'
-       8. transcript = CreateTranscript("request")
-       9. AddToTranscript(transcript, K)
-       10. AddToTranscript(transcript, K1)
-       11. gamma = GetChallenge(transcript)
-       12. k_bar = k' + gamma * k
-       13. r_bar = r' + gamma * r
-       14. request = (K, gamma, k_bar, r_bar)
-       15. state = (k, r)
-       16. return (request, state)
+  Steps:
+    1. k <- Zq  // Nullifier (will prevent double-spending)
+    2. r <- Zq  // Blinding factor
+    3. K = H2 * k + H3 * r
+
+    // Generate proof of knowledge of (k, r) such that K = H2 * k + H3 * r
+    4. statement = LinearRelation(group)
+    5. append_pedersen(statement, H2, H3, K)
+    6. session_id = domain_separator + "request"
+    7. prover = NISigmaProtocol(session_id, statement)
+    8. witness = [k, r]
+    9. pok = prover.prove(witness, rng)
+   10. request = (K, pok)
+   11. state = (k, r, K)
+   12. return (request, state)
 
 3.3.2.  Issuer: Issuance Response
 
@@ -477,42 +548,36 @@ IssueResponse(sk, request, c):
     - InvalidIssuanceRequestProof, raised when the client proof verification fails
 
   Steps:
-    1. Parse request as (K, gamma, k_bar, r_bar)
-    2. // Verify proof of knowledge
-    3. K1 = H2 * k_bar + H3 * r_bar - K * gamma
-    4. transcript = CreateTranscript("request")
-    5. AddToTranscript(transcript, K)
-    6. AddToTranscript(transcript, K1)
-    7. if GetChallenge(transcript) != gamma:
-    8.     raise InvalidIssuanceRequestProof
-    9. // Create BBS signature on (c, k, r)
-    10. e <- Zq
-    11. A = (G + H1 * c + K) * (1/(e + sk))  // K = H2 * k + H3 * r
-    12. // Generate proof of correct computation
-    13. alpha <- Zq
-    14. Y_A = A * alpha
-    15. Y_G = G * alpha
-    16. X_A = G + H1 * c + K
-    17. X_G = G * e + pk
-    18. transcript_resp = CreateTranscript("respond")
-    19. AddToTranscript(transcript_resp, c)
-    20. AddToTranscript(transcript_resp, e)
-    21. AddToTranscript(transcript_resp, A)
-    22. AddToTranscript(transcript_resp, X_A)
-    23. AddToTranscript(transcript_resp, X_G)
-    24. AddToTranscript(transcript_resp, Y_A)
-    25. AddToTranscript(transcript_resp, Y_G)
-    26. gamma_resp = GetChallenge(transcript_resp)
-    27. z = gamma_resp * (sk + e) + alpha
-    28. response = (A, e, gamma_resp, z, c)
-    29. return response
+    // Verify proof of knowledge of (k, r) such that K = H2 * k + H3 * r
+    1. Parse request as (K, pok)
+    2. statement = LinearRelation(group)
+    3. append_pedersen(statement, H2, H3, K)
+    4. session_id = domain_separator + "request"
+    5. verifier = NISigmaProtocol(session_id, statement)
+    6. if not verifier.verify(pok):
+    7.     raise InvalidIssuanceRequestProof
+
+    // Create BBS signature on (c, k, r)
+    8. e <- Zq
+    9. X_A = G + H1 * c + K    // K = H2 * k + H3 * r
+   10. A = X_A * (1/(e + sk))
+   11. X_G = G * (e + sk)
+
+   // Generate proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G * (e+sk)
+   12. statement = LinearRelation(group)
+   13. append_dleq(statement, A, G, X_A, X_G)
+   14. session_id = domain_separator + "respond"
+   15. prover = NISigmaProtocol(session_id, statement)
+   16. witness = [e + sk]
+   17. pok = prover.prove(witness, rng)
+   18. response = (A, e, c, pok)
+   19. return response
 
 3.3.3.  Client: Token Verification
 
-VerifyIssuance(pk, request, response, state):
+VerifyIssuance(pk, response, state):
   Input:
     - pk: Issuer's public key
-    - request: The issuance request sent
     - response: Issuer's response
     - state: Client state from request generation
   Output:
@@ -521,26 +586,20 @@ VerifyIssuance(pk, request, response, state):
     - InvalidIssuanceResponseProof, raised when the server proof verification fails
 
   Steps:
-    1. Parse request as (K, gamma, k_bar, r_bar)
-    2. Parse response as (A, e, gamma_resp, z, c)
-    3. Parse state as (k, r)
-    4. // Verify proof
-    6. X_A = G + H1 * c + K
-    7. X_G = G * e + pk
-    8. Y_A = A * z - X_A * gamma_resp
-    9. Y_G = G * z - X_G * gamma_resp
-    10. transcript_resp = CreateTranscript("respond")
-    11. AddToTranscript(transcript_resp, c)
-    12. AddToTranscript(transcript_resp, e)
-    13. AddToTranscript(transcript_resp, A)
-    14. AddToTranscript(transcript_resp, X_A)
-    15. AddToTranscript(transcript_resp, X_G)
-    16. AddToTranscript(transcript_resp, Y_A)
-    17. AddToTranscript(transcript_resp, Y_G)
-    18. if GetChallenge(transcript_resp) != gamma_resp:
-    19.     raise InvalidIssuanceResponseProof
-    20. token = (A, e, k, r, c)
-    21. return token
+    1. Parse response as (A, e, c, pok)
+    2. Parse state as (k, r, K)
+
+    // Verify proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G * (e+sk)
+    3. X_A = G + H1 * c + K
+    4. X_G = G * e + pk
+    5. statement = LinearRelation(group)
+    6. append_dleq(statement, A, G, X_A, X_G)
+    7. session_id = domain_separator + "respond"
+    8. verifier = NISigmaProtocol(session_id, statement)
+    9. if not verifier.verify(pok):
+   10.     raise InvalidIssuanceResponseProof
+   11. token = (A, e, k, r, c)
+   12. return token
 
 3.4.  Token Spending
 
@@ -727,83 +786,65 @@ VerifyAndRefund(sk, proof):
    After verifying a spend proof, the issuer creates a refund token for
    the remaining balance:
 
-   IssueRefund(sk, K'):
-     Input:
-       - sk: Issuer's private key
-       - K': Commitment to remaining balance and new nullifier
-     Output:
-       - refund: Refund response
+IssueRefund(sk, K'):
+  Input:
+    - sk: Issuer's private key
+    - K': Commitment to remaining balance and new nullifier
+  Output:
+    - refund: Refund response
 
-     Steps:
-       1. // Create new BBS signature on remaining balance
-       2. e* <- Zq
-       3. X_A* = G + K'
-       4. A* = X_A* * (1/(e* + sk))
+  Steps:
+    // Create new BBS signature on remaining balance
+    1. e <- Zq
+    2. X_A = G + K'
+    3. A = X_A * (1/(e + sk))
+    4. X_G = G * (e + sk)
 
-       5. // Generate proof of correct computation
-       6. alpha <- Zq
-       7. Y_A = A* * alpha
-       8. Y_G = G * alpha
-       9. X_G = G * e* + pk
-
-       10. // Create challenge using transcript
-       11. transcript = CreateTranscript("refund")
-       12. AddToTranscript(transcript, e*)
-       13. AddToTranscript(transcript, A*)
-       14. AddToTranscript(transcript, X_A*)
-       15. AddToTranscript(transcript, X_G)
-       16. AddToTranscript(transcript, Y_A)
-       17. AddToTranscript(transcript, Y_G)
-       18. gamma = GetChallenge(transcript)
-
-       19. // Compute response
-       20. z = gamma * (sk + e*) + alpha
-
-       21. refund = (A*, e*, gamma, z)
-       22. return refund
+    // Generate proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G * (e + sk)
+    5. statement = LinearRelation(group)
+    6. append_dleq(statement, A, G, X_A, X_G)
+    7. session_id = domain_separator + "refund"
+    8. prover = NISigmaProtocol(session_id, statement)
+    9. witness = [e + sk]
+   10. pok = prover.prove(witness, rng)
+   11. refund = (A, e, pok)
+   12. return refund
 
 3.4.4.  Client: Refund Token Construction
 
    The client verifies the refund and constructs a new credit token:
 
-   ConstructRefundToken(pk, spend_proof, refund, state):
-     Input:
-       - pk: Issuer's public key
-       - spend_proof: The spend proof sent to issuer
-       - refund: Issuer's refund response
-       - state: Client state (k*, r*, m)
-     Output:
-       - token: New credit token or INVALID
-     Exceptions:
-       - InvalidRefundProof: When the refund proof verification fails
+ConstructRefundToken(pk, spend_proof, refund, state):
+  Input:
+    - pk: Issuer's public key
+    - spend_proof: The spend proof sent to issuer
+    - refund: Issuer's refund response
+    - state: Client state (k*, r*, m)
+  Output:
+    - token: New credit token or INVALID
+  Exceptions:
+    - InvalidRefundProof: When the refund proof verification fails
 
-     Steps:
-       1. Parse refund as (A*, e*, gamma, z)
-       2. Parse state as (k*, r*, m)
+  Steps:
+    1. Parse refund as (A, e, pok)
+    2. Parse state as (k*, r*, m)
 
-       3. // Reconstruct commitment
-       4. K' = Sum(spend_proof.Com[j] * 2^j for j in [L])
-       5. X_A* = G + K'
-       6. X_G = G * e* + pk
+    // Reconstruct commitment
+    3. K' = Sum(spend_proof.Com[j] * 2^j for j in [L])
+    4. X_A = G + K'
+    5. X_G = G * e + pk
 
-       7. // Verify proof
-       8. Y_A = A* * z + X_A* * (-gamma)
-       9. Y_G = G * z + X_G * (-gamma)
+    // Verify proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G * (e + sk)
+    6. statement = LinearRelation(group)
+    7. append_dleq(statement, A, G, X_A, X_G)
+    8. session_id = domain_separator + "refund"
+    9. verifier = NISigmaProtocol(session_id, statement)
+   10. if not verifier.verify(pok):
+   11.     raise InvalidRefundProof
 
-       10. // Check challenge using transcript
-       11. transcript = CreateTranscript("refund")
-       12. AddToTranscript(transcript, e*)
-       13. AddToTranscript(transcript, A*)
-       14. AddToTranscript(transcript, X_A*)
-       15. AddToTranscript(transcript, X_G)
-       16. AddToTranscript(transcript, Y_A)
-       17. AddToTranscript(transcript, Y_G)
-       18. if GetChallenge(transcript) != gamma:
-       19.     raise InvalidRefundProof
-
-       20. // Construct new token
-       21. token = (A*, e*, k*, r*, m)
-       22. return token
+   // Construct new token
+   12. token = (A, e, k*, r*, m)
+   13. return token
 
 3.4.5.  Spend Proof Verification
 
@@ -898,9 +939,9 @@ VerifySpendProof(sk, proof):
 3.5.2.  Hash Function and Fiat-Shamir Transform
 
    The protocol uses BLAKE3 [BLAKE3] as the underlying hash function for
-   the Fiat-Shamir transform [ORRU-FS].  Following the sigma protocol
-   framework [ORRU-SIGMA], challenges are generated using a transcript
-   that accumulates all protocol messages:
+   the Fiat-Shamir transform [FIAT-SHAMIR].  Following the sigma
+   protocol framework [SIGMA], challenges are generated using a
+   transcript that accumulates all protocol messages:
 
    CreateTranscript(label):
      Input:
@@ -1226,8 +1267,8 @@ ScalarToCredit(s):
 
 5.3.2.  Nonce Generation
 
-   Following [ORRU-SIGMA], nonces (the randomness used in proofs) MUST
-   be generated with extreme care:
+   Following [SIGMA], nonces (the randomness used in proofs) MUST be
+   generated with extreme care:
 
    1.  *Fresh Randomness*: Generate new nonces for every proof
 
@@ -1674,6 +1715,12 @@ ScalarToCredit(s):
               <https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/
               blake3.pdf>.
 
+   [FIAT-SHAMIR]
+              Orrù, M., "Fiat-Shamir Transformation", Work in Progress,
+              Internet-Draft, draft-irtf-cfrg-fiat-shamir-00, 8 August
+              2025, <https://datatracker.ietf.org/doc/html/draft-irtf-
+              cfrg-fiat-shamir-00>.
+
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
               DOI 10.17487/RFC2119, March 1997,
@@ -1683,20 +1730,15 @@ ScalarToCredit(s):
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
 
-   [RFC8949]  Bormann, C. and P. Hoffman, "Concise Binary Object
-              Representation (CBOR)", STD 94, RFC 8949,
-              DOI 10.17487/RFC8949, December 2020,
-              <https://www.rfc-editor.org/rfc/rfc8949>.
-
-   [RFC9380]  Faz-Hernandez, A., Scott, S., Sullivan, N., Wahby, R. S.,
-              and C. A. Wood, "Hashing to Elliptic Curves", RFC 9380,
-              DOI 10.17487/RFC9380, August 2023,
-              <https://www.rfc-editor.org/rfc/rfc9380>.
-
    [RFC9496]  de Valence, H., Grigg, J., Hamburg, M., Lovecruft, I.,
               Tankersley, G., and F. Valsorda, "The ristretto255 and
               decaf448 Groups", RFC 9496, DOI 10.17487/RFC9496, December
               2023, <https://www.rfc-editor.org/rfc/rfc9496>.
+
+   [SIGMA]    Orrù, M. and C. Yun, "Interactive Sigma Proofs", Work in
+              Progress, Internet-Draft, draft-irtf-cfrg-sigma-protocols-
+              00, 8 August 2025, <https://datatracker.ietf.org/doc/html/
+              draft-irtf-cfrg-sigma-protocols-00>.
 
 8.2.  Informative References
 
@@ -1704,21 +1746,15 @@ ScalarToCredit(s):
               <https://crypto.stanford.edu/~dabo/pubs/papers/
               groupsigs.pdf>.
 
+   [FST]      Fiat, A. and A. Shamir, "How To Prove Yourself: Practical
+              Solutions to Identification and Signature Problems",
+              Springer Berlin Heidelberg, Lecture Notes in Computer
+              Science pp. 186-194, DOI 10.1007/3-540-47721-7_12,
+              ISBN ["9783540180470"], April 2007,
+              <https://doi.org/10.1007/3-540-47721-7_12>.
+
    [KVAC]     "Keyed-Verification Anonymous Credentials", 2014,
               <https://eprint.iacr.org/2013/516.pdf>.
-
-   [ORRU-FS]  "The Fiat-Shamir Transform", 19 January 2025,
-              <https://mmaker.github.io/draft-zkproof-sigma-protocols/
-              draft-orru-zkproof-fiat-shamir.html>.
-
-   [ORRU-SIGMA]
-              "Sigma Protocols", 19 January 2025,
-              <https://www.ietf.org/archive/id/draft-orru-zkproof-sigma-
-              protocols-00.txt>.
-
-   [RFC9474]  Denis, F., Jacobs, F., and C. A. Wood, "RSA Blind
-              Signatures", RFC 9474, DOI 10.17487/RFC9474, October 2023,
-              <https://www.rfc-editor.org/rfc/rfc9474>.
 
    [TZ23]     "Revisiting BBS Signatures", 2023,
               <https://eprint.iacr.org/2023/275>.
