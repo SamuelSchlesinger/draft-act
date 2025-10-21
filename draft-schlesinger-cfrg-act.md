@@ -25,6 +25,10 @@ author:
     fullname: Jonathan Katz
     organization: Google
     email: jkcrypto@google.com
+-
+    fullname: Armando Faz-Hernandez
+    organization: Cloudflare, Inc.
+    email: armfazh@cloudflare.com
 
 normative:
   BLAKE3:
