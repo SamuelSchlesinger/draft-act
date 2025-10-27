@@ -354,10 +354,10 @@ domain_separator = "ACT-v1:" || organization || ":" || service || ":" || deploym
 
 where:
 
-- `organization`: A unique identifier for the organization (e.g., "example-corp", "acme-inc")
-- `service`: The specific service or application name (e.g., "payment-api", "rate-limiter")
-- `deployment_id`: The deployment environment (e.g., "production", "staging", "us-west-1")
-- `version`: An ISO 8601 date (YYYY-MM-DD) indicating when parameters were generated
+- `organization`: A unique identifier for the organization (e.g., "example-corp", "acme-inc").
+- `service`: The specific service or application name (e.g., "payment-api", "rate-limiter").
+- `deployment_id`: The deployment environment (e.g., "production", "staging", "us-west-1").
+- `version`: An ISO 8601 date (YYYY-MM-DD) indicating when parameters were generated.
 
 Example: `"ACT-v1:example-corp:payment-api:production:2024-01-15"`
 
