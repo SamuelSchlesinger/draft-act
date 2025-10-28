@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-10-26T00:05:59.325523+00:00",
+  "timestamp": "2025-10-28T00:05:34.741232+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -2018,13 +2018,13 @@
       "labels": [],
       "body": "This brings a section for ACT suites. Currently only ristretto group is allowed. \r\nThis avoids to add the boilerplate text for groups by just making a reference to the VOPRF draft.\r\nAlso redefines how to build the additonal generators based on a generic HashToGroup function.\r\n\r\nFixes #1 \r\nFixes #3 \r\n\r\nOn top of https://github.com/SamuelSchlesinger/draft-act/pull/12",
       "createdAt": "2025-10-20T23:44:36Z",
-      "updatedAt": "2025-10-21T17:18:09Z",
+      "updatedAt": "2025-10-27T23:02:17Z",
       "baseRepository": "SamuelSchlesinger/draft-act",
       "baseRefName": "main",
       "baseRefOid": "b068522c0bd5d07843e7e9235620311b28cc40c5",
       "headRepository": "armfazh/draft-act",
       "headRefName": "addSuites",
-      "headRefOid": "b92353db8a57f8903ffa0128e95586b049a7259a",
+      "headRefOid": "0831cde626a2347916fb6d7be75c93dbd35a752b",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -2074,6 +2074,72 @@
               "body": "There exists a negligible chance that the hash outputs equal points. \r\nIn the most likely case, the loop will execute one iteration. Otherwise, the while-loop will check for repeated points and try again.\r\n\r\nAnother way to encode this algorithm is failing after a maximum number of attempts, as is done here for example:\r\nhttps://datatracker.ietf.org/doc/html/rfc9497#section-3.2.1\r\n",
               "createdAt": "2025-10-21T17:15:59Z",
               "updatedAt": "2025-10-21T17:15:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7JvR9e",
+          "commit": {
+            "abbreviatedOid": "b92353d"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-10-27T17:14:19Z",
+          "updatedAt": "2025-10-27T17:14:19Z",
+          "comments": [
+            {
+              "originalPosition": 243,
+              "body": "I see, its not well-defined otherwise. Thanks!",
+              "createdAt": "2025-10-27T17:14:19Z",
+              "updatedAt": "2025-10-27T17:14:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7Jv7Hu",
+          "commit": {
+            "abbreviatedOid": "b92353d"
+          },
+          "author": "meyira",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "looks good to me! only found two missing `.` at the end of a line. ",
+          "createdAt": "2025-10-27T18:00:14Z",
+          "updatedAt": "2025-10-27T18:02:40Z",
+          "comments": [
+            {
+              "originalPosition": 176,
+              "body": "add a `.` at the end of the line for consistency with other bullet points. ",
+              "createdAt": "2025-10-27T18:00:14Z",
+              "updatedAt": "2025-10-27T18:02:40Z"
+            },
+            {
+              "originalPosition": 177,
+              "body": "add a `.` at the end of the line for consistency with other bullet points. ",
+              "createdAt": "2025-10-27T18:00:29Z",
+              "updatedAt": "2025-10-27T18:02:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7Jz33e",
+          "commit": {
+            "abbreviatedOid": "b92353d"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-10-27T23:02:17Z",
+          "updatedAt": "2025-10-27T23:02:17Z",
+          "comments": [
+            {
+              "originalPosition": 176,
+              "body": "done",
+              "createdAt": "2025-10-27T23:02:17Z",
+              "updatedAt": "2025-10-27T23:02:17Z"
             }
           ]
         }
