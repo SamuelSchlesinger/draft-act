@@ -5,8 +5,8 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                    Google
 Intended status: Standards Track                              T. Meunier
-Expires: 24 April 2026                                   Cloudflare Inc.
-                                                         21 October 2025
+Expires: 3 May 2026                                      Cloudflare Inc.
+                                                         30 October 2025
 
 
        Privacy Pass Issuance Protocol for Anonymous Credit Tokens
@@ -50,7 +50,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 April 2026.
+   This Internet-Draft will expire on 3 May 2026.
 
 Copyright Notice
 

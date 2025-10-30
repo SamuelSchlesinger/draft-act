@@ -5,7 +5,9 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                   J. Katz
 Intended status: Informational                                    Google
-Expires: 24 April 2026                                   21 October 2025
+Expires: 3 May 2026                                     A. Faz-Hernandez
+                                                        Cloudflare, Inc.
+                                                         30 October 2025
 
 
                         Anonymous Credit Tokens
@@ -67,7 +69,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 April 2026.
+   This Internet-Draft will expire on 3 May 2026.
 
 Copyright Notice
 
@@ -90,11 +92,9 @@ Table of Contents
      1.5.  Relation to Existing Work
    2.  Conventions and Definitions
      2.1.  Notation
-     2.2.  Data Types
-     2.3.  Cryptographic Parameters
-     2.4.  Zero-knowledge Proofs of Knowledge
-       2.4.1.  Pedersen Proof
-       2.4.2.  DLEQ Proof
+     2.2.  Zero-knowledge Proofs of Knowledge
+       2.2.1.  Pedersen Proof
+       2.2.2.  DLEQ Proof
    3.  Protocol Specification
      3.1.  System Parameters
      3.2.  Key Generation
@@ -134,28 +134,30 @@ Table of Contents
        5.5.1.  Error Codes
      5.6.  Parameter Selection
        5.6.1.  Performance Characteristics
-   6.  Security Considerations
-     6.1.  Security Model and Definitions
-       6.1.1.  Threat Model
-       6.1.2.  Security Properties
-     6.2.  Cryptographic Assumptions
-     6.3.  Privacy Properties
-     6.4.  Security Properties
-     6.5.  Implementation Vulnerabilities and Mitigations
-       6.5.1.  Critical Security Requirements
-     6.6.  Known Attack Scenarios
-       6.6.1.  1.  Parallel Spend Attack
-       6.6.2.  2.  Balance Inflation Attack
-       6.6.3.  3.  Token Linking Attack
-     6.7.  Protocol Composition and State Management
-       6.7.1.  State Management Requirements
-       6.7.2.  Session Management
-       6.7.3.  Version Negotiation
-     6.8.  Quantum Resistance
-   7.  IANA Considerations
-   8.  References
-     8.1.  Normative References
-     8.2.  Informative References
+   6.  Suites for ACT
+     6.1.  ACT(ristretto255, SHAKE128)
+   7.  Security Considerations
+     7.1.  Security Model and Definitions
+       7.1.1.  Threat Model
+       7.1.2.  Security Properties
+     7.2.  Cryptographic Assumptions
+     7.3.  Privacy Properties
+     7.4.  Security Properties
+     7.5.  Implementation Vulnerabilities and Mitigations
+       7.5.1.  Critical Security Requirements
+     7.6.  Known Attack Scenarios
+       7.6.1.  1.  Parallel Spend Attack
+       7.6.2.  2.  Balance Inflation Attack
+       7.6.3.  3.  Token Linking Attack
+     7.7.  Protocol Composition and State Management
+       7.7.1.  State Management Requirements
+       7.7.2.  Session Management
+       7.7.3.  Version Negotiation
+     7.8.  Quantum Resistance
+   8.  IANA Considerations
+   9.  References
+     9.1.  Normative References
+     9.2.  Informative References
    Appendix A.  Test Vectors
    Appendix B.  Implementation Status
      B.1.  anonymous-credit-tokens
@@ -294,48 +296,47 @@ Table of Contents
 
    This document uses the following notation:
 
-   *  ||: Concatenation of byte strings
+   *  ||: Concatenation of byte arrays.
 
-   *  x <- S: Sampling x uniformly from the set S
+   *  x <- S: Uniformly sampling x from the set S.
 
-   *  x := y: Assignment of the value y to the variable x
+   *  x = y: Assignment of the value y to the variable x.
 
    *  [n]: The set of integers {0, 1, ..., n-1}
 
-   *  |x|: The length of byte string x
+   *  |x|: The length of byte array x.
 
-   *  0x prefix: Hexadecimal values
+   *  0x is a prefix to denote integer values in hexadecimal base.
 
    *  We use additive notation for group operations, so group elements
       are added together like a + b and scalar multiplication of a group
       element by a scalar is written as a * n, with group element a and
       scalar n.
 
-2.2.  Data Types
-
    The protocol uses the following data types:
 
-   *  *Scalar*: An integer modulo the group order q
+   *  *Byte Array*: A sequence of bytes.
 
-   *  *Element*: An element of the Ristretto255 group
+   *  *Group*: An interface of a prime-order group as defined in
+      Section 2.1 of [RFC9497].
 
-   *  *ByteString*: A sequence of bytes
+   *  *Group Element*: An element of the group.
 
-2.3.  Cryptographic Parameters
+   *  *Scalar*: An element from the scalar field of the group.
 
-   The protocol uses the Ristretto group [RFC9496], which provides a
-   prime-order group abstraction over Curve25519.  It would be easy to
-   adapt this approach to using any other prime order group based on the
-   contents of this document.  The key parameters are:
+   *  *LinearRelation*: An interface for building an interactive sigma
+      protocol as defined in Section 5 of [SIGMA].
 
-   *  *q*: The prime order of the group (2^252 +
-      27742317777372353535851937790883648493)
+   *  *NISigmaProtocol*: An interface that implements the Fiat-Shamir
+      transform as defined in Section 2.2.6 of [FIAT-SHAMIR].  This
+      interface is parametrized with a Codec that encodes prover
+      messages and verifier challenges, and a function used to compute
+      challenges.  See [FIAT-SHAMIR] for requirements of these
+      parameters.
 
-   *  *G*: The standard generator of the Ristretto group
+   The specific parameters and implementations are defined in Section 6.
 
-   *  *L*: The bit length for credit values
-
-2.4.  Zero-knowledge Proofs of Knowledge
+2.2.  Zero-knowledge Proofs of Knowledge
 
    Proofs of knowledge are based on interactive sigma protocols, which
    are made non-interactive through the Fiat-Shamir transform [FST].
@@ -348,13 +349,9 @@ Table of Contents
    The NISigmaProtocol requires a session identifier that uniquely
    identifies the session being proven.  Once initialized, the Prover
    can generate proofs of knowledge of a witness statisfying the
-   statement, while the Verifier can validate these proofs.  The
-   NISigmaProtocol is parametrized with a Codec that encodes prover
-   messages and verifier challenges, and a DuplexSponge interface that
-   computes challenges.  See [FIAT-SHAMIR] for requirements of these
-   parameters.
+   statement, while the Verifier can validate these proofs.
 
-2.4.1.  Pedersen Proof
+2.2.1.  Pedersen Proof
 
    A proof of knowledge derived from a Pedersen commitment shows that
    the prover knows witness scalars (k0, k1) such that R = k0*P + k1*Q,
@@ -379,7 +376,7 @@ Table of Contents
 
                                   Figure 1
 
-2.4.2.  DLEQ Proof
+2.2.2.  DLEQ Proof
 
    A proof of knowledge of a Discrete Logarithm Equivalence (DLEQ) shows
    that the prover knows a witness scalar k such that X = k*P and Y =
@@ -409,76 +406,73 @@ Table of Contents
 
 3.1.  System Parameters
 
-   The protocol requires the following system parameters:
+   Each instance of the protocol defines the following parameters:
 
-Parameters:
-  - G: Generator of the Ristretto group
-  - H1, H2, H3: Additional generators for commitments
-  - L: Bit length for credit values (configurable, must satisfy L <= 252)
+   *  domain_separator is a non-empty byte array that uniquely
+      identifies an instance of the protocol.  It ensures cryptographic
+      separation between different ACT instances.
 
-   The generators H1, H2, and H3 MUST be generated deterministically
-   from a nothing-up-my-sleeve value to ensure they are independent of
-   each other and of G.  This prevents attacks whereby malicious
-   parameters could compromise security.  Note that these generators are
-   independent of the choice of L.
+   *  L is the bit length for representing credit values, such that L <=
+      MAX_BIT_LENGTH, where MAX_BIT_LENGTH is defined per suite.
 
-   GenerateParameters(domain_separator):
+   *  H1, H2, H3 are auxiliary group generators used for commitments.
+      The SetGenerators function deterministically generates them
+      through hashing.  No discrete-logarithm relation MUST be known
+      between them and with the main generator.  This prevents attacks
+      whereby malicious parameters could compromise security.
+
+   SetGenerators(G, domain_separator):
      Input:
-       - domain_separator: ByteString identifying the deployment
+       - G: Group.
+       - domain_separator: Byte Array.
      Output:
-       - params: System parameters (H1, H2, H3)
+       - H1, H2, H3: Group Element.
 
      Steps:
-       1. seed = BLAKE3(LengthPrefixed(domain_separator))
-       2. counter = 0
-       3. H1 = HashToRistretto255(seed, counter++)
-       4. H2 = HashToRistretto255(seed, counter++)
-       5. H3 = HashToRistretto255(seed, counter++)
-       6. return (H1, H2, H3)
+       1. G0 = G.Generator()
+       2. H1, H2, H3 = [G0]*3
+       3. counter = 0
+       4. while G0 == H1 == H2 == H3:
+       5.   ctr = I2OSP(counter, 1)
+       6.   H1 = G.HashToGroup("H1", "GenH1" || ctr || domain_separator)
+       7.   H2 = G.HashToGroup("H2", "GenH2" || ctr || domain_separator)
+       8.   H3 = G.HashToGroup("H3", "GenH3" || ctr || domain_separator)
+       9.   counter += 1
+      10. return H1, H2, H3
 
-   HashToRistretto255(seed, counter):
-     Input:
-       - seed: 32-byte seed value
-       - counter: Integer counter for domain separation
-     Output:
-       - P: A valid Ristretto255 point
+                                  Figure 3
 
-     Steps:
-       1. hasher = BLAKE3.new()
-       2. hasher.update(LengthPrefixed(domain_separator))
-       3. hasher.update(LengthPrefixed(seed))
-       4. hasher.update(LengthPrefixed(counter.to_le_bytes(4)))
-       5. uniform_bytes = hasher.finalize_xof(64)
-       6. P = OneWayMap(uniform_bytes)
-       7. return P
-
-   The domain_separator MUST be unique for each deployment to ensure
-   cryptographic isolation between different services.  The domain
-   separator SHOULD follow this structured format:
+   The domain_separator SHOULD follow this structured format:
 
 domain_separator = "ACT-v1:" || organization || ":" || service || ":" || deployment_id || ":" || version
 
-   Where:
+   where:
 
    *  organization: A unique identifier for the organization (e.g.,
-      "example-corp", "acme-inc")
+      "example-corp", "acme-inc").
 
    *  service: The specific service or application name (e.g., "payment-
-      api", "rate-limiter")
+      api", "rate-limiter").
 
    *  deployment_id: The deployment environment (e.g., "production",
-      "staging", "us-west-1")
+      "staging", "us-west-1").
 
    *  version: An ISO 8601 date (YYYY-MM-DD) indicating when parameters
-      were generated
+      were generated.
 
    Example: "ACT-v1:example-corp:payment-api:production:2024-01-15"
 
-   This structured format ensures: 1.  Protocol identification through
-   the "ACT-v1:" prefix 2.  Organizational namespace isolation 3.
-   Service-level separation within organizations 4.  Environment
-   isolation (production vs staging) 5.  Version tracking for parameter
-   updates
+   This structured format ensures:
+
+   1.  Protocol identification through the "ACT-v1:" prefix
+
+   2.  Organizational namespace isolation
+
+   3.  Service-level separation within organizations
+
+   4.  Environment isolation (production vs staging)
+
+   5.  Version tracking for parameter updates
 
    Using generic or unstructured domain separators creates security
    risks through parameter collision and MUST NOT be used.  When
@@ -486,26 +480,23 @@ domain_separator = "ACT-v1:" || organization || ":" || service || ":" || deploym
    upgrades), a new version date MUST be used, creating entirely new
    parameters.
 
-   The OneWayMap function is defined in Section 4.3.4 of [RFC9496],
-   which provides a cryptographically secure mapping from uniformly
-   random byte strings to valid Ristretto255 points.
-
 3.2.  Key Generation
 
    The issuer generates a key pair as follows:
 
-   KeyGen():
-     Input: None
+   KeyGen(G):
+     Input:
+       - G: Group.
      Output:
-       - sk: Private key (Scalar)
-       - pk: Public key (Group Element)
+       - sk: Scalar.        # Private key
+       - pk: Group Element. # Public key
 
      Steps:
-       1. x <- Zq
-       2. W = G * x
-       3. sk = x
-       4. pk = W
-       5. return (sk, pk)
+       1. sk = G.RandomScalar()
+       2. pk = sk * G.Generator()
+       3. return sk, pk
+
+                                  Figure 4
 
 3.3.  Token Issuance
 
@@ -1429,11 +1420,75 @@ ScalarToCredit(s):
 
    Note: Token size is independent of L.
 
-6.  Security Considerations
+6.  Suites for ACT
 
-6.1.  Security Model and Definitions
+   A suite for ACT specifies the parameters used to implement the
+   functionality required for the protocol to take place.  The suite
+   should be available to both the client and server, and agreement on
+   the specific instantiation is assumed throughout.
 
-6.1.1.  Threat Model
+   A suite contains instantiations of the following functionalities:
+
+   *  Group: A prime-order group exposing the interface detailed in
+      Section 2.1 of [RFC9497].  For the HashToGroup function, the
+      domain separation tag (DST) is constructed in accordance with the
+      recommendations in Section 3.1 of [RFC9380].
+
+   *  NISigmaProtocol: These are parameters used to implement the Fiat-
+      Shamir transform in accordance the recommendations in
+      [FIAT-SHAMIR].
+
+   *  MAX_BIT_LENGTH: Specifies the maximum number of bits allowed to
+      represent credits.
+
+6.1.  ACT(ristretto255, SHAKE128)
+
+   The group is ristretto255 as specified in [RFC9496].  It also
+   specifies the Order(), Identity(), and Generator() functions.
+
+   The HashToGroup(msg, DST) function uses hash_to_ristretto255
+   [RFC9380] with DST = "HashToGroup-" || domain_separator, and
+   expand_message = expand_message_xmd using SHA-512.
+
+   SerializeElement(A) is the 'Encode' function from Section 4.3.2 of
+   [RFC9496] producing an array of Ne=32 bytes.
+
+   DeserializeElement(bytes) is the 'Decode' function from Section 4.3.1
+   of [RFC9496].  This function must validate that the input is the
+   valid canonical byte representation of an element of the group.  This
+   function must raise an error if deserialization fails, or if the
+   resulting element is the group identity element.
+
+   SerializeScalar(s) outputs a Ns=32 byte array representing the
+   little-endian encoding of the scalar value with the top three bits
+   set to zero.
+
+   DeserializeScalar(bytes) attempts to deserialize a scalar from a
+   little-endian 32-byte string.  This function must fail if the input
+   does not represent an integer between zero and Order()-1 inclusive.
+   Note that this means the top three bits of the input MUST be zero.
+
+   The NISigmaProtocol interface is implemented by
+   NISchnorrProofShake128Ris255 as follows:
+
+   class Ristretto255Codec(ByteSchnorrCodec):
+       GG = ristretto255
+
+   class NISchnorrProofShake128Ris255(NISigmaProtocol):
+       Protocol = SchnorrProof
+       Codec = Ristretto255Codec
+       Hash = SHAKE128
+
+   where SHAKE128 is the extendable-output function defined in
+   [FIPS202].
+
+   Set MAX_BIT_LENGTH=252 bits.
+
+7.  Security Considerations
+
+7.1.  Security Model and Definitions
+
+7.1.1.  Threat Model
 
    We consider a setting with:
 
@@ -1444,7 +1499,7 @@ ScalarToCredit(s):
       credits than they should (whether by forging tokens, spending more
       credits than a token has, or double-spending a token)
 
-6.1.2.  Security Properties
+7.1.2.  Security Properties
 
    The protocol provides the following security guarantees:
 
@@ -1458,7 +1513,7 @@ ScalarToCredit(s):
        clients can link a token issuance/refund to C with a token spend
        by C.  This property is information-theoretic in nature.
 
-6.2.  Cryptographic Assumptions
+7.2.  Cryptographic Assumptions
 
    Security relies on:
 
@@ -1468,7 +1523,7 @@ ScalarToCredit(s):
    2.  *Random Oracle Model*: The BLAKE3 hash function H is modeled as a
        random oracle.
 
-6.3.  Privacy Properties
+7.3.  Privacy Properties
 
    The protocol provides the following privacy guarantees:
 
@@ -1485,16 +1540,16 @@ ScalarToCredit(s):
    3.  *Timing Privacy*: Transaction timing patterns could potentially
        be used for correlation.
 
-6.4.  Security Properties
+7.4.  Security Properties
 
    The protocol ensures:
 
    1.  *Unforgeability*: Clients cannot spend more credits than they
        have been issued by the issuer.
 
-6.5.  Implementation Vulnerabilities and Mitigations
+7.5.  Implementation Vulnerabilities and Mitigations
 
-6.5.1.  Critical Security Requirements
+7.5.1.  Critical Security Requirements
 
    1.  *RNG Failures*: Weak randomness can completely break the
        protocol's security.
@@ -1628,9 +1683,9 @@ ScalarToCredit(s):
        *  MUST ensure atomic read-modify-write for all critical
           operations
 
-6.6.  Known Attack Scenarios
+7.6.  Known Attack Scenarios
 
-6.6.1.  1.  Parallel Spend Attack
+7.6.1.  1.  Parallel Spend Attack
 
    *Scenario*: A malicious client attempts to spend the same token
    multiple times by initiating parallel spend operations before any
@@ -1640,7 +1695,7 @@ ScalarToCredit(s):
    recording within a single database transaction.  Network-level rate
    limiting can provide additional protection.
 
-6.6.2.  2.  Balance Inflation Attack
+7.6.2.  2.  Balance Inflation Attack
 
    *Scenario*: An attacker attempts to create a proof claiming to have
    more credits than actually issued by manipulating the range proof.
@@ -1648,7 +1703,7 @@ ScalarToCredit(s):
    *Prevention*: The cryptographic soundness of the range proof prevents
    this attack.
 
-6.6.3.  3.  Token Linking Attack
+7.6.3.  3.  Token Linking Attack
 
    *Scenario*: An issuer attempts to link transactions by analyzing
    patterns in nullifiers, amounts, or timing.
@@ -1657,9 +1712,9 @@ ScalarToCredit(s):
    However, implementations MAY add random delays and amount obfuscation
    where possible.
 
-6.7.  Protocol Composition and State Management
+7.7.  Protocol Composition and State Management
 
-6.7.1.  State Management Requirements
+7.7.1.  State Management Requirements
 
    Before they make a spend request or an issue request, the client MUST
    store their private state (the nullifier, the blinding factor, and
@@ -1680,7 +1735,7 @@ ScalarToCredit(s):
    expiration date, however if you are memory constrained this could be
    useful.
 
-6.7.2.  Session Management
+7.7.2.  Session Management
 
    Each protocol session (issuance or spend/refund) MUST:
 
@@ -1688,13 +1743,13 @@ ScalarToCredit(s):
 
    *  Not reuse any random values across sessions
 
-6.7.3.  Version Negotiation
+7.7.3.  Version Negotiation
 
    To support protocol evolution, implementations MAY include version
    negotiation in the initial handshake.  All parties MUST agree on the
    protocol version before proceeding.
 
-6.8.  Quantum Resistance
+7.8.  Quantum Resistance
 
    This protocol is NOT quantum-resistant.  The discrete logarithm
    problem can be solved efficiently by quantum computers using Shor's
@@ -1703,13 +1758,13 @@ ScalarToCredit(s):
    preserved even in the presence of a cryptographically relevant
    quantum computer.
 
-7.  IANA Considerations
+8.  IANA Considerations
 
    This document has no IANA actions.
 
-8.  References
+9.  References
 
-8.1.  Normative References
+9.1.  Normative References
 
    [BLAKE3]   "BLAKE3: One Function, Fast Everywhere", 9 January 2020,
               <https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/
@@ -1721,6 +1776,11 @@ ScalarToCredit(s):
               2025, <https://datatracker.ietf.org/doc/html/draft-irtf-
               cfrg-fiat-shamir-00>.
 
+   [FIPS202]  "SHA-3 standard :: permutation-based hash and extendable-
+              output functions", National Institute of Standards and
+              Technology (U.S.), DOI 10.6028/nist.fips.202, 2015,
+              <https://doi.org/10.6028/nist.fips.202>.
+
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
               DOI 10.17487/RFC2119, March 1997,
@@ -1730,17 +1790,27 @@ ScalarToCredit(s):
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
 
+   [RFC9380]  Faz-Hernandez, A., Scott, S., Sullivan, N., Wahby, R. S.,
+              and C. A. Wood, "Hashing to Elliptic Curves", RFC 9380,
+              DOI 10.17487/RFC9380, August 2023,
+              <https://www.rfc-editor.org/rfc/rfc9380>.
+
    [RFC9496]  de Valence, H., Grigg, J., Hamburg, M., Lovecruft, I.,
               Tankersley, G., and F. Valsorda, "The ristretto255 and
               decaf448 Groups", RFC 9496, DOI 10.17487/RFC9496, December
               2023, <https://www.rfc-editor.org/rfc/rfc9496>.
+
+   [RFC9497]  Davidson, A., Faz-Hernandez, A., Sullivan, N., and C. A.
+              Wood, "Oblivious Pseudorandom Functions (OPRFs) Using
+              Prime-Order Groups", RFC 9497, DOI 10.17487/RFC9497,
+              December 2023, <https://www.rfc-editor.org/rfc/rfc9497>.
 
    [SIGMA]    Orrù, M. and C. Yun, "Interactive Sigma Proofs", Work in
               Progress, Internet-Draft, draft-irtf-cfrg-sigma-protocols-
               00, 8 August 2025, <https://datatracker.ietf.org/doc/html/
               draft-irtf-cfrg-sigma-protocols-00>.
 
-8.2.  Informative References
+9.2.  Informative References
 
    [BBS]      "Short Group Signatures", 2004,
               <https://crypto.stanford.edu/~dabo/pubs/papers/
@@ -1853,3 +1923,8 @@ Authors' Addresses
    Jonathan Katz
    Google
    Email: jkcrypto@google.com
+
+
+   Armando Faz-Hernandez
+   Cloudflare, Inc.
+   Email: armfazh@cloudflare.com
