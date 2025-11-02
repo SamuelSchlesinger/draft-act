@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-10-28T00:05:34.741232+00:00",
+  "timestamp": "2025-11-02T00:05:51.686739+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -55,15 +55,15 @@
       "id": "I_kwDOPc24Mc7FnraH",
       "title": "Use CFRG boiler plate for prime order groups",
       "url": "https://github.com/SamuelSchlesinger/draft-act/issues/1",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "cjpatton",
-      "authorAssociation": "NONE",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Ristretto255 will work great for many, but some will likely need NIST curves like P-256 or P-384. The simplest thing would be to use a generic prime order group. Many CFRG drafts use the same boiler plate API for this, [as does ARC](https://chris-wood.github.io/draft-arc/draft-yun-cfrg-arc.html#name-prime-order-group). I suggest adopting this API here as well. Not only will this make it easier to adopt new curves, it also aligns the draft closer to what IETF WGs are used to.",
       "createdAt": "2025-08-12T19:08:47Z",
-      "updatedAt": "2025-08-12T19:09:35Z",
-      "closedAt": null,
+      "updatedAt": "2025-10-30T20:21:28Z",
+      "closedAt": "2025-10-30T20:21:28Z",
       "comments": []
     },
     {
@@ -102,15 +102,15 @@
       "id": "I_kwDOPc24Mc7Fn8Mu",
       "title": "Adopt RFC 9380 for hashing to Ristretto255",
       "url": "https://github.com/SamuelSchlesinger/draft-act/issues/3",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "cjpatton",
-      "authorAssociation": "NONE",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "As specified in [Appendix B](https://www.rfc-editor.org/rfc/rfc9380.html#appendix-B). The same RFC specifies algorithms for NIST curves as well (#1).",
       "createdAt": "2025-08-12T19:25:48Z",
-      "updatedAt": "2025-08-12T19:25:48Z",
-      "closedAt": null,
+      "updatedAt": "2025-10-30T20:21:28Z",
+      "closedAt": "2025-10-30T20:21:28Z",
       "comments": []
     },
     {
@@ -463,6 +463,22 @@
           "updatedAt": "2025-10-21T04:46:34Z"
         }
       ]
+    },
+    {
+      "number": 19,
+      "id": "I_kwDOPc24Mc7U6GRF",
+      "title": "Clarify use of NISigmaProtocol in draft-schlesinger-cfrg-act",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/issues/19",
+      "state": "OPEN",
+      "author": "cathieyun",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "The ZKP prover and verifier are instantiated with NISigmaProtocol in the spec, such as here:\nhttps://github.com/SamuelSchlesinger/draft-act/blob/main/draft-schlesinger-cfrg-act.md#client-issuance-request\n\nHowever, this code wouldn't actually run correctly because NISigmaProtocol is the class, whereas you need an actual ciphersuite (eg `NISchnorrProofShake128P256` as defined in https://mmaker.github.io/draft-irtf-cfrg-sigma-protocols/draft-irtf-cfrg-fiat-shamir.html#section-5.1) which has the Protocol, Codec, and Hash defined. If you want to keep the `NISigmaProtocol` abstraction for crypto agility, please add a comment to clarify the use and how it differs from how you'd actually need to instantiate it in practice.",
+      "createdAt": "2025-10-30T18:25:46Z",
+      "updatedAt": "2025-10-30T18:25:46Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -2011,25 +2027,35 @@
       "id": "PR_kwDOPc24Mc6uu11x",
       "title": "Add suites section and abstract group interface.",
       "url": "https://github.com/SamuelSchlesinger/draft-act/pull/18",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "armfazh",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "This brings a section for ACT suites. Currently only ristretto group is allowed. \r\nThis avoids to add the boilerplate text for groups by just making a reference to the VOPRF draft.\r\nAlso redefines how to build the additonal generators based on a generic HashToGroup function.\r\n\r\nFixes #1 \r\nFixes #3 \r\n\r\nOn top of https://github.com/SamuelSchlesinger/draft-act/pull/12",
       "createdAt": "2025-10-20T23:44:36Z",
-      "updatedAt": "2025-10-27T23:02:17Z",
+      "updatedAt": "2025-10-30T20:21:27Z",
       "baseRepository": "SamuelSchlesinger/draft-act",
       "baseRefName": "main",
       "baseRefOid": "b068522c0bd5d07843e7e9235620311b28cc40c5",
       "headRepository": "armfazh/draft-act",
       "headRefName": "addSuites",
       "headRefOid": "0831cde626a2347916fb6d7be75c93dbd35a752b",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
-      "comments": [],
+      "closedAt": "2025-10-30T20:21:27Z",
+      "mergedAt": "2025-10-30T20:21:27Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "1a2947cf82811aee9467de083e6002f90ea19f44"
+      },
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "LGTM, ready to merge @armfazh?",
+          "createdAt": "2025-10-30T18:40:00Z",
+          "updatedAt": "2025-10-30T18:40:00Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOPc24Mc7IMgSh",
