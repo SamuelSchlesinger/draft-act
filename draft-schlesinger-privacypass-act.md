@@ -309,37 +309,30 @@ using a `request_context` parameter. This approach is inspired by the Anonymous
 Rate-Limited Credentials (ARC) protocol {{ARC_PP}}, which threads a similar
 context parameter through its cryptographic operations for domain separation.
 
-IMPORTANT: The current CFRG ACT specification {{ACT}} does not include
-`request_context` parameters in its cryptographic functions. To support the
-Privacy Pass integration described in this document, the ACT specification would
-need to be extended with the following changes:
+The CFRG ACT specification {{ACT}} includes `request_context` (ctx) as a
+parameter in its cryptographic functions. Specifically:
 
 1. **IssueRequest**: No changes needed - the client generates a blinded commitment
    without knowledge of the final context binding.
 
-2. **IssueResponse**: Add `request_context` as an input parameter alongside the
+2. **IssueResponse**: Takes `request_context` as an input parameter alongside the
    credit amount `c`. The issuer determines the appropriate context based on its
    policy (e.g., derived from TokenChallenge fields) and binds the credential to
-   this context. The function would hash the context into a scalar and include it
-   in the credential signature, similar to how ARC hashes `requestContext` into `m2`.
+   this context via an additional generator H4. The context scalar is included in
+   the BBS signature as `H4 * ctx`.
 
-3. **VerifyAndRefund**: Add `request_context` as an input parameter to verify
-   that the spend proof is bound to the correct application context. The issuer
-   reconstructs the context from the TokenChallenge and uses it during verification.
+3. **VerifyAndRefund**: The `request_context` is included in the spend proof and
+   used to verify that the proof is bound to the correct application context. The
+   issuer reconstructs the context from the TokenChallenge and uses it during
+   verification and refund issuance.
 
-4. **Credential Structure**: The Anonymous Credit Token structure would be extended
-   to include the context-bound component within the BBS signature, analogous to
-   how ARC credentials include `m2` for presentation context binding.
+4. **Credential Structure**: The Anonymous Credit Token includes the context-bound
+   component within the BBS signature via the H4 generator.
 
 The key insight is that `request_context` is determined by the issuer (like the
 credit amount), not by the client. The issuer sets the context during IssueResponse
 based on the TokenChallenge requirements, and both parties reconstruct it from
 TokenChallenge fields during spending.
-
-Until these extensions are incorporated into the CFRG ACT specification, the
-function calls in this document should be understood as describing the intended
-behavior with request_context support. Implementations SHOULD coordinate with
-the CFRG ACT specification authors to ensure compatibility.
 
 For reference on how request context threading works in practice, see
 {{Section 3 of ARC_PP}}, which demonstrates the pattern of binding credentials

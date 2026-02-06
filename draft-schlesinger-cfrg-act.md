@@ -253,11 +253,11 @@ The protocol requires the following system parameters:
 ~~~
 Parameters:
   - G: Generator of the Ristretto group
-  - H1, H2, H3: Additional generators for commitments
+  - H1, H2, H3, H4: Additional generators for commitments
   - L: Bit length for credit values (configurable, must satisfy L <= 252)
 ~~~
 
-The generators H1, H2, and H3 MUST be generated deterministically from a
+The generators H1, H2, H3, and H4 MUST be generated deterministically from a
 nothing-up-my-sleeve value to ensure they are independent of each other and of
 G. This prevents attacks whereby malicious parameters could compromise security. Note that these generators are independent of the choice of L.
 
@@ -266,7 +266,7 @@ GenerateParameters(domain_separator):
   Input:
     - domain_separator: ByteString identifying the deployment
   Output:
-    - params: System parameters (H1, H2, H3)
+    - params: System parameters (H1, H2, H3, H4)
 
   Steps:
     1. seed = BLAKE3(LengthPrefixed(domain_separator))
@@ -274,7 +274,8 @@ GenerateParameters(domain_separator):
     3. H1 = HashToRistretto255(seed, counter++)
     4. H2 = HashToRistretto255(seed, counter++)
     5. H3 = HashToRistretto255(seed, counter++)
-    6. return (H1, H2, H3)
+    6. H4 = HashToRistretto255(seed, counter++)
+    7. return (H1, H2, H3, H4)
 
 HashToRistretto255(seed, counter):
   Input:
@@ -380,11 +381,12 @@ IssueRequest():
 ### Issuer: Issuance Response
 
 ~~~
-IssueResponse(sk, request, c):
+IssueResponse(sk, request, c, ctx):
   Input:
     - sk: Issuer's private key
     - request: Client's issuance request
     - c: Credit amount to issue (c > 0)
+    - ctx: Request context (Scalar)
   Output:
     - response: Issuance response or INVALID
   Exceptions:
@@ -399,27 +401,28 @@ IssueResponse(sk, request, c):
     6. AddToTranscript(transcript, K1)
     7. if GetChallenge(transcript) != gamma:
     8.     raise InvalidIssuanceRequestProof
-    9. // Create BBS signature on (c, k, r)
+    9. // Create BBS signature on (c, ctx, k, r)
     10. e <- Zq
-    11. A = (G + H1 * c + K) * (1/(e + sk))  // K = H2 * k + H3 * r
+    11. A = (G + H1 * c + H4 * ctx + K) * (1/(e + sk))  // K = H2 * k + H3 * r
     12. // Generate proof of correct computation
     13. alpha <- Zq
     14. Y_A = A * alpha
     15. Y_G = G * alpha
-    16. X_A = G + H1 * c + K
+    16. X_A = G + H1 * c + H4 * ctx + K
     17. X_G = G * e + pk
     18. transcript_resp = CreateTranscript("respond")
     19. AddToTranscript(transcript_resp, c)
-    20. AddToTranscript(transcript_resp, e)
-    21. AddToTranscript(transcript_resp, A)
-    22. AddToTranscript(transcript_resp, X_A)
-    23. AddToTranscript(transcript_resp, X_G)
-    24. AddToTranscript(transcript_resp, Y_A)
-    25. AddToTranscript(transcript_resp, Y_G)
-    26. gamma_resp = GetChallenge(transcript_resp)
-    27. z = gamma_resp * (sk + e) + alpha
-    28. response = (A, e, gamma_resp, z, c)
-    29. return response
+    20. AddToTranscript(transcript_resp, ctx)
+    21. AddToTranscript(transcript_resp, e)
+    22. AddToTranscript(transcript_resp, A)
+    23. AddToTranscript(transcript_resp, X_A)
+    24. AddToTranscript(transcript_resp, X_G)
+    25. AddToTranscript(transcript_resp, Y_A)
+    26. AddToTranscript(transcript_resp, Y_G)
+    27. gamma_resp = GetChallenge(transcript_resp)
+    28. z = gamma_resp * (sk + e) + alpha
+    29. response = (A, e, gamma_resp, z, c, ctx)
+    30. return response
 ~~~
 
 ### Client: Token Verification
@@ -438,39 +441,46 @@ VerifyIssuance(pk, request, response, state):
 
   Steps:
     1. Parse request as (K, gamma, k_bar, r_bar)
-    2. Parse response as (A, e, gamma_resp, z, c)
+    2. Parse response as (A, e, gamma_resp, z, c, ctx)
     3. Parse state as (k, r)
     4. // Verify proof
-    6. X_A = G + H1 * c + K
+    6. X_A = G + H1 * c + H4 * ctx + K
     7. X_G = G * e + pk
     8. Y_A = A * z - X_A * gamma_resp
     9. Y_G = G * z - X_G * gamma_resp
     10. transcript_resp = CreateTranscript("respond")
     11. AddToTranscript(transcript_resp, c)
-    12. AddToTranscript(transcript_resp, e)
-    13. AddToTranscript(transcript_resp, A)
-    14. AddToTranscript(transcript_resp, X_A)
-    15. AddToTranscript(transcript_resp, X_G)
-    16. AddToTranscript(transcript_resp, Y_A)
-    17. AddToTranscript(transcript_resp, Y_G)
-    18. if GetChallenge(transcript_resp) != gamma_resp:
-    19.     raise InvalidIssuanceResponseProof
-    20. token = (A, e, k, r, c)
-    21. return token
+    12. AddToTranscript(transcript_resp, ctx)
+    13. AddToTranscript(transcript_resp, e)
+    14. AddToTranscript(transcript_resp, A)
+    15. AddToTranscript(transcript_resp, X_A)
+    16. AddToTranscript(transcript_resp, X_G)
+    17. AddToTranscript(transcript_resp, Y_A)
+    18. AddToTranscript(transcript_resp, Y_G)
+    19. if GetChallenge(transcript_resp) != gamma_resp:
+    20.     raise InvalidIssuanceResponseProof
+    21. token = (A, e, k, r, c, ctx)
+    22. return token
 ~~~
 
 ## Token Spending
 
 The spending protocol allows a client to spend s credits from a token
-containing c credits (where 0 < s <= c):
+containing c credits (where 0 <= s <= c).
+
+Note: Spending s = 0 is permitted and produces a new token with the same
+balance but a fresh nullifier. This "re-anonymization" operation is useful
+for securely transferring a token to another party: after a zero-spend, the
+original holder can no longer use the old nullifier, and the recipient
+obtains a token that is cryptographically unlinkable to the original.
 
 ### Client: Spend Proof Generation
 
 ~~~
 ProveSpend(token, s):
   Input:
-    - token: Credit token (A, e, k, r, c)
-    - s: Amount to spend (0 < s <= c)
+    - token: Credit token (A, e, k, r, c, ctx)
+    - s: Amount to spend (0 <= s <= c)
   Output:
     - proof: Spend proof
     - state: Client state for receiving change
@@ -478,7 +488,7 @@ ProveSpend(token, s):
   Steps:
     1. // Randomize the signature
     2. r1, r2 <- Zq
-    3. B = G + H1 * c + H2 * k + H3 * r
+    3. B = G + H1 * c + H2 * k + H3 * r + H4 * ctx
     4. A' = A * (r1 * r2)
     5. B_bar = B * r1
     6. r3 = 1/r1
@@ -554,7 +564,8 @@ ProveSpend(token, s):
     66. // Generate challenge using transcript
     67. transcript = CreateTranscript("spend")
     68. AddToTranscript(transcript, k)
-    69. AddToTranscript(transcript, A')
+    69. AddToTranscript(transcript, ctx)
+    70. AddToTranscript(transcript, A')
     70. AddToTranscript(transcript, B_bar)
     71. AddToTranscript(transcript, A1)
     72. AddToTranscript(transcript, A2)
@@ -606,11 +617,11 @@ ProveSpend(token, s):
     115. s_bar = gamma * r* + s'
 
     116. // Construct proof
-    117. proof = (k, s, A', B_bar, Com, gamma, e_bar,
+    117. proof = (k, s, ctx, A', B_bar, Com, gamma, e_bar,
     118.          r2_bar, r3_bar, c_bar, r_bar,
     119.          w00, w01, gamma0_final, z_final,
     120.          k_bar, s_bar)
-    121. state = (k*, r*, m)
+    121. state = (k*, r*, m, ctx)
     122. return (proof, state)
 ~~~
 
@@ -639,7 +650,7 @@ VerifyAndRefund(sk, proof):
     9. used_nullifiers.add(k)
     10. // Issue refund for remaining balance
     11. K' = Sum(Com[j] * 2^j for j in [L])
-    12. refund = IssueRefund(sk, K')
+    12. refund = IssueRefund(sk, K', proof.ctx)
     13. return refund
 ~~~
 
@@ -649,17 +660,18 @@ After verifying a spend proof, the issuer creates a refund token for the
 remaining balance:
 
 ~~~
-IssueRefund(sk, K'):
+IssueRefund(sk, K', ctx):
   Input:
     - sk: Issuer's private key
     - K': Commitment to remaining balance and new nullifier
+    - ctx: Request context from the spend proof
   Output:
     - refund: Refund response
 
   Steps:
     1. // Create new BBS signature on remaining balance
     2. e* <- Zq
-    3. X_A* = G + K'
+    3. X_A* = G + K' + H4 * ctx
     4. A* = X_A* * (1/(e* + sk))
 
     5. // Generate proof of correct computation
@@ -671,12 +683,13 @@ IssueRefund(sk, K'):
     10. // Create challenge using transcript
     11. transcript = CreateTranscript("refund")
     12. AddToTranscript(transcript, e*)
-    13. AddToTranscript(transcript, A*)
-    14. AddToTranscript(transcript, X_A*)
-    15. AddToTranscript(transcript, X_G)
-    16. AddToTranscript(transcript, Y_A)
-    17. AddToTranscript(transcript, Y_G)
-    18. gamma = GetChallenge(transcript)
+    13. AddToTranscript(transcript, ctx)
+    14. AddToTranscript(transcript, A*)
+    15. AddToTranscript(transcript, X_A*)
+    16. AddToTranscript(transcript, X_G)
+    17. AddToTranscript(transcript, Y_A)
+    18. AddToTranscript(transcript, Y_G)
+    19. gamma = GetChallenge(transcript)
 
     19. // Compute response
     20. z = gamma * (sk + e*) + alpha
@@ -695,7 +708,7 @@ ConstructRefundToken(pk, spend_proof, refund, state):
     - pk: Issuer's public key
     - spend_proof: The spend proof sent to issuer
     - refund: Issuer's refund response
-    - state: Client state (k*, r*, m)
+    - state: Client state (k*, r*, m, ctx)
   Output:
     - token: New credit token or INVALID
   Exceptions:
@@ -703,11 +716,11 @@ ConstructRefundToken(pk, spend_proof, refund, state):
 
   Steps:
     1. Parse refund as (A*, e*, gamma, z)
-    2. Parse state as (k*, r*, m)
+    2. Parse state as (k*, r*, m, ctx)
 
     3. // Reconstruct commitment
     4. K' = Sum(spend_proof.Com[j] * 2^j for j in [L])
-    5. X_A* = G + K'
+    5. X_A* = G + K' + H4 * ctx
     6. X_G = G * e* + pk
 
     7. // Verify proof
@@ -717,17 +730,18 @@ ConstructRefundToken(pk, spend_proof, refund, state):
     10. // Check challenge using transcript
     11. transcript = CreateTranscript("refund")
     12. AddToTranscript(transcript, e*)
-    13. AddToTranscript(transcript, A*)
-    14. AddToTranscript(transcript, X_A*)
-    15. AddToTranscript(transcript, X_G)
-    16. AddToTranscript(transcript, Y_A)
-    17. AddToTranscript(transcript, Y_G)
-    18. if GetChallenge(transcript) != gamma:
-    19.     raise InvalidRefundProof
+    13. AddToTranscript(transcript, ctx)
+    14. AddToTranscript(transcript, A*)
+    15. AddToTranscript(transcript, X_A*)
+    16. AddToTranscript(transcript, X_G)
+    17. AddToTranscript(transcript, Y_A)
+    18. AddToTranscript(transcript, Y_G)
+    19. if GetChallenge(transcript) != gamma:
+    20.     raise InvalidRefundProof
 
-    20. // Construct new token
-    21. token = (A*, e*, k*, r*, m)
-    22. return token
+    21. // Construct new token
+    22. token = (A*, e*, k*, r*, m, ctx)
+    23. return token
 ~~~
 
 ### Spend Proof Verification {#spend-verification}
@@ -746,7 +760,7 @@ VerifySpendProof(sk, proof):
     - InvalidClientSpendProof: raised when the challenge does not match the reconstruction
 
   Steps:
-    1. Parse proof as (k, s, A', B_bar, Com, gamma, e_bar,
+    1. Parse proof as (k, s, ctx, A', B_bar, Com, gamma, e_bar,
                       r2_bar, r3_bar, c_bar, r_bar, w00, w01,
                       gamma0, z, k_bar, s_bar)
 
@@ -756,7 +770,7 @@ VerifySpendProof(sk, proof):
 
     5. // Compute issuer's view of signature
     6. A_bar = A' * sk
-    7. H1_prime = G + H2 * k
+    7. H1_prime = G + H2 * k + H4 * ctx
 
     8. // Verify sigma protocol
     9. A1 = A' * e_bar + B_bar * r2_bar - A_bar * gamma
@@ -790,7 +804,8 @@ VerifySpendProof(sk, proof):
     32. // Recompute challenge using transcript
     33. transcript = CreateTranscript("spend")
     34. AddToTranscript(transcript, k)
-    35. AddToTranscript(transcript, A')
+    35. AddToTranscript(transcript, ctx)
+    36. AddToTranscript(transcript, A')
     36. AddToTranscript(transcript, B_bar)
     37. AddToTranscript(transcript, A1)
     38. AddToTranscript(transcript, A2)
@@ -845,8 +860,9 @@ CreateTranscript(label):
     3. hasher.update(LengthPrefixed(Encode(H1)))
     4. hasher.update(LengthPrefixed(Encode(H2)))
     5. hasher.update(LengthPrefixed(Encode(H3)))
-    6. hasher.update(LengthPrefixed(label))
-    7. return transcript with hasher
+    6. hasher.update(LengthPrefixed(Encode(H4)))
+    7. hasher.update(LengthPrefixed(label))
+    8. return transcript with hasher
 
 AddToTranscript(transcript, value):
   Input:
@@ -1000,7 +1016,8 @@ IssuanceResponseMsg = {
     2: bstr,  ; e (scalar, 32 bytes)
     3: bstr,  ; gamma_resp (scalar, 32 bytes)
     4: bstr,  ; z (scalar, 32 bytes)
-    5: bstr   ; c (scalar, 32 bytes)
+    5: bstr,  ; c (scalar, 32 bytes)
+    6: bstr   ; ctx (scalar, 32 bytes)
 }
 ~~~
 
@@ -1024,7 +1041,8 @@ SpendProofMsg = {
     14: [* bstr],      ; gamma0 array (L scalars)
     15: [* [bstr, bstr]], ; z array (L pairs of scalars)
     16: bstr,          ; k_bar (scalar, 32 bytes)
-    17: bstr           ; s_bar (scalar, 32 bytes)
+    17: bstr,          ; s_bar (scalar, 32 bytes)
+    18: bstr           ; ctx (scalar, 32 bytes)
 }
 ~~~
 
@@ -1255,7 +1273,7 @@ Note: L is the configurable bit length for credit values.
 
 | Component | Size |
 |-----------|------|
-| Token size | 160 bytes (5 × 32 bytes) |
+| Token size | 192 bytes (6 × 32 bytes) |
 | Spend proof size | 32 × (14 + 4L) bytes |
 | Nullifier database entry | 32 bytes per spent token |
 
@@ -1299,6 +1317,14 @@ However, the protocol does NOT provide:
 1. **Network-Level Privacy**: IP addresses and network metadata can still link transactions.
 2. **Amount Privacy**: The spent amount s is revealed to the issuer.
 3. **Timing Privacy**: Transaction timing patterns could potentially be used for correlation.
+4. **Context Privacy**: The request context (ctx) is revealed in the clear during
+   spending. If the issuer assigns distinct ctx values per issuance, the resulting
+   token chain (issuance, spend, refund, subsequent spends) becomes linkable through
+   the shared ctx value. This is by design for application-level context binding, but
+   deployments that require full unlinkability MUST use a shared ctx across all clients
+   within the same context (e.g., per-service or per-epoch), not per-client values.
+   The ctx value persists across refunds: a token produced by a refund inherits the
+   ctx of the original token.
 
 ## Security Properties
 
@@ -1513,7 +1539,7 @@ This glossary provides quick definitions of key terms used throughout this docum
 
 **Sigma Protocol**: An interactive zero-knowledge proof protocol following a commit-challenge-response pattern.
 
-**Token**: A cryptographic credential containing a BBS signature and associated data (A, e, k, r, c).
+**Token**: A cryptographic credential containing a BBS signature and associated data (A, e, k, r, c, ctx).
 
 **Unlinkability**: The property that transactions cannot be correlated with each other or with token issuance.
 
