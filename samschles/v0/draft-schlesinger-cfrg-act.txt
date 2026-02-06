@@ -1045,16 +1045,13 @@ ScalarToCredit(s):
   Output:
     - amount: Integer credit amount or ERROR
   Exceptions:
-    - ScalarOutOfRangeError: raised when the bytes 16..32 of the scalar value are nonzero
+    - ScalarOutOfRangeError: raised when the scalar value is >= 2^L
 
   Steps:
-    1. bytes = s.to_bytes_le()
-    2. // Check high bytes are zero
-    3. For i = 16 to 31:
-    4.     if bytes[i] != 0:
-    5.         return ScalarOutOfRangeError
-    6. amount = bytes[0..15] as u128
-    7. return amount
+    1. amount = s as integer  // Interpret little-endian scalar bytes as integer
+    2. if amount >= 2^L:
+    3.     return ScalarOutOfRangeError
+    4. return amount
 
 4.  Protocol Messages and Wire Format
 
