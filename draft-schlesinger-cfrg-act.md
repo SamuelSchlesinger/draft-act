@@ -566,31 +566,31 @@ ProveSpend(token, s):
     68. AddToTranscript(transcript, k)
     69. AddToTranscript(transcript, ctx)
     70. AddToTranscript(transcript, A')
-    70. AddToTranscript(transcript, B_bar)
-    71. AddToTranscript(transcript, A1)
-    72. AddToTranscript(transcript, A2)
-    73. For j = 0 to L-1:
-    74.     AddToTranscript(transcript, Com[j])
-    75. For j = 0 to L-1:
-    76.     AddToTranscript(transcript, C'[j][0])
-    77.     AddToTranscript(transcript, C'[j][1])
-    78. AddToTranscript(transcript, C)
-    79. gamma = GetChallenge(transcript)
+    71. AddToTranscript(transcript, B_bar)
+    72. AddToTranscript(transcript, A1)
+    73. AddToTranscript(transcript, A2)
+    74. For j = 0 to L-1:
+    75.     AddToTranscript(transcript, Com[j])
+    76. For j = 0 to L-1:
+    77.     AddToTranscript(transcript, C'[j][0])
+    78.     AddToTranscript(transcript, C'[j][1])
+    79. AddToTranscript(transcript, C)
+    80. gamma = GetChallenge(transcript)
 
-    80. // Compute responses
-    81. e_bar = -gamma * e + e'
-    82. r2_bar = gamma * r2 + r2'
-    83. r3_bar = gamma * r3 + r3'
-    84. c_bar = -gamma * c + c'
-    85. r_bar = -gamma * r + r'
+    81. // Compute responses
+    82. e_bar = -gamma * e + e'
+    83. r2_bar = gamma * r2 + r2'
+    84. r3_bar = gamma * r3 + r3'
+    85. c_bar = -gamma * c + c'
+    86. r_bar = -gamma * r + r'
 
-    86. // Complete range proof responses
-    87. z_final = array[L][2]
-    88. gamma0_final = array[L]
-    89.
-    90. // For bit 0
-    91. if i[0] == 0:
-    92.     gamma0_final[0] = gamma - gamma0[0]
+    87. // Complete range proof responses
+    88. z_final = array[L][2]
+    89. gamma0_final = array[L]
+    90.
+    91. // For bit 0
+    92. if i[0] == 0:
+    93.     gamma0_final[0] = gamma - gamma0[0]
     94.     w00 = gamma0_final[0] * k* + k0'
     95.     w01 = w0
     96.     z_final[0][0] = gamma0_final[0] * s[0] + s_prime[0]
@@ -598,7 +598,7 @@ ProveSpend(token, s):
     98. else:
     99.     gamma0_final[0] = gamma0[0]
     100.    w00 = w0
-    101.    w01 = (gamma - gamma_final[0]) * k* + k'[0]
+    101.    w01 = (gamma - gamma0_final[0]) * k* + k0'
     102.    z_final[0][0] = z[0]
     103.    z_final[0][1] = (gamma - gamma0_final[0]) * s[0] + s_prime[0]
 
