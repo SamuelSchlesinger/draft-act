@@ -183,7 +183,7 @@ in the IRTF.
   font-weight: 400;
   font-display: swap;
   src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
   font-family: 'Oxygen Mono';
@@ -191,7 +191,8 @@ in the IRTF.
   font-weight: 400;
   font-display: swap;
   src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 }
 
 @font-face {
@@ -1066,7 +1067,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger &amp; Katz</td>
-<td class="center">Expires 11 August 2026</td>
+<td class="center">Expires 17 August 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1079,12 +1080,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-schlesinger-cfrg-act-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-02-07" class="published">7 February 2026</time>
+<time datetime="2026-02-13" class="published">13 February 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-08-11">11 August 2026</time></dd>
+<dd class="expires"><time datetime="2026-08-17">17 August 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1156,7 +1157,7 @@ in the IRTF.<a href="#section-abstract-4" class="pilcrow">¶</a></p>
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 11 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 17 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1750,7 +1751,7 @@ key parameters are:<a href="#section-2.3-1" class="pilcrow">¶</a></p>
 Parameters:
   - G: Generator of the Ristretto group
   - H1, H2, H3, H4: Additional generators for commitments
-  - L: Bit length for credit values (configurable, must satisfy L &lt;= 252)
+  - L: Bit length for credit values (configurable, must satisfy L &lt;= 128)
 </pre><a href="#section-3.1-2" class="pilcrow">¶</a>
 </div>
 <p id="section-3.1-3">The generators H1, H2, H3, and H4 <span class="bcp14">MUST</span> be generated deterministically from a
@@ -2018,8 +2019,18 @@ ProveSpend(token, s):
   Output:
     - proof: Spend proof
     - state: Client state for receiving change
+  Exceptions:
+    - InvalidAmount: raised when s &gt; c or s &gt;= 2^L or c &gt;= 2^L
 
   Steps:
+    0. // Validate inputs
+    0a. if s &gt;= 2^L:
+    0b.     raise InvalidAmount
+    0c. if c &gt;= 2^L:
+    0d.     raise InvalidAmount
+    0e. if s &gt; c:
+    0f.     raise InvalidAmount
+
     1. // Randomize the signature
     2. r1, r2 &lt;- Zq
     3. B = G + H1 * c + H2 * k + H3 * r + H4 * ctx
@@ -2168,10 +2179,11 @@ ProveSpend(token, s):
           </h4>
 <div class="alignLeft art-text artwork" id="section-3.4.2-1">
 <pre>
-VerifyAndRefund(sk, proof):
+VerifyAndRefund(sk, proof, t):
   Input:
     - sk: Issuer's private key
     - proof: Client's spend proof
+    - t: Credits to return to the client (0 &lt;= t &lt;= s, t &lt; 2^L)
   Output:
     - refund: Refund for remaining credits
   Exceptions:
@@ -2190,7 +2202,7 @@ VerifyAndRefund(sk, proof):
     9. used_nullifiers.add(k)
     10. // Issue refund for remaining balance
     11. K' = Sum(Com[j] * 2^j for j in [L])
-    12. refund = IssueRefund(sk, K', proof.ctx)
+    12. refund = IssueRefund(sk, K', proof.ctx, proof.s, t)
     13. return refund
 </pre><a href="#section-3.4.2-1" class="pilcrow">¶</a>
 </div>
@@ -2202,45 +2214,60 @@ VerifyAndRefund(sk, proof):
 <a href="#section-3.4.3" class="section-number selfRef">3.4.3. </a><a href="#name-refund-issuance" class="section-name selfRef">Refund Issuance</a>
           </h4>
 <p id="section-3.4.3-1">After verifying a spend proof, the issuer creates a refund token for the
-remaining balance:<a href="#section-3.4.3-1" class="pilcrow">¶</a></p>
+remaining balance. The issuer may optionally return t credits (where
+0 &lt;= t &lt;= s) back to the client via a partial credit return. This enables
+pre-authorization patterns where the client holds s credits but only t
+are returned unused. The resulting token will have c - s + t credits.
+Use t = 0 to consume the full spend amount:<a href="#section-3.4.3-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3.4.3-2">
 <pre>
-IssueRefund(sk, K', ctx):
+IssueRefund(sk, K', ctx, s, t):
   Input:
     - sk: Issuer's private key
     - K': Commitment to remaining balance and new nullifier
     - ctx: Request context from the spend proof
+    - s: The spend amount from the proof
+    - t: Credits to return to the client (0 &lt;= t &lt;= s, t &lt; 2^L)
   Output:
     - refund: Refund response
+  Exceptions:
+    - InvalidAmount: raised when t &gt; s or t &gt;= 2^L
 
   Steps:
-    1. // Create new BBS signature on remaining balance
-    2. e* &lt;- Zq
-    3. X_A* = G + K' + H4 * ctx
-    4. A* = X_A* * (1/(e* + sk))
+    1. // Validate partial return amount
+    2. if t &gt;= 2^L:
+    3.     raise InvalidAmount
+    4. if t &gt; s:
+    5.     raise InvalidAmount
 
-    5. // Generate proof of correct computation
-    6. alpha &lt;- Zq
-    7. Y_A = A* * alpha
-    8. Y_G = G * alpha
-    9. X_G = G * e* + pk
+    6. // Create new BBS signature on remaining balance + partial return
+    7. e* &lt;- Zq
+    8. X_A* = G + K' + H1 * t + H4 * ctx
+    9. A* = X_A* * (1/(e* + sk))
 
-    10. // Create challenge using transcript
-    11. transcript = CreateTranscript("refund")
-    12. AddToTranscript(transcript, e*)
-    13. AddToTranscript(transcript, ctx)
-    14. AddToTranscript(transcript, A*)
-    15. AddToTranscript(transcript, X_A*)
-    16. AddToTranscript(transcript, X_G)
-    17. AddToTranscript(transcript, Y_A)
-    18. AddToTranscript(transcript, Y_G)
-    19. gamma = GetChallenge(transcript)
+    10. // Generate proof of correct computation
+    11. alpha &lt;- Zq
+    12. Y_A = A* * alpha
+    13. Y_G = G * alpha
+    14. X_G = G * e* + pk
 
-    19. // Compute response
-    20. z = gamma * (sk + e*) + alpha
+    15. // Create challenge using transcript
+    16. transcript = CreateTranscript("refund")
+    17. AddToTranscript(transcript, e*)
+    18. AddToTranscript(transcript, t)
+    19. AddToTranscript(transcript, ctx)
+    20. AddToTranscript(transcript, A*)
+    21. AddToTranscript(transcript, X_A*)
+    22. AddToTranscript(transcript, X_G)
+    23. AddToTranscript(transcript, Y_A)
+    24. AddToTranscript(transcript, Y_G)
+    25. gamma = GetChallenge(transcript)
 
-    21. refund = (A*, e*, gamma, z)
-    22. return refund
+    26. // Compute response
+    27. z = gamma * (sk + e*) + alpha
+
+    28. refund = (A*, e*, gamma, z, t)
+    29. return refund
 </pre><a href="#section-3.4.3-2" class="pilcrow">¶</a>
 </div>
 </section>
@@ -2265,12 +2292,12 @@ ConstructRefundToken(pk, spend_proof, refund, state):
     - InvalidRefundProof: When the refund proof verification fails
 
   Steps:
-    1. Parse refund as (A*, e*, gamma, z)
+    1. Parse refund as (A*, e*, gamma, z, t)
     2. Parse state as (k*, r*, m, ctx)
 
-    3. // Reconstruct commitment
+    3. // Reconstruct commitment with partial return
     4. K' = Sum(spend_proof.Com[j] * 2^j for j in [L])
-    5. X_A* = G + K' + H4 * ctx
+    5. X_A* = G + K' + H1 * t + H4 * ctx
     6. X_G = G * e* + pk
 
     7. // Verify proof
@@ -2280,18 +2307,19 @@ ConstructRefundToken(pk, spend_proof, refund, state):
     10. // Check challenge using transcript
     11. transcript = CreateTranscript("refund")
     12. AddToTranscript(transcript, e*)
-    13. AddToTranscript(transcript, ctx)
-    14. AddToTranscript(transcript, A*)
-    15. AddToTranscript(transcript, X_A*)
-    16. AddToTranscript(transcript, X_G)
-    17. AddToTranscript(transcript, Y_A)
-    18. AddToTranscript(transcript, Y_G)
-    19. if GetChallenge(transcript) != gamma:
-    20.     raise InvalidRefundProof
+    13. AddToTranscript(transcript, t)
+    14. AddToTranscript(transcript, ctx)
+    15. AddToTranscript(transcript, A*)
+    16. AddToTranscript(transcript, X_A*)
+    17. AddToTranscript(transcript, X_G)
+    18. AddToTranscript(transcript, Y_A)
+    19. AddToTranscript(transcript, Y_G)
+    20. if GetChallenge(transcript) != gamma:
+    21.     raise InvalidRefundProof
 
-    21. // Construct new token
-    22. token = (A*, e*, k*, r*, m, ctx)
-    23. return token
+    22. // Construct new token with remaining balance + partial return
+    23. token = (A*, e*, k*, r*, m + t, ctx)
+    24. return token
 </pre><a href="#section-3.4.4-2" class="pilcrow">¶</a>
 </div>
 </section>
@@ -2534,9 +2562,9 @@ BitDecompose(s):
 </pre><a href="#section-3.5.4-2" class="pilcrow">¶</a>
 </div>
 <p id="section-3.5.4-3">Note: This algorithm produces bits in LSB-first order (i.e., <code>bits[0]</code> is the
-least significant bit). The algorithm works for any L &lt; 252, as the scalar is
-represented in 32 bytes (256 bits), which accommodates the full range of the
-Ristretto group order.<a href="#section-3.5.4-3" class="pilcrow">¶</a></p>
+least significant bit). The algorithm works for any L &lt;= 128, which ensures
+that credit values fit within a u128 integer and that scalar arithmetic
+remains well within the Ristretto group order.<a href="#section-3.5.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="scalar-conversion">
@@ -2672,7 +2700,8 @@ RefundMsg = {
     1: bstr,  ; A* (compressed Ristretto point, 32 bytes)
     2: bstr,  ; e* (scalar, 32 bytes)
     3: bstr,  ; gamma (scalar, 32 bytes)
-    4: bstr   ; z (scalar, 32 bytes)
+    4: bstr,  ; z (scalar, 32 bytes)
+    5: bstr   ; t (partial return, scalar, 32 bytes)
 }
 </pre><a href="#section-4.1.4-1" class="pilcrow">¶</a>
 </div>
@@ -2985,7 +3014,7 @@ implementations <span class="bcp14">MAY</span> use the following internal error 
               <p id="section-5.5.1-2.3.1"><code>MALFORMED_REQUEST</code>: Request format is invalid<a href="#section-5.5.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-5.5.1-2.4">
-              <p id="section-5.5.1-2.4.1"><code>INVALID_AMOUNT</code>: Credit amount exceeds maximum (2^L - 1)<a href="#section-5.5.1-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-5.5.1-2.4.1"><code>INVALID_AMOUNT</code>: Credit amount is invalid (exceeds 2^L - 1, spend exceeds balance, or partial return exceeds spend)<a href="#section-5.5.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -2998,8 +3027,8 @@ implementations <span class="bcp14">MAY</span> use the following internal error 
 <a href="#section-5.6" class="section-number selfRef">5.6. </a><a href="#name-parameter-selection" class="section-name selfRef">Parameter Selection</a>
         </h3>
 <p id="section-5.6-1">Implementations <span class="bcp14">MUST</span> choose L based on their maximum credit requirements and
-performance constraints. Note that L <span class="bcp14">MUST</span> be less than 252 to fit within the
-Ristretto group order.<a href="#section-5.6-1" class="pilcrow">¶</a></p>
+performance constraints. Note that L <span class="bcp14">MUST</span> satisfy L &lt;= 128 to ensure credit
+values fit within a u128 integer.<a href="#section-5.6-1" class="pilcrow">¶</a></p>
 <p id="section-5.6-2">The bit length L is configurable and determines the range of credit values (0
 to 2^L - 1). The choice of L involves several trade-offs:<a href="#section-5.6-2" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-5.6-3">
@@ -3010,11 +3039,11 @@ to 2^L - 1). The choice of L involves several trade-offs:<a href="#section-5.6-2
             <p id="section-5.6-3.2.1"><strong>Performance</strong>: Proof size and verification time scale linearly with L<a href="#section-5.6-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.6-3.3">
-            <p id="section-5.6-3.3.1"><strong>Security</strong>: L must be less than the bit length of the group order (252 bits for Ristretto)<a href="#section-5.6-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-5.6-3.3.1"><strong>Security</strong>: L must satisfy L &lt;= 128 so that credit values remain representable as u128 integers and scalar arithmetic stays well within the group order<a href="#section-5.6-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-5.6-4">The implementation <span class="bcp14">MUST</span> enforce L &lt; 252 to ensure proper scalar arithmetic
-within the group order.<a href="#section-5.6-4" class="pilcrow">¶</a></p>
+<p id="section-5.6-4">The implementation <span class="bcp14">MUST</span> enforce L &lt;= 128 to ensure proper credit value
+representation and scalar arithmetic.<a href="#section-5.6-4" class="pilcrow">¶</a></p>
 <div id="performance-characteristics">
 <section id="section-5.6.1">
           <h4 id="name-performance-characteristics">
@@ -3636,7 +3665,7 @@ implementations. All values are encoded in hexadecimal.<a href="#appendix-A-1" c
 <p id="appendix-A-2">The following test vector was generated deterministically using a
 ChaCha20 RNG seeded with the bytes <code>00 01 02 ... 1e 1f</code> and L=8.
 The domain separator is <code>"ACT-v1:test:vectors:v0:2025-01-01"</code>, credit amount
-c=100, spend amount s=30, and ctx=0. Values labelled <code>*_cbor</code>
+c=100, spend amount s=30, partial return t=10, and ctx=0. Values labelled <code>*_cbor</code>
 are the CBOR wire-format encodings (Section 4) of each protocol
 message, displayed in hexadecimal.<a href="#appendix-A-2" class="pilcrow">¶</a></p>
 <p id="appendix-A-3">Implementations <span class="bcp14">SHOULD</span> verify they can deserialize these CBOR
@@ -3653,6 +3682,7 @@ domain_separator: "ACT-v1:test:vectors:v0:2025-01-01"
 L: 8
 c: 100
 s: 30
+t: 10
 ctx: 0000000000000000000000000000000000000000000000000000000000000000
 </pre><a href="#appendix-A.1-1" class="pilcrow">¶</a>
 </div>
@@ -3804,11 +3834,12 @@ prerefund_cbor:
 <div class="alignLeft art-text artwork" id="appendix-A.5-1">
 <pre>
 refund_cbor:
-  a401582086b96678837b1991203cb93c4728c27be303de2f7b32df383c2073c4
-  94d45b660258208a0977b088e9d17a637f71a013c67774648f0da03b141404ae
-  678a0e5e090b0403582044725f3183dfa611dfa517aa55a6e2e610f0626c5478
-  752ab282ad0797fc940b0458208034f005036a4b88eecccc4323408df7cfdacc
-  1923bec3c58f28c73fc0e7030c
+  a5015820880974b47fd0d4d06333e2f047abc4420992bd903ed44dae86199a54
+  361f9c540258208a0977b088e9d17a637f71a013c67774648f0da03b141404ae
+  678a0e5e090b04035820fdcd645c0d6e13905fff07e56d63465e4cc585f3c247
+  8500c96cd361a4ad01070458202c9f3110e53540738100e7e636949ce7ac08bf
+  b4ac6867fb72ac6ec847a2f90e0558200a000000000000000000000000000000
+  00000000000000000000000000000000
 </pre><a href="#appendix-A.5-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -3821,21 +3852,21 @@ refund_cbor:
 <div class="alignLeft art-text artwork" id="appendix-A.6-1">
 <pre>
 refund_token_cbor:
-  a601582086b96678837b1991203cb93c4728c27be303de2f7b32df383c2073c4
-  94d45b660258208a0977b088e9d17a637f71a013c67774648f0da03b141404ae
+  a6015820880974b47fd0d4d06333e2f047abc4420992bd903ed44dae86199a54
+  361f9c540258208a0977b088e9d17a637f71a013c67774648f0da03b141404ae
   678a0e5e090b04035820ebada4fb4050db92729a58f0ae585f76154103a2ef21
   66c40112638f006d280b0458200f9288d8ef1360d8ef4967e041bf09a716c093
-  956464370d30dfe2832be71b0605582046000000000000000000000000000000
+  956464370d30dfe2832be71b0605582050000000000000000000000000000000
   0000000000000000000000000000000006582000000000000000000000000000
   00000000000000000000000000000000000000
 
 refund_token_credits:
-  4600000000000000000000000000000000000000000000000000000000000000
+  5000000000000000000000000000000000000000000000000000000000000000
 
 refund_token_nullifier:
   ebada4fb4050db92729a58f0ae585f76154103a2ef2166c40112638f006d280b
 
-remaining_balance: 70
+remaining_balance: 80
 </pre><a href="#appendix-A.6-1" class="pilcrow">¶</a>
 </div>
 </section>

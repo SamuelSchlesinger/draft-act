@@ -5,7 +5,7 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                   J. Katz
 Intended status: Informational                                    Google
-Expires: 11 August 2026                                  7 February 2026
+Expires: 17 August 2026                                 13 February 2026
 
 
                         Anonymous Credit Tokens
@@ -67,7 +67,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 August 2026.
+   This Internet-Draft will expire on 17 August 2026.
 
 Copyright Notice
 
@@ -347,7 +347,7 @@ Table of Contents
 Parameters:
   - G: Generator of the Ristretto group
   - H1, H2, H3, H4: Additional generators for commitments
-  - L: Bit length for credit values (configurable, must satisfy L <= 252)
+  - L: Bit length for credit values (configurable, must satisfy L <= 128)
 
    The generators H1, H2, H3, and H4 MUST be generated deterministically
    from a nothing-up-my-sleeve value to ensure they are independent of
@@ -573,8 +573,18 @@ ProveSpend(token, s):
   Output:
     - proof: Spend proof
     - state: Client state for receiving change
+  Exceptions:
+    - InvalidAmount: raised when s > c or s >= 2^L or c >= 2^L
 
   Steps:
+    0. // Validate inputs
+    0a. if s >= 2^L:
+    0b.     raise InvalidAmount
+    0c. if c >= 2^L:
+    0d.     raise InvalidAmount
+    0e. if s > c:
+    0f.     raise InvalidAmount
+
     1. // Randomize the signature
     2. r1, r2 <- Zq
     3. B = G + H1 * c + H2 * k + H3 * r + H4 * ctx
@@ -715,10 +725,11 @@ ProveSpend(token, s):
 
 3.4.2.  Issuer: Spend Verification and Refund
 
-VerifyAndRefund(sk, proof):
+VerifyAndRefund(sk, proof, t):
   Input:
     - sk: Issuer's private key
     - proof: Client's spend proof
+    - t: Credits to return to the client (0 <= t <= s, t < 2^L)
   Output:
     - refund: Refund for remaining credits
   Exceptions:
@@ -737,94 +748,110 @@ VerifyAndRefund(sk, proof):
     9. used_nullifiers.add(k)
     10. // Issue refund for remaining balance
     11. K' = Sum(Com[j] * 2^j for j in [L])
-    12. refund = IssueRefund(sk, K', proof.ctx)
+    12. refund = IssueRefund(sk, K', proof.ctx, proof.s, t)
     13. return refund
 
 3.4.3.  Refund Issuance
 
    After verifying a spend proof, the issuer creates a refund token for
-   the remaining balance:
+   the remaining balance.  The issuer may optionally return t credits
+   (where 0 <= t <= s) back to the client via a partial credit return.
+   This enables pre-authorization patterns where the client holds s
+   credits but only t are returned unused.  The resulting token will
+   have c - s + t credits.  Use t = 0 to consume the full spend amount:
 
-   IssueRefund(sk, K', ctx):
-     Input:
-       - sk: Issuer's private key
-       - K': Commitment to remaining balance and new nullifier
-       - ctx: Request context from the spend proof
-     Output:
-       - refund: Refund response
+IssueRefund(sk, K', ctx, s, t):
+  Input:
+    - sk: Issuer's private key
+    - K': Commitment to remaining balance and new nullifier
+    - ctx: Request context from the spend proof
+    - s: The spend amount from the proof
+    - t: Credits to return to the client (0 <= t <= s, t < 2^L)
+  Output:
+    - refund: Refund response
+  Exceptions:
+    - InvalidAmount: raised when t > s or t >= 2^L
 
-     Steps:
-       1. // Create new BBS signature on remaining balance
-       2. e* <- Zq
-       3. X_A* = G + K' + H4 * ctx
-       4. A* = X_A* * (1/(e* + sk))
+  Steps:
+    1. // Validate partial return amount
+    2. if t >= 2^L:
+    3.     raise InvalidAmount
+    4. if t > s:
+    5.     raise InvalidAmount
 
-       5. // Generate proof of correct computation
-       6. alpha <- Zq
-       7. Y_A = A* * alpha
-       8. Y_G = G * alpha
-       9. X_G = G * e* + pk
+    6. // Create new BBS signature on remaining balance + partial return
+    7. e* <- Zq
+    8. X_A* = G + K' + H1 * t + H4 * ctx
+    9. A* = X_A* * (1/(e* + sk))
 
-       10. // Create challenge using transcript
-       11. transcript = CreateTranscript("refund")
-       12. AddToTranscript(transcript, e*)
-       13. AddToTranscript(transcript, ctx)
-       14. AddToTranscript(transcript, A*)
-       15. AddToTranscript(transcript, X_A*)
-       16. AddToTranscript(transcript, X_G)
-       17. AddToTranscript(transcript, Y_A)
-       18. AddToTranscript(transcript, Y_G)
-       19. gamma = GetChallenge(transcript)
+    10. // Generate proof of correct computation
+    11. alpha <- Zq
+    12. Y_A = A* * alpha
+    13. Y_G = G * alpha
+    14. X_G = G * e* + pk
 
-       19. // Compute response
-       20. z = gamma * (sk + e*) + alpha
+    15. // Create challenge using transcript
+    16. transcript = CreateTranscript("refund")
+    17. AddToTranscript(transcript, e*)
+    18. AddToTranscript(transcript, t)
+    19. AddToTranscript(transcript, ctx)
+    20. AddToTranscript(transcript, A*)
+    21. AddToTranscript(transcript, X_A*)
+    22. AddToTranscript(transcript, X_G)
+    23. AddToTranscript(transcript, Y_A)
+    24. AddToTranscript(transcript, Y_G)
+    25. gamma = GetChallenge(transcript)
 
-       21. refund = (A*, e*, gamma, z)
-       22. return refund
+    26. // Compute response
+    27. z = gamma * (sk + e*) + alpha
+
+    28. refund = (A*, e*, gamma, z, t)
+    29. return refund
 
 3.4.4.  Client: Refund Token Construction
 
    The client verifies the refund and constructs a new credit token:
 
-   ConstructRefundToken(pk, spend_proof, refund, state):
-     Input:
-       - pk: Issuer's public key
-       - spend_proof: The spend proof sent to issuer
-       - refund: Issuer's refund response
-       - state: Client state (k*, r*, m, ctx)
-     Output:
-       - token: New credit token or INVALID
-     Exceptions:
-       - InvalidRefundProof: When the refund proof verification fails
+  ConstructRefundToken(pk, spend_proof, refund, state):
+    Input:
+      - pk: Issuer's public key
+      - spend_proof: The spend proof sent to issuer
+      - refund: Issuer's refund response
+      - state: Client state (k*, r*, m, ctx)
+    Output:
+      - token: New credit token or INVALID
+    Exceptions:
+      - InvalidRefundProof: When the refund proof verification fails
 
-     Steps:
-       1. Parse refund as (A*, e*, gamma, z)
-       2. Parse state as (k*, r*, m, ctx)
+    Steps:
+      1. Parse refund as (A*, e*, gamma, z, t)
+      2. Parse state as (k*, r*, m, ctx)
 
-       3. // Reconstruct commitment
-       4. K' = Sum(spend_proof.Com[j] * 2^j for j in [L])
-       5. X_A* = G + K' + H4 * ctx
-       6. X_G = G * e* + pk
+      3. // Reconstruct commitment with partial return
+      4. K' = Sum(spend_proof.Com[j] * 2^j for j in [L])
+      5. X_A* = G + K' + H1 * t + H4 * ctx
+      6. X_G = G * e* + pk
 
-       7. // Verify proof
-       8. Y_A = A* * z + X_A* * (-gamma)
-       9. Y_G = G * z + X_G * (-gamma)
+      7. // Verify proof
+      8. Y_A = A* * z + X_A* * (-gamma)
+      9. Y_G = G * z + X_G * (-gamma)
 
-       10. // Check challenge using transcript
-       11. transcript = CreateTranscript("refund")
-       12. AddToTranscript(transcript, e*)
-       13. AddToTranscript(transcript, ctx)
-       14. AddToTranscript(transcript, A*)
-       15. AddToTranscript(transcript, X_A*)
-       16. AddToTranscript(transcript, X_G)
-       17. AddToTranscript(transcript, Y_A)
-       18. AddToTranscript(transcript, Y_G)
-       19. if GetChallenge(transcript) != gamma:
-       20.     raise InvalidRefundProof
+      10. // Check challenge using transcript
+      11. transcript = CreateTranscript("refund")
+      12. AddToTranscript(transcript, e*)
+      13. AddToTranscript(transcript, t)
+      14. AddToTranscript(transcript, ctx)
+      15. AddToTranscript(transcript, A*)
+      16. AddToTranscript(transcript, X_A*)
+      17. AddToTranscript(transcript, X_G)
+      18. AddToTranscript(transcript, Y_A)
+      19. AddToTranscript(transcript, Y_G)
+      20. if GetChallenge(transcript) != gamma:
+      21.     raise InvalidRefundProof
 
-       21. // Construct new token
-       22. token = (A*, e*, k*, r*, m, ctx)
-       23. return token
+      22. // Construct new token with remaining balance + partial return
+      23. token = (A*, e*, k*, r*, m + t, ctx)
+      24. return token
 
 3.4.5.  Spend Proof Verification
 
@@ -1024,9 +1051,9 @@ LengthPrefixed(data):
        7. return bits
 
    Note: This algorithm produces bits in LSB-first order (i.e., bits[0]
-   is the least significant bit).  The algorithm works for any L < 252,
-   as the scalar is represented in 32 bytes (256 bits), which
-   accommodates the full range of the Ristretto group order.
+   is the least significant bit).  The algorithm works for any L <= 128,
+   which ensures that credit values fit within a u128 integer and that
+   scalar arithmetic remains well within the Ristretto group order.
 
 3.5.5.  Scalar Conversion
 
@@ -1116,7 +1143,8 @@ ScalarToCredit(s):
        1: bstr,  ; A* (compressed Ristretto point, 32 bytes)
        2: bstr,  ; e* (scalar, 32 bytes)
        3: bstr,  ; gamma (scalar, 32 bytes)
-       4: bstr   ; z (scalar, 32 bytes)
+       4: bstr,  ; z (scalar, 32 bytes)
+       5: bstr   ; t (partial return, scalar, 32 bytes)
    }
 
 4.2.  Error Responses
@@ -1317,13 +1345,14 @@ ScalarToCredit(s):
 
    *  MALFORMED_REQUEST: Request format is invalid
 
-   *  INVALID_AMOUNT: Credit amount exceeds maximum (2^L - 1)
+   *  INVALID_AMOUNT: Credit amount is invalid (exceeds 2^L - 1, spend
+      exceeds balance, or partial return exceeds spend)
 
 5.6.  Parameter Selection
 
    Implementations MUST choose L based on their maximum credit
-   requirements and performance constraints.  Note that L MUST be less
-   than 252 to fit within the Ristretto group order.
+   requirements and performance constraints.  Note that L MUST satisfy L
+   <= 128 to ensure credit values fit within a u128 integer.
 
    The bit length L is configurable and determines the range of credit
    values (0 to 2^L - 1).  The choice of L involves several trade-offs:
@@ -1333,11 +1362,12 @@ ScalarToCredit(s):
    2.  *Performance*: Proof size and verification time scale linearly
        with L
 
-   3.  *Security*: L must be less than the bit length of the group order
-       (252 bits for Ristretto)
+   3.  *Security*: L must satisfy L <= 128 so that credit values remain
+       representable as u128 integers and scalar arithmetic stays well
+       within the group order
 
-   The implementation MUST enforce L < 252 to ensure proper scalar
-   arithmetic within the group order.
+   The implementation MUST enforce L <= 128 to ensure proper credit
+   value representation and scalar arithmetic.
 
 5.6.1.  Performance Characteristics
 
@@ -1764,9 +1794,9 @@ Appendix A.  Test Vectors
    The following test vector was generated deterministically using a
    ChaCha20 RNG seeded with the bytes 00 01 02 ... 1e 1f and L=8.  The
    domain separator is "ACT-v1:test:vectors:v0:2025-01-01", credit
-   amount c=100, spend amount s=30, and ctx=0.  Values labelled *_cbor
-   are the CBOR wire-format encodings (Section 4) of each protocol
-   message, displayed in hexadecimal.
+   amount c=100, spend amount s=30, partial return t=10, and ctx=0.
+   Values labelled *_cbor are the CBOR wire-format encodings (Section 4)
+   of each protocol message, displayed in hexadecimal.
 
    Implementations SHOULD verify they can deserialize these CBOR
    messages and that a full protocol run with the same deterministic RNG
@@ -1778,6 +1808,7 @@ A.1.  Parameters
    L: 8
    c: 100
    s: 30
+   t: 10
    ctx: 0000000000000000000000000000000000000000000000000000000000000000
 
 A.2.  Key Generation
@@ -1897,30 +1928,31 @@ A.4.  Spending
 A.5.  Refund
 
    refund_cbor:
-     a401582086b96678837b1991203cb93c4728c27be303de2f7b32df383c2073c4
-     94d45b660258208a0977b088e9d17a637f71a013c67774648f0da03b141404ae
-     678a0e5e090b0403582044725f3183dfa611dfa517aa55a6e2e610f0626c5478
-     752ab282ad0797fc940b0458208034f005036a4b88eecccc4323408df7cfdacc
-     1923bec3c58f28c73fc0e7030c
+     a5015820880974b47fd0d4d06333e2f047abc4420992bd903ed44dae86199a54
+     361f9c540258208a0977b088e9d17a637f71a013c67774648f0da03b141404ae
+     678a0e5e090b04035820fdcd645c0d6e13905fff07e56d63465e4cc585f3c247
+     8500c96cd361a4ad01070458202c9f3110e53540738100e7e636949ce7ac08bf
+     b4ac6867fb72ac6ec847a2f90e0558200a000000000000000000000000000000
+     00000000000000000000000000000000
 
 A.6.  Refund Token
 
    refund_token_cbor:
-     a601582086b96678837b1991203cb93c4728c27be303de2f7b32df383c2073c4
-     94d45b660258208a0977b088e9d17a637f71a013c67774648f0da03b141404ae
+     a6015820880974b47fd0d4d06333e2f047abc4420992bd903ed44dae86199a54
+     361f9c540258208a0977b088e9d17a637f71a013c67774648f0da03b141404ae
      678a0e5e090b04035820ebada4fb4050db92729a58f0ae585f76154103a2ef21
      66c40112638f006d280b0458200f9288d8ef1360d8ef4967e041bf09a716c093
-     956464370d30dfe2832be71b0605582046000000000000000000000000000000
+     956464370d30dfe2832be71b0605582050000000000000000000000000000000
      0000000000000000000000000000000006582000000000000000000000000000
      00000000000000000000000000000000000000
 
    refund_token_credits:
-     4600000000000000000000000000000000000000000000000000000000000000
+     5000000000000000000000000000000000000000000000000000000000000000
 
    refund_token_nullifier:
      ebada4fb4050db92729a58f0ae585f76154103a2ef2166c40112638f006d280b
 
-   remaining_balance: 70
+   remaining_balance: 80
 
 Appendix B.  Implementation Status
 
