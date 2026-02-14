@@ -1111,13 +1111,13 @@ handles all proof generation and verification.
 | Component | Size |
 |-----------|------|
 | Token size | 160 bytes (5 × 32 bytes) |
-| Spend proof size | 32 × (6L + 14) + 2 bytes |
+| Spend proof size | 32 × (4L + 12) + 2 bytes |
 | Nullifier database entry | 32 bytes per spent token |
 
 Note: Token size is independent of L. The spend proof contains
 `k`, `s`, `A'`, `B_bar` (4 × 32 bytes), `Com[0..L-1]` (L × 32 bytes),
-and the `pok` output from `NISigmaProtocol` which encodes
-`2L + 3` first-round group elements and `3L + 7` response scalars,
+and the compact `pok` output from `NISigmaProtocol` which encodes
+a challenge scalar and `3L + 7` response scalars,
 prefixed by a 2-byte length field.
 
 # Suites for ACT {#suites}
