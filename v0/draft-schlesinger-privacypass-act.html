@@ -1677,8 +1677,8 @@ skI, pkI = KeyGen()
 </div>
 <p id="section-6-3">The Issuer Public Key ID, denoted <code>issuer_key_id</code>, is computed as the
 SHA-256 hash of the Issuer Public Key, i.e., <code>issuer_key_id = SHA-256(pkI_serialized)</code>,
-where <code>pkI_serialized</code> is the serialized version of <code>pkI</code> as described in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1" class="relref">Section 4.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6-3" class="pilcrow">¶</a></p>
-<p id="section-6-4">Protocol messages are encoded using CBOR as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4" class="relref">Section 4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6-4" class="pilcrow">¶</a></p>
+where <code>pkI_serialized</code> is the serialized version of <code>pkI</code> as described in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1" class="relref">Section 4.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6-3" class="pilcrow">¶</a></p>
+<p id="section-6-4">Protocol messages are encoded using CBOR as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4" class="relref">Section 4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6-4" class="pilcrow">¶</a></p>
 <div id="request-context-extension">
 <section id="section-6.1">
         <h3 id="name-request-context-extension">
@@ -1846,7 +1846,7 @@ and referenced information for more details.<a href="#section-8.1-6.2.1" class="
 </li>
           <li class="normal" id="section-8.1-6.3">
             <p id="section-8.1-6.3.1">"encoded_request" is the Nrequest-octet request, computed as the serialization
-of the <code>request</code> value as defined in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.1" class="relref">Section 4.1.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-8.1-6.3.1" class="pilcrow">¶</a></p>
+of the <code>request</code> value as defined in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.1" class="relref">Section 4.1.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-8.1-6.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.1-7">The Client then generates an HTTP POST request to send to the Issuer Request URL,
@@ -1888,7 +1888,7 @@ the Issuer.<a href="#section-8.2-2.2.1" class="pilcrow">¶</a></p>
 <p id="section-8.2-3">If any of these conditions is not met, the Issuer <span class="bcp14">MUST</span> return an HTTP 422
 (Unprocessable Content) error to the client.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
 <p id="section-8.2-4">If these conditions are met, the Issuer then tries to deserialize
-TokenRequest.encoded_request according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.1" class="relref">Section 4.1.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>, yielding <code>request</code>.
+TokenRequest.encoded_request according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.1" class="relref">Section 4.1.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>, yielding <code>request</code>.
 If this fails, the Issuer <span class="bcp14">MUST</span> return an HTTP 422 (Unprocessable Content)
 error to the client. Otherwise, if the Issuer is willing to produce a credential
 for the Client, the Issuer determines both the number of initial credits and the
@@ -1916,7 +1916,7 @@ struct {
 <ul class="normal">
 <li class="normal" id="section-8.2-9.1">
             <p id="section-8.2-9.1.1">"encoded_response" is the Nresponse-octet encoded issuance response message, computed
-as the serialization of <code>response</code> as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.2" class="relref">Section 4.1.2</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-8.2-9.1.1" class="pilcrow">¶</a></p>
+as the serialization of <code>response</code> as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.2" class="relref">Section 4.1.2</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-8.2-9.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.2-10">The Issuer generates an HTTP response with status code 200 whose content
@@ -1939,7 +1939,7 @@ Content-Length: &lt;Length of TokenResponse&gt;
 <a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-credential-finalization" class="section-name selfRef">Credential Finalization</a>
         </h3>
 <p id="section-8.3-1">Upon receipt, the Client handles the response and, if successful, deserializes
-the content values <code>TokenResponse.encoded_response</code> according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.2" class="relref">Section 4.1.2</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>
+the content values <code>TokenResponse.encoded_response</code> according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.2" class="relref">Section 4.1.2</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>
 yielding <code>response</code>. If deserialization fails, the Client aborts the protocol.
 Otherwise, the Client processes the response as follows:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.3-2">
@@ -2007,7 +2007,7 @@ as defined in <a href="#setup" class="auto internal xref">Section 6</a>.<a href=
 </li>
           <li class="normal" id="section-9.1-7.4">
             <p id="section-9.1-7.4.1">"encoded_spend_proof" is a Nspend_proof-octet encoded spend proof, set to the serialized
-<code>spend_proof</code> value as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.3" class="relref">Section 4.1.3</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>. The spend proof contains
+<code>spend_proof</code> value as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.3" class="relref">Section 4.1.3</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>. The spend proof contains
 the nullifier (field 1) and spend amount (field 2), among other cryptographic values.<a href="#section-9.1-7.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -2019,7 +2019,7 @@ the nullifier (field 1) and spend amount (field 2), among other cryptographic va
 <a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-token-refund" class="section-name selfRef">Token Refund</a>
         </h3>
 <p id="section-9.2-1">Upon receiving a Token from the Client, the Origin deserializes the spend_proof
-according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.3" class="relref">Section 4.1.3</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>, yielding a SpendProofMsg structure. The
+according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.3" class="relref">Section 4.1.3</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>, yielding a SpendProofMsg structure. The
 Origin then extracts the relevant fields from the spend proof:<a href="#section-9.2-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-9.2-2">
 <pre>
@@ -2048,7 +2048,7 @@ setting t &gt; 0 enables pre-authorization patterns where the origin holds
 credits temporarily and returns unused ones. The origin determines <code>t</code>
 based on its own policy (e.g., from the TokenChallenge or application
 logic).<a href="#section-9.2-6" class="pilcrow">¶</a></p>
-<p id="section-9.2-7">This function returns the <code>refund</code> serialized according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.4" class="relref">Section 4.1.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> if the spend proof is valid, and nil otherwise.<a href="#section-9.2-7" class="pilcrow">¶</a></p>
+<p id="section-9.2-7">This function returns the <code>refund</code> serialized according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.4" class="relref">Section 4.1.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> if the spend proof is valid, and nil otherwise.<a href="#section-9.2-7" class="pilcrow">¶</a></p>
 <p id="section-9.2-8">As mentioned in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2.2" class="relref">Section 2.2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span>, Origins <span class="bcp14">MUST</span> implement double-spend prevention that prevents a token with the same nonce from being redeemed twice.
 With ACT, the Origin <span class="bcp14">MUST</span> check that the nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier
 for use in future double-spending checks.
@@ -2070,7 +2070,7 @@ struct {
 <a href="#section-9.3" class="section-number selfRef">9.3. </a><a href="#name-new-credential-from-refund" class="section-name selfRef">New Credential from Refund</a>
         </h3>
 <p id="section-9.3-1">Unlike <span>[<a href="#ARC" class="cite xref">ARC</a>]</span>, clients must construct a new credential instance based on the <code>Refund</code> response. To do
-so, clients invoke the <code>ConstructRefundToken</code> function from <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-3.4.4" class="relref">Section 3.4.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> as follows:<a href="#section-9.3-1" class="pilcrow">¶</a></p>
+so, clients invoke the <code>ConstructRefundToken</code> function from <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-3.4.4" class="relref">Section 3.4.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> as follows:<a href="#section-9.3-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-9.3-2">
 <pre>
 credential = ConstructRefundToken(pkI, spend_proof, refund, state)
@@ -2236,7 +2236,7 @@ following entries.<a href="#section-11-1" class="pilcrow">¶</a></p>
 <dl class="references">
 <dt id="ACT">[ACT]</dt>
       <dd>
-<span class="refAuthor">Schlesinger, S.</span> and <span class="refAuthor">J. Katz</span>, <span class="refTitle">"Anonymous Credit Tokens"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-schlesinger-cfrg-act-00</span>, <time datetime="2025-08-18" class="refDate">18 August 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00">https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00</a>&gt;</span>. </dd>
+<span class="refAuthor">Schlesinger, S.</span> and <span class="refAuthor">J. Katz</span>, <span class="refTitle">"Anonymous Credit Tokens"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-schlesinger-cfrg-act-01</span>, <time datetime="2026-02-13" class="refDate">13 February 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01">https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="ARC">[ARC]</dt>
       <dd>

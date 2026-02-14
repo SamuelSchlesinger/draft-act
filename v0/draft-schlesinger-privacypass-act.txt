@@ -896,9 +896,9 @@ response = IssueResponse(skI, request, initial_credits, request_context)
 
    [ACT]      Schlesinger, S. and J. Katz, "Anonymous Credit Tokens",
               Work in Progress, Internet-Draft, draft-schlesinger-cfrg-
-              act-00, 18 August 2025,
+              act-01, 13 February 2026,
               <https://datatracker.ietf.org/doc/html/draft-schlesinger-
-              cfrg-act-00>.
+              cfrg-act-01>.
 
    [ARC]      Yun, C. and C. A. Wood, "Privacy Pass Issuance Protocol
               for Anonymous Rate-Limited Credentials", Work in Progress,
