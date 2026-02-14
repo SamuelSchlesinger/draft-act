@@ -1095,6 +1095,77 @@ ErrorMsg = {
 
 Error codes are defined in Section 5.3.
 
+## Key Serialization
+
+The following formats define the serialization of issuer keys. Implementations
+that need to persist or transmit keys SHOULD use these formats for
+interoperability.
+
+### Public Key
+
+~~~
+PublicKey = bstr  ; W (compressed Ristretto point, 32 bytes)
+~~~
+
+### Private Key
+
+~~~
+PrivateKey = {
+    1: bstr,  ; x (secret scalar, 32 bytes)
+    2: bstr   ; W (public key point, 32 bytes)
+}
+~~~
+
+Decoders MUST verify that W == G * x upon deserialization to prevent use
+of inconsistent key material.
+
+## Client State Serialization
+
+The following formats define the serialization of client-side state that
+must be persisted between protocol steps. Implementations that need to
+store or transmit client state SHOULD use these formats for interoperability.
+
+### Pre-Issuance State
+
+The client MUST persist this state after generating an issuance request
+and before receiving the issuance response.
+
+~~~
+PreIssuance = {
+    1: bstr,  ; r (blinding factor, scalar, 32 bytes)
+    2: bstr   ; k (nullifier, scalar, 32 bytes)
+}
+~~~
+
+### Credit Token
+
+The client MUST persist the credit token after issuance or refund.
+
+~~~
+CreditToken = {
+    1: bstr,  ; A (BBS signature point, compressed Ristretto, 32 bytes)
+    2: bstr,  ; e (signature scalar, 32 bytes)
+    3: bstr,  ; k (nullifier, scalar, 32 bytes)
+    4: bstr,  ; r (blinding factor, scalar, 32 bytes)
+    5: bstr,  ; c (credit amount, scalar, 32 bytes)
+    6: bstr   ; ctx (request context, scalar, 32 bytes)
+}
+~~~
+
+### Pre-Refund State
+
+The client MUST persist this state after generating a spend proof and
+before receiving the refund response.
+
+~~~
+PreRefund = {
+    1: bstr,  ; r (blinding factor, scalar, 32 bytes)
+    2: bstr,  ; k (nullifier, scalar, 32 bytes)
+    3: bstr,  ; m (remaining balance, scalar, 32 bytes)
+    4: bstr   ; ctx (request context, scalar, 32 bytes)
+}
+~~~
+
 ## Protocol Flow
 
 The complete protocol flow with message types:
