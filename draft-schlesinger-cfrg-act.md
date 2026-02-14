@@ -300,10 +300,10 @@ binary. For each bit `j`, two linear equations enforce that
 
 - **Opening**: `Com[j] = b[j]*H1 + s[j]*H3` (for `j >= 1`), or
   `Com[0] = b[0]*H1 + kstar*H2 + s[0]*H3` (for bit 0).
-- **Binary constraint**: `Identity = b[j]*(H1 - Com[j]) + s2[j]*H3`
+- **Binary constraint**: `Com[j] = b[j]*Com[j] + s2[j]*H3`
   (for `j >= 1`), or
-  `Identity = b[0]*(H1 - Com[0]) + k2*H2 + s2[0]*H3` (for bit 0),
-  where `s2[j] = b[j]*s[j]` and `k2 = b[0]*kstar`.
+  `Com[0] = b[0]*Com[0] + k2*H2 + s2[0]*H3` (for bit 0),
+  where `s2[j] = (1-b[j])*s[j]` and `k2 = (1-b[0])*kstar`.
 
 These two equations together enforce that `b[j]` is binary
 because satisfying both with `b[j] >= 2` would require
@@ -336,38 +336,36 @@ append_range_proof(statement, H1, H2, H3, Com, L):
     4. kstar_var, k2_var = statement.allocate_scalars(2)
 
     // Allocate element variables
-    5. H1_var, H2_var, H3_var, Id_var = statement.allocate_elements(4)
+    5. H1_var, H2_var, H3_var = statement.allocate_elements(3)
     6. Com_vars = statement.allocate_elements(L)
-    7. H1minusCom_vars = statement.allocate_elements(L)
 
     // Set element values
-    8. statement.set_elements([(H1_var, H1), (H2_var, H2),
-         (H3_var, H3), (Id_var, Identity)])
-    9. For j = 0 to L-1:
-   10.     statement.set_elements([(Com_vars[j], Com[j]),
-             (H1minusCom_vars[j], H1 - Com[j])])
+    7. statement.set_elements([(H1_var, H1), (H2_var, H2),
+         (H3_var, H3)])
+    8. For j = 0 to L-1:
+    9.     statement.set_elements([(Com_vars[j], Com[j])])
 
     // Bit 0: opening equation
     // Com[0] = b[0]*H1 + kstar*H2 + s[0]*H3
-   11. statement.append_equation(Com_vars[0],
+   10. statement.append_equation(Com_vars[0],
          [(b_vars[0], H1_var), (kstar_var, H2_var), (s_vars[0], H3_var)])
 
     // Bit 0: binary constraint equation
-    // Identity = b[0]*(H1 - Com[0]) + k2*H2 + s2[0]*H3
-   12. statement.append_equation(Id_var,
-         [(b_vars[0], H1minusCom_vars[0]), (k2_var, H2_var),
+    // Com[0] = b[0]*Com[0] + k2*H2 + s2[0]*H3
+   11. statement.append_equation(Com_vars[0],
+         [(b_vars[0], Com_vars[0]), (k2_var, H2_var),
           (s2_vars[0], H3_var)])
 
     // Bits 1 to L-1
-   13. For j = 1 to L-1:
+   12. For j = 1 to L-1:
          // Opening equation: Com[j] = b[j]*H1 + s[j]*H3
-   14.     statement.append_equation(Com_vars[j],
+   13.     statement.append_equation(Com_vars[j],
              [(b_vars[j], H1_var), (s_vars[j], H3_var)])
-         // Binary constraint: Identity = b[j]*(H1 - Com[j]) + s2[j]*H3
-   15.     statement.append_equation(Id_var,
-             [(b_vars[j], H1minusCom_vars[j]), (s2_vars[j], H3_var)])
+         // Binary constraint: Com[j] = b[j]*Com[j] + s2[j]*H3
+   14.     statement.append_equation(Com_vars[j],
+             [(b_vars[j], Com_vars[j]), (s2_vars[j], H3_var)])
 
-   16. return (b_vars, s_vars, s2_vars, kstar_var, k2_var)
+   15. return (b_vars, s_vars, s2_vars, kstar_var, k2_var)
 ~~~
 {: #append_range_proof }
 
@@ -403,9 +401,9 @@ SetGenerators(G, domain_separator):
     4. while H1 == G0 or H2 == G0 or H3 == G0 or
             H1 == H2 or H1 == H3 or H2 == H3:
     5.   ctr = I2OSP(counter, 1)
-    6.   H1 = G.HashToGroup("H1", "GenH1" || ctr || domain_separator)
-    7.   H2 = G.HashToGroup("H2", "GenH2" || ctr || domain_separator)
-    8.   H3 = G.HashToGroup("H3", "GenH3" || ctr || domain_separator)
+    6.   H1 = G.HashToGroup("GenH1" || ctr || domain_separator)
+    7.   H2 = G.HashToGroup("GenH2" || ctr || domain_separator)
+    8.   H3 = G.HashToGroup("GenH3" || ctr || domain_separator)
     9.   counter += 1
    10. return H1, H2, H3
 ~~~
@@ -498,7 +496,7 @@ IssueResponse(sk, request, c, rng):
   Input:
     - sk: Issuer's private key
     - request: Client's issuance request
-    - c: Credit amount to issue (c > 0)
+    - c: Credit amount to issue (c >= 0)
     - rng: PRNG.
   Output:
     - response: Issuance response
@@ -565,7 +563,7 @@ VerifyIssuance(pk, response, state):
 ## Token Spending
 
 The spending protocol allows a client to spend s credits from a token
-containing c credits (where 0 < s <= c):
+containing c credits (where 0 <= s <= c):
 
 ### Client: Spend Proof Generation
 
@@ -573,7 +571,7 @@ containing c credits (where 0 < s <= c):
 ProveSpend(token, s, rng):
   Input:
     - token: Credit token (A, e, k, r, c)
-    - s: Amount to spend (0 < s <= c)
+    - s: Amount to spend (0 <= s <= c)
     - rng: PRNG.
   Output:
     - proof: Spend proof
@@ -601,8 +599,8 @@ ProveSpend(token, s, rng):
    14. A_bar = B_bar * r2 - A' * e  // Equivalent to A' * sk
    15. H1_prime = G + H2 * k
    16. For j = 0 to L-1:
-   17.     s2[j] = b[j] * s_com[j]
-   18. k2 = b[0] * kstar
+   17.     s2[j] = (1 - b[j]) * s_com[j]
+   18. k2 = (1 - b[0]) * kstar
 
     // Build LinearRelation statement
    19. statement = LinearRelation(group)
@@ -632,9 +630,9 @@ ProveSpend(token, s, rng):
     // Eq 2L+3: Commitment consistency
     // Com_total = c*H1 + kstar*H2 + sum(s_com[j]*2^j*H3)
    29. Com_total = H1 * s + Sum(Com[j] * 2^j for j in [L])
-   30. H1_var2, H2_var2, H3_var2, Com_total_var = statement.allocate_elements(4)
+   30. H1_var2, H2_var2, Com_total_var = statement.allocate_elements(3)
    31. statement.set_elements([(H1_var2, H1), (H2_var2, H2),
-         (H3_var2, H3), (Com_total_var, Com_total)])
+         (Com_total_var, Com_total)])
    32. terms = [(c_var, H1_var2), (kstar_var, H2_var2)]
    33. For j = 0 to L-1:
    34.     coeff_H3_var = statement.allocate_elements(1)
@@ -814,9 +812,9 @@ VerifySpendProof(sk, proof):
          append_range_proof(statement, H1, H2, H3, Com, L)
 
     // Eq 2L+3: Commitment consistency
-   17. H1_var2, H2_var2, H3_var2, Com_total_var = statement.allocate_elements(4)
+   17. H1_var2, H2_var2, Com_total_var = statement.allocate_elements(3)
    18. statement.set_elements([(H1_var2, H1), (H2_var2, H2),
-         (H3_var2, H3), (Com_total_var, Com_total)])
+         (Com_total_var, Com_total)])
    19. terms = [(c_var, H1_var2), (kstar_var, H2_var2)]
    20. For j = 0 to L-1:
    21.     coeff_H3_var = statement.allocate_elements(1)
@@ -1113,13 +1111,14 @@ handles all proof generation and verification.
 | Component | Size |
 |-----------|------|
 | Token size | 160 bytes (5 × 32 bytes) |
-| Spend proof size | 32 × (6L + 14) bytes |
+| Spend proof size | 32 × (6L + 14) + 2 bytes |
 | Nullifier database entry | 32 bytes per spent token |
 
 Note: Token size is independent of L. The spend proof contains
 `k`, `s`, `A'`, `B_bar` (4 × 32 bytes), `Com[0..L-1]` (L × 32 bytes),
 and the `pok` output from `NISigmaProtocol` which encodes
-`2L + 3` first-round group elements and `3L + 7` response scalars.
+`2L + 3` first-round group elements and `3L + 7` response scalars,
+prefixed by a 2-byte length field.
 
 # Suites for ACT {#suites}
 
@@ -1149,7 +1148,7 @@ represent credits.
 The group is ristretto255 as specified in {{!RFC9496}}.
 It also specifies the `Order()`, `Identity()`, and `Generator()` functions.
 
-The HashToGroup(msg, DST) function uses hash_to_ristretto255 {{!RFC9380}}
+The HashToGroup(msg) function uses hash_to_ristretto255(msg, DST) {{!RFC9380}}
 with DST = "HashToGroup-" || domain_separator, and
 expand_message = expand_message_xmd using SHA-512.
 
