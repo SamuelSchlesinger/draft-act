@@ -1,0 +1,1765 @@
+
+
+
+
+Network Working Group                                     S. Schlesinger
+Internet-Draft                                                   J. Katz
+Intended status: Informational                                    Google
+Expires: 18 August 2026                                 A. Faz-Hernandez
+                                                        Cloudflare, Inc.
+                                                        14 February 2026
+
+
+                        Anonymous Credit Tokens
+                   draft-schlesinger-cfrg-act-latest
+
+Abstract
+
+   This document specifies Anonymous Credit Tokens (ACT), a privacy-
+   preserving authentication protocol that enables numerical credit
+   systems without tracking individual clients.  Based on keyed-
+   verification anonymous credentials and privately verifiable BBS-style
+   signatures, the protocol allows issuers to grant tokens containing
+   credits that clients can later spend anonymously with that issuer.
+
+   The protocol's key features include: (1) unlinkable transactions -
+   the issuer cannot correlate credit issuance with spending, or link
+   multiple spends by the same client, (2) partial spending - clients
+   can spend a portion of their credits and receive anonymous change,
+   and (3) double-spend prevention through cryptographic nullifiers that
+   preserve privacy while ensuring each token is used only once.
+
+   Anonymous Credit Tokens are designed for modern web services
+   requiring rate limiting, usage-based billing, or resource allocation
+   while respecting user privacy.  Example applications include rate
+   limiting and API credits.
+
+   This document is a product of the Crypto Forum Research Group (CFRG)
+   in the IRTF.
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at
+   https://SamuelSchlesinger.github.io/draft-act/draft-schlesinger-cfrg-
+   act.html.  Status information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-schlesinger-cfrg-act/.
+
+   Discussion of this document takes place on the Crypto Forum Research
+   Group mailing list (mailto:cfrg@ietf.org), which is archived at
+   https://mailarchive.ietf.org/arch/browse/cfrg.  Subscribe at
+   https://www.ietf.org/mailman/listinfo/cfrg/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/SamuelSchlesinger/draft-act.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 18 August 2026.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.
+
+Table of Contents
+
+   1.  Introduction
+     1.1.  Key Properties
+     1.2.  Use Cases
+     1.3.  Protocol Overview
+     1.4.  Relation to Existing Work
+   2.  Conventions and Definitions
+     2.1.  Notation
+     2.2.  Zero-knowledge Proofs of Knowledge
+       2.2.1.  Pedersen Proof
+       2.2.2.  DLEQ Proof
+       2.2.3.  Range Proof
+   3.  Protocol Specification
+     3.1.  System Parameters
+     3.2.  Key Generation
+     3.3.  Token Issuance
+       3.3.1.  Client: Issuance Request
+       3.3.2.  Issuer: Issuance Response
+       3.3.3.  Client: Token Verification
+     3.4.  Token Spending
+       3.4.1.  Client: Spend Proof Generation
+       3.4.2.  Issuer: Spend Verification and Refund
+       3.4.3.  Refund Issuance
+       3.4.4.  Client: Refund Token Construction
+       3.4.5.  Spend Proof Verification
+     3.5.  Cryptographic Primitives
+       3.5.1.  Encoding Functions
+       3.5.2.  Binary Decomposition
+       3.5.3.  Scalar Conversion
+   4.  Protocol Messages and Wire Format
+     4.1.  Message Encoding
+       4.1.1.  Issuance Request Message
+       4.1.2.  Issuance Response Message
+       4.1.3.  Spend Proof Message
+       4.1.4.  Refund Message
+       4.1.5.  Error Response
+     4.2.  Protocol Flow
+       4.2.1.  Example Usage Scenario
+   5.  Implementation Considerations
+     5.1.  Nullifier Management
+     5.2.  Constant-Time Operations
+     5.3.  Randomness Generation
+     5.4.  Point Validation
+     5.5.  Error Handling
+       5.5.1.  Error Codes
+     5.6.  Parameter Selection
+       5.6.1.  Performance Characteristics
+   6.  Suites for ACT
+     6.1.  ACT(ristretto255, SHAKE128)
+   7.  Security Considerations
+     7.1.  Security Model and Definitions
+       7.1.1.  Threat Model
+       7.1.2.  Security Properties
+     7.2.  Cryptographic Assumptions
+     7.3.  Privacy Limitations
+     7.4.  Implementation Vulnerabilities and Mitigations
+       7.4.1.  Critical Security Requirements
+     7.5.  Known Attack Scenarios
+       7.5.1.  1.  Parallel Spend Attack
+       7.5.2.  2.  Balance Inflation Attack
+       7.5.3.  3.  Token Linking Attack
+     7.6.  Protocol Composition and State Management
+       7.6.1.  State Management Requirements
+       7.6.2.  Version Negotiation
+     7.7.  Quantum Resistance
+   8.  IANA Considerations
+   9.  References
+     9.1.  Normative References
+     9.2.  Informative References
+   Appendix A.  Test Vectors
+   Appendix B.  PRNG Interface
+     B.1.  Abstract Interface
+     B.2.  SeededPRNG for Test Vectors
+   Appendix C.  Implementation Status
+     C.1.  anonymous-credit-tokens
+   Appendix D.  Terminology Glossary
+   Appendix E.  Acknowledgments
+   Authors' Addresses
+
+1.  Introduction
+
+   Modern web services face a fundamental tension between operational
+   needs and user privacy.  Services need to implement rate limiting to
+   prevent abuse, charge for API usage to sustain operations, and
+   allocate computational resources fairly.  However, traditional
+   approaches require tracking client identities and creating detailed
+   logs of client behavior, raising significant privacy concerns in an
+   era of increasing data protection awareness and regulation.
+
+   Anonymous Credit Tokens (ACT) help resolve this tension by providing
+   a cryptographic protocol that enables credit-based systems without
+   client tracking.  Built on keyed-verification anonymous credentials
+   [KVAC] and privately verifiable BBS-style signatures [BBS], the
+   protocol allows services to issue, track, and spend credits while
+   maintaining client privacy.
+
+1.1.  Key Properties
+
+   The protocol provides the following properties:
+
+   1.  *Unlinkability*: The issuer cannot link credit issuance to
+       spending, or connect multiple transactions by the same client.
+       This property is information-theoretic, not merely computational.
+
+   2.  *Partial Spending*: Clients can spend any amount up to their
+       balance and receive anonymous change without revealing their
+       previous or current balance, enabling flexible spending.
+
+   3.  *Double-Spend Prevention*: Cryptographic nullifiers ensure each
+       token is used only once, without linking it to issuance.
+
+   4.  *Balance Privacy*: During spending, only the amount being spent
+       is revealed, not the total balance in the token, protecting
+       clients from balance-based profiling.
+
+   5.  *Efficiency*: All operations are computationally efficient,
+       suitable for high-volume web services.
+
+   6.  *Simplicity*: The protocol is straightforward to implement and
+       integrate into existing systems relative to other comparable
+       solutions.
+
+1.2.  Use Cases
+
+   Anonymous Credit Tokens can be applied to various scenarios:
+
+   *  *Rate Limiting*: Services can issue daily credit allowances that
+      clients spend anonymously for API calls or resource access.
+
+   *  *API Credits*: API providers can sell credit packages that
+      developers use to pay for API requests without creating a detailed
+      usage history linked to their identity.  This enables:
+
+      -  Pre-paid API access without requiring credit cards for each
+         transaction
+
+      -  Anonymous API usage for privacy-sensitive applications
+
+      -  Usage-based billing without tracking individual request
+         patterns
+
+      -  Protection against competitive analysis through usage
+         monitoring
+
+1.3.  Protocol Overview
+
+   The protocol involves two parties: an issuer (typically a service
+   provider) and clients (typically users of the service).  The
+   interaction follows three main phases:
+
+   1.  *Setup*: The issuer generates a key pair and publishes the public
+       key.
+
+   2.  *Issuance*: A client requests credits from the issuer.  The
+       issuer creates a blind signature on the credit value and a
+       client-chosen nullifier, producing a credit token.
+
+   3.  *Spending*: To spend credits, the client reveals a nullifier and
+       proves possession of a valid token associated with that nullifier
+       having sufficient balance.  The issuer verifies the proof, checks
+       the nullifier hasn't been used before, and issues a new token
+       (which remains hidden from the issuer) for any remaining balance.
+
+1.4.  Relation to Existing Work
+
+   This protocol builds upon several cryptographic primitives:
+
+   *  *BBS Signatures* [BBS]: The core signature scheme that enables
+      efficient proofs of possession.  We use a variant that is
+      privately verifiable, which avoids the need for pairings and makes
+      our protocol more efficient.
+
+   *  *Sigma Protocols* [SIGMA]: The zero-knowledge proof framework used
+      for issuing and spending credits.
+
+   *  *Fiat-Shamir Transform* [FIAT-SHAMIR]: The technique to make the
+      interactive proofs non-interactive.
+
+   The protocol can be viewed as a specialized instantiation of keyed-
+   verification anonymous credentials [KVAC] optimized for numerical
+   values and partial spending.
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+2.1.  Notation
+
+   This document uses the following notation:
+
+   *  ||: Concatenation of byte arrays.
+
+   *  x <- S: Uniformly sampling x from the set S using
+      rng.random_scalar().
+
+   *  x = y: Assignment of the value y to the variable x.
+
+   *  [n]: The set of integers {0, 1, ..., n-1}
+
+   *  |x|: The length of byte array x.
+
+   *  0x is a prefix to denote integer values in hexadecimal base.
+
+   *  We use additive notation for group operations, so group elements
+      are added together like a + b and scalar multiplication of a group
+      element by a scalar is written as a * n, with group element a and
+      scalar n.
+
+   The protocol uses the following data types:
+
+   *  *Byte Array*: A sequence of bytes.
+
+   *  *Group*: An interface of a prime-order group as defined in
+      Section 2.1 of [RFC9497].
+
+   *  *Group Element*: An element of the group.
+
+   *  *Scalar*: An element from the scalar field of the group.
+
+   *  *PRNG*: An interface for a cryptographically secure pseudorandom
+      number generator with a random_scalar() -> Scalar method.  The
+      PRNG MUST be backed by a CSPRNG in accordance with [FIPS186].  See
+      Appendix B for the abstract interface definition.
+
+   *  *LinearRelation*: An interface for building an interactive sigma
+      protocol as defined in Section 2.2.6 of [SIGMA].
+
+   *  *NISigmaProtocol*: An interface that implements the Fiat-Shamir
+      transform as defined in Section 5 of [FIAT-SHAMIR].  This
+      interface is parametrized with a Codec that encodes prover
+      messages and verifier challenges, and a function used to compute
+      challenges.  See [FIAT-SHAMIR] for requirements of these
+      parameters.
+
+   The specific parameters and implementations are defined in Section 6.
+
+2.2.  Zero-knowledge Proofs of Knowledge
+
+   Proofs of knowledge are based on interactive sigma protocols, which
+   are made non-interactive through the Fiat-Shamir transform [FST].
+   The concrete proofs use the LinearRelation and NISigmaProtocol
+   interfaces defined above.
+
+   The NISigmaProtocol requires a session identifier that uniquely
+   identifies the session being proven.  Once initialized, the Prover
+   can generate proofs of knowledge of a witness satisfying the
+   statement, while the Verifier can validate these proofs.
+
+2.2.1.  Pedersen Proof
+
+   A proof of knowledge derived from a Pedersen commitment shows that
+   the prover knows witness scalars (k0, k1) such that R = k0*P + k1*Q,
+   for group elements P, Q, and R.
+
+   The append_pedersen function appends linear relations to the
+   statement to instantiate a Pedersen proof, as shown in Section 2.2.9
+   of [SIGMA].
+
+   append_pedersen(statement, P, Q, R):
+     Input:
+       - statement: LinearRelation.
+       - P: Group Element.
+       - Q: Group Element.
+       - R: Group Element.
+
+     Steps:
+       1. k0_var, k1_var = statement.allocate_scalars(2)
+       2. P_var, Q_var, R_var = statement.allocate_elements(3)
+       3. statement.append_equation(R_var, [(k0_var, P_var), (k1_var, Q_var)])
+       4. statement.set_elements([(P_var, P), (Q_var, Q), (R_var, R)])
+
+                                  Figure 1
+
+2.2.2.  DLEQ Proof
+
+   A proof of knowledge of a Discrete Logarithm Equivalence (DLEQ) shows
+   that the prover knows a witness scalar k such that X = k*P and Y =
+   k*Q, for group elements P, Q, X, and Y.
+
+   The append_dleq function appends linear relations to the statement to
+   instantiate a DLEQ proof, as shown in Section 2.2.8 of [SIGMA].
+
+   append_dleq(statement, P, Q, X, Y):
+     Input:
+       - statement: LinearRelation.
+       - P: Group Element.
+       - Q: Group Element.
+       - X: Group Element.
+       - Y: Group Element.
+
+     Steps:
+       1. k_var = statement.allocate_scalars(1)
+       2. P_var, Q_var, X_var, Y_var = statement.allocate_elements(4)
+       3. statement.append_equation(X_var, [(k_var, P_var)])
+       4. statement.append_equation(Y_var, [(k_var, Q_var)])
+       5. statement.set_elements([(P_var, P), (Q_var, Q), (X_var, X), (Y_var, Y)])
+
+                                  Figure 2
+
+2.2.3.  Range Proof
+
+   A range proof shows that a committed value lies in the range [0, 2^L)
+   by decomposing it into bits and proving each bit is binary.  For each
+   bit j, two linear equations enforce that b[j] in {0, 1}:
+
+   *  *Opening*: Com[j] = b[j]*H1 + s[j]*H3 (for j >= 1), or Com[0] =
+      b[0]*H1 + kstar*H2 + s[0]*H3 (for bit 0).
+
+   *  *Binary constraint*: Identity = b[j]*(H1 - Com[j]) + s2[j]*H3 (for
+      j >= 1), or Identity = b[0]*(H1 - Com[0]) + k2*H2 + s2[0]*H3 (for
+      bit 0), where s2[j] = b[j]*s[j] and k2 = b[0]*kstar.
+
+   These two equations together enforce that b[j] is binary because
+   satisfying both with b[j] >= 2 would require knowing the discrete
+   logarithm between H1 and H3.
+
+   The append_range_proof function appends linear relations to the
+   statement to instantiate a range proof.
+
+   append_range_proof(statement, H1, H2, H3, Com, L):
+     Input:
+       - statement: LinearRelation.
+       - H1: Group Element.
+       - H2: Group Element.
+       - H3: Group Element.
+       - Com: Array of L Group Elements (bit commitments).
+       - L: Integer (bit length).
+     Output:
+       - b_vars: Array of L scalar variable handles.
+       - s_vars: Array of L scalar variable handles.
+       - s2_vars: Array of L scalar variable handles.
+       - kstar_var: Scalar variable handle.
+       - k2_var: Scalar variable handle.
+
+     Steps:
+       // Allocate scalar variables
+       1. b_vars = statement.allocate_scalars(L)
+       2. s_vars = statement.allocate_scalars(L)
+       3. s2_vars = statement.allocate_scalars(L)
+       4. kstar_var, k2_var = statement.allocate_scalars(2)
+
+       // Allocate element variables
+       5. H1_var, H2_var, H3_var, Id_var = statement.allocate_elements(4)
+       6. Com_vars = statement.allocate_elements(L)
+       7. H1minusCom_vars = statement.allocate_elements(L)
+
+       // Set element values
+       8. statement.set_elements([(H1_var, H1), (H2_var, H2),
+            (H3_var, H3), (Id_var, Identity)])
+       9. For j = 0 to L-1:
+      10.     statement.set_elements([(Com_vars[j], Com[j]),
+                (H1minusCom_vars[j], H1 - Com[j])])
+
+       // Bit 0: opening equation
+       // Com[0] = b[0]*H1 + kstar*H2 + s[0]*H3
+      11. statement.append_equation(Com_vars[0],
+            [(b_vars[0], H1_var), (kstar_var, H2_var), (s_vars[0], H3_var)])
+
+       // Bit 0: binary constraint equation
+       // Identity = b[0]*(H1 - Com[0]) + k2*H2 + s2[0]*H3
+      12. statement.append_equation(Id_var,
+            [(b_vars[0], H1minusCom_vars[0]), (k2_var, H2_var),
+             (s2_vars[0], H3_var)])
+
+       // Bits 1 to L-1
+      13. For j = 1 to L-1:
+            // Opening equation: Com[j] = b[j]*H1 + s[j]*H3
+      14.     statement.append_equation(Com_vars[j],
+                [(b_vars[j], H1_var), (s_vars[j], H3_var)])
+            // Binary constraint: Identity = b[j]*(H1 - Com[j]) + s2[j]*H3
+      15.     statement.append_equation(Id_var,
+                [(b_vars[j], H1minusCom_vars[j]), (s2_vars[j], H3_var)])
+
+      16. return (b_vars, s_vars, s2_vars, kstar_var, k2_var)
+
+                                  Figure 3
+
+3.  Protocol Specification
+
+3.1.  System Parameters
+
+   Each instance of the protocol defines the following parameters:
+
+   *  domain_separator is a non-empty byte array that uniquely
+      identifies an instance of the protocol.  It ensures cryptographic
+      separation between different ACT instances.
+
+   *  L is the bit length for representing credit values, such that L <=
+      MAX_BIT_LENGTH, where MAX_BIT_LENGTH is defined per suite.
+
+   *  H1, H2, H3 are auxiliary group generators used for commitments.
+      The SetGenerators function deterministically generates them
+      through hashing.  The discrete-logarithm relations between these
+      generators and the main generator MUST NOT be known to any party.
+      This prevents attacks whereby malicious parameters could
+      compromise security.
+
+   SetGenerators(G, domain_separator):
+     Input:
+       - G: Group.
+       - domain_separator: Byte Array.
+     Output:
+       - H1, H2, H3: Group Element.
+
+     Steps:
+       1. G0 = G.Generator()
+       2. H1, H2, H3 = [G0]*3
+       3. counter = 0
+       4. while G0 == H1 == H2 == H3:
+       5.   ctr = I2OSP(counter, 1)
+       6.   H1 = G.HashToGroup("H1", "GenH1" || ctr || domain_separator)
+       7.   H2 = G.HashToGroup("H2", "GenH2" || ctr || domain_separator)
+       8.   H3 = G.HashToGroup("H3", "GenH3" || ctr || domain_separator)
+       9.   counter += 1
+      10. return H1, H2, H3
+
+                                  Figure 4
+
+   The domain_separator SHOULD follow this structured format:
+
+domain_separator = "ACT-v1:" || organization || ":" || service || ":" || deployment_id || ":" || version
+
+   where:
+
+   *  organization: A unique identifier for the organization (e.g.,
+      "example-corp", "acme-inc").
+
+   *  service: The specific service or application name (e.g., "payment-
+      api", "rate-limiter").
+
+   *  deployment_id: The deployment environment (e.g., "production",
+      "staging", "us-west-1").
+
+   *  version: An ISO 8601 date (YYYY-MM-DD) indicating when parameters
+      were generated.
+
+   Example: "ACT-v1:example-corp:payment-api:production:2024-01-15"
+
+   This structured format ensures:
+
+   1.  Protocol identification through the "ACT-v1:" prefix
+
+   2.  Organizational namespace isolation
+
+   3.  Service-level separation within organizations
+
+   4.  Environment isolation (production vs staging)
+
+   5.  Version tracking for parameter updates
+
+   Using generic or unstructured domain separators creates security
+   risks through parameter collision and MUST NOT be used.  When
+   parameters need to be updated (e.g., for security reasons or protocol
+   upgrades), a new version date MUST be used, creating entirely new
+   parameters.
+
+3.2.  Key Generation
+
+   The issuer generates a key pair as follows:
+
+   KeyGen(G, rng):
+     Input:
+       - G: Group.
+       - rng: PRNG.
+     Output:
+       - sk: Scalar.        # Private key
+       - pk: Group Element. # Public key
+
+     Steps:
+       1. sk = rng.random_scalar()
+       2. pk = sk * G.Generator()
+       3. return sk, pk
+
+                                  Figure 5
+
+3.3.  Token Issuance
+
+   The issuance protocol is an interactive protocol between a client and
+   the issuer:
+
+3.3.1.  Client: Issuance Request
+
+IssueRequest(rng):
+  Input:
+    - rng: PRNG.
+  Output:
+    - request: Issuance request
+    - state: Client state for later verification
+
+  Steps:
+    1. k <- Zq  // Nullifier (will prevent double-spending)
+    2. r <- Zq  // Blinding factor
+    3. K = H2 * k + H3 * r
+
+    // Generate proof of knowledge of (k, r) such that K = H2 * k + H3 * r
+    4. statement = LinearRelation(group)
+    5. append_pedersen(statement, H2, H3, K)
+    6. session_id = domain_separator + "request"
+    7. prover = NISigmaProtocol(session_id, statement)
+    8. witness = [k, r]
+    9. pok = prover.prove(witness, rng)
+   10. request = (K, pok)
+   11. state = (k, r, K)
+   12. return (request, state)
+
+3.3.2.  Issuer: Issuance Response
+
+IssueResponse(sk, request, c, rng):
+  Input:
+    - sk: Issuer's private key
+    - request: Client's issuance request
+    - c: Credit amount to issue (c > 0)
+    - rng: PRNG.
+  Output:
+    - response: Issuance response or INVALID
+  Exceptions:
+    - InvalidIssuanceRequestProof, raised when the client proof verification fails
+
+  Steps:
+    // Verify proof of knowledge of (k, r) such that K = H2 * k + H3 * r
+    1. Parse request as (K, pok)
+    2. statement = LinearRelation(group)
+    3. append_pedersen(statement, H2, H3, K)
+    4. session_id = domain_separator + "request"
+    5. verifier = NISigmaProtocol(session_id, statement)
+    6. if not verifier.verify(pok):
+    7.     raise InvalidIssuanceRequestProof
+
+    // Create BBS signature on (c, k, r)
+    8. e <- Zq
+    9. X_A = G + H1 * c + K    // K = H2 * k + H3 * r
+   10. A = X_A * (1/(e + sk))
+   11. X_G = G * (e + sk)
+
+   // Generate proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G * (e+sk)
+   12. statement = LinearRelation(group)
+   13. append_dleq(statement, A, G, X_A, X_G)
+   14. session_id = domain_separator + "respond"
+   15. prover = NISigmaProtocol(session_id, statement)
+   16. witness = [e + sk]
+   17. pok = prover.prove(witness, rng)
+   18. response = (A, e, c, pok)
+   19. return response
+
+3.3.3.  Client: Token Verification
+
+VerifyIssuance(pk, response, state):
+  Input:
+    - pk: Issuer's public key
+    - response: Issuer's response
+    - state: Client state from request generation
+  Output:
+    - token: Credit token
+  Exceptions:
+    - InvalidIssuanceResponseProof, raised when the server proof verification fails
+
+  Steps:
+    1. Parse response as (A, e, c, pok)
+    2. Parse state as (k, r, K)
+
+    // Verify proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G * (e+sk)
+    3. X_A = G + H1 * c + K
+    4. X_G = G * e + pk
+    5. statement = LinearRelation(group)
+    6. append_dleq(statement, A, G, X_A, X_G)
+    7. session_id = domain_separator + "respond"
+    8. verifier = NISigmaProtocol(session_id, statement)
+    9. if not verifier.verify(pok):
+   10.     raise InvalidIssuanceResponseProof
+   11. token = (A, e, k, r, c)
+   12. return token
+
+3.4.  Token Spending
+
+   The spending protocol allows a client to spend s credits from a token
+   containing c credits (where 0 < s <= c):
+
+3.4.1.  Client: Spend Proof Generation
+
+ProveSpend(token, s, rng):
+  Input:
+    - token: Credit token (A, e, k, r, c)
+    - s: Amount to spend (0 < s <= c)
+    - rng: PRNG.
+  Output:
+    - proof: Spend proof
+    - state: Client state for receiving change
+
+  Steps:
+    // Randomize the signature
+    1. r1, r2 <- Zq
+    2. B = G + H1 * c + H2 * k + H3 * r
+    3. A' = A * (r1 * r2)
+    4. B_bar = B * r1
+    5. r3 = 1/r1
+
+    // Decompose c - s into bits and create commitments
+    6. m = c - s
+    7. (b[0], ..., b[L-1]) = BitDecompose(m)
+    8. kstar <- Zq
+    9. s_com[0] <- Zq
+   10. Com[0] = H1 * b[0] + H2 * kstar + H3 * s_com[0]
+   11. For j = 1 to L-1:
+   12.     s_com[j] <- Zq
+   13.     Com[j] = H1 * b[j] + H3 * s_com[j]
+
+    // Compute derived public values
+   14. A_bar = B_bar * r2 - A' * e  // Equivalent to A' * sk
+   15. H1_prime = G + H2 * k
+   16. For j = 0 to L-1:
+   17.     s2[j] = b[j] * s_com[j]
+   18. k2 = b[0] * kstar
+
+    // Build LinearRelation statement
+   19. statement = LinearRelation(group)
+
+    // Eq 1: A_bar = e*(-A') + r2*B_bar
+    // (Rearranged BBS signature validity)
+   20. e_var, r2_var = statement.allocate_scalars(2)
+   21. negA_var, B_bar_var, A_bar_var = statement.allocate_elements(3)
+   22. statement.append_equation(A_bar_var,
+         [(e_var, negA_var), (r2_var, B_bar_var)])
+   23. statement.set_elements([(negA_var, -A'),
+         (B_bar_var, B_bar), (A_bar_var, A_bar)])
+
+    // Eq 2: H1_prime = r3*B_bar + c*(-H1) + r*(-H3)
+    // (Credential structure)
+   24. r3_var, c_var, r_var = statement.allocate_scalars(3)
+   25. negH1_var, negH3_var, H1p_var = statement.allocate_elements(3)
+   26. statement.append_equation(H1p_var,
+         [(r3_var, B_bar_var), (c_var, negH1_var), (r_var, negH3_var)])
+   27. statement.set_elements([(negH1_var, -H1),
+         (negH3_var, -H3), (H1p_var, G + H2 * k)])
+
+    // Eqs 3..2+2L: Range proof (2L equations)
+   28. (b_vars, s_com_vars, s2_vars, kstar_var, k2_var) =
+         append_range_proof(statement, H1, H2, H3, Com, L)
+
+    // Eq 2L+3: Commitment consistency
+    // Com_total = c*H1 + kstar*H2 + sum(s_com[j]*2^j*H3)
+   29. Com_total = H1 * s + Sum(Com[j] * 2^j for j in [L])
+   30. H1_var2, H2_var2, H3_var2, Com_total_var = statement.allocate_elements(4)
+   31. statement.set_elements([(H1_var2, H1), (H2_var2, H2),
+         (H3_var2, H3), (Com_total_var, Com_total)])
+   32. terms = [(c_var, H1_var2), (kstar_var, H2_var2)]
+   33. For j = 0 to L-1:
+   34.     coeff_H3_var = statement.allocate_elements(1)
+   35.     statement.set_elements([(coeff_H3_var, H3 * (2^j))])
+   36.     terms.append((s_com_vars[j], coeff_H3_var))
+   37. statement.append_equation(Com_total_var, terms)
+
+    // Assemble witness
+    // Order: [e, r2, r3, c, r, b[0..L-1], s_com[0..L-1],
+    //         s2[0..L-1], kstar, k2]
+   38. witness = [e, r2, r3, c, r]
+   39. witness += b[0..L-1]
+   40. witness += s_com[0..L-1]
+   41. witness += s2[0..L-1]
+   42. witness += [kstar, k2]
+
+    // Generate non-interactive proof
+   43. session_id = domain_separator + "spend"
+   44. prover = NISigmaProtocol(session_id, statement)
+   45. pok = prover.prove(witness, rng)
+
+    // Construct output
+   46. r_star = Sum(s_com[j] * 2^j for j in [L])
+   47. proof = (k, s, A', B_bar, Com, pok)
+   48. state = (kstar, r_star, m)
+   49. return (proof, state)
+
+3.4.2.  Issuer: Spend Verification and Refund
+
+ VerifyAndRefund(sk, proof, rng):
+   Input:
+     - sk: Issuer's private key
+     - proof: Client's spend proof
+     - rng: PRNG.
+   Output:
+     - refund: Refund for remaining credits
+   Exceptions:
+     - DoubleSpendError: raised when the nullifier has been used before
+     - InvalidSpendProof: raised when the spend proof verification fails
+
+   Steps:
+     1. Parse proof and extract nullifier k
+     2. // Check nullifier hasn't been used
+     3. if k in used_nullifiers:
+     4.     raise DoubleSpendError
+     5. // Verify the proof (see VerifySpendProof)
+     6. if not VerifySpendProof(sk, proof):
+     7.     raise InvalidSpendProof
+     8. // Record nullifier
+     9. used_nullifiers.add(k)
+     10. // Issue refund for remaining balance
+     11. K' = Sum(Com[j] * 2^j for j in [L])
+     12. refund = IssueRefund(sk, K', rng)
+     13. return refund
+
+3.4.3.  Refund Issuance
+
+   After verifying a spend proof, the issuer creates a refund token for
+   the remaining balance:
+
+IssueRefund(sk, K', rng):
+  Input:
+    - sk: Issuer's private key
+    - K': Commitment to remaining balance and new nullifier
+    - rng: PRNG.
+  Output:
+    - refund: Refund response
+
+  Steps:
+    // Create new BBS signature on remaining balance
+    1. e <- Zq
+    2. X_A = G + K'
+    3. A = X_A * (1/(e + sk))
+    4. X_G = G * (e + sk)
+
+    // Generate proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G * (e + sk)
+    5. statement = LinearRelation(group)
+    6. append_dleq(statement, A, G, X_A, X_G)
+    7. session_id = domain_separator + "refund"
+    8. prover = NISigmaProtocol(session_id, statement)
+    9. witness = [e + sk]
+   10. pok = prover.prove(witness, rng)
+   11. refund = (A, e, pok)
+   12. return refund
+
+3.4.4.  Client: Refund Token Construction
+
+   The client verifies the refund and constructs a new credit token:
+
+ConstructRefundToken(pk, spend_proof, refund, state):
+  Input:
+    - pk: Issuer's public key
+    - spend_proof: The spend proof sent to issuer
+    - refund: Issuer's refund response
+    - state: Client state (k*, r*, m)
+  Output:
+    - token: New credit token or INVALID
+  Exceptions:
+    - InvalidRefundProof: When the refund proof verification fails
+
+  Steps:
+    1. Parse refund as (A, e, pok)
+    2. Parse state as (k*, r*, m)
+
+    // Reconstruct commitment
+    3. K' = Sum(spend_proof.Com[j] * 2^j for j in [L])
+    4. X_A = G + K'
+    5. X_G = G * e + pk
+
+    // Verify proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G * (e + sk)
+    6. statement = LinearRelation(group)
+    7. append_dleq(statement, A, G, X_A, X_G)
+    8. session_id = domain_separator + "refund"
+    9. verifier = NISigmaProtocol(session_id, statement)
+   10. if not verifier.verify(pok):
+   11.     raise InvalidRefundProof
+
+   // Construct new token
+   12. token = (A, e, k*, r*, m)
+   13. return token
+
+3.4.5.  Spend Proof Verification
+
+   The issuer verifies a spend proof as follows:
+
+VerifySpendProof(sk, proof):
+  Input:
+    - sk: Issuer's private key
+    - proof: Spend proof from client
+  Output:
+    - valid: Boolean indicating if proof is valid
+  Exceptions:
+    - IdentityPointError: raised when A' is the identity
+    - InvalidClientSpendProof: raised when the proof verification fails
+
+  Steps:
+    1. Parse proof as (k, s, A', B_bar, Com, pok)
+
+    // Check A' is not identity
+    2. if A' == Identity:
+    3.     raise IdentityPointError
+
+    // Compute issuer's view
+    4. A_bar = A' * sk
+    5. H1_prime = G + H2 * k
+    6. Com_total = H1 * s + Sum(Com[j] * 2^j for j in [L])
+
+    // Build the same LinearRelation as ProveSpend
+    7. statement = LinearRelation(group)
+
+    // Eq 1: A_bar = e*(-A') + r2*B_bar
+    8. e_var, r2_var = statement.allocate_scalars(2)
+    9. negA_var, B_bar_var, A_bar_var = statement.allocate_elements(3)
+   10. statement.append_equation(A_bar_var,
+         [(e_var, negA_var), (r2_var, B_bar_var)])
+   11. statement.set_elements([(negA_var, -A'),
+         (B_bar_var, B_bar), (A_bar_var, A_bar)])
+
+    // Eq 2: H1_prime = r3*B_bar + c*(-H1) + r*(-H3)
+   12. r3_var, c_var, r_var = statement.allocate_scalars(3)
+   13. negH1_var, negH3_var, H1p_var = statement.allocate_elements(3)
+   14. statement.append_equation(H1p_var,
+         [(r3_var, B_bar_var), (c_var, negH1_var), (r_var, negH3_var)])
+   15. statement.set_elements([(negH1_var, -H1),
+         (negH3_var, -H3), (H1p_var, H1_prime)])
+
+    // Eqs 3..2+2L: Range proof (2L equations)
+   16. (b_vars, s_com_vars, s2_vars, kstar_var, k2_var) =
+         append_range_proof(statement, H1, H2, H3, Com, L)
+
+    // Eq 2L+3: Commitment consistency
+   17. H1_var2, H2_var2, H3_var2, Com_total_var = statement.allocate_elements(4)
+   18. statement.set_elements([(H1_var2, H1), (H2_var2, H2),
+         (H3_var2, H3), (Com_total_var, Com_total)])
+   19. terms = [(c_var, H1_var2), (kstar_var, H2_var2)]
+   20. For j = 0 to L-1:
+   21.     coeff_H3_var = statement.allocate_elements(1)
+   22.     statement.set_elements([(coeff_H3_var, H3 * (2^j))])
+   23.     terms.append((s_com_vars[j], coeff_H3_var))
+   24. statement.append_equation(Com_total_var, terms)
+
+    // Verify non-interactive proof
+   25. session_id = domain_separator + "spend"
+   26. verifier = NISigmaProtocol(session_id, statement)
+   27. if not verifier.verify(pok):
+   28.     raise InvalidClientSpendProof
+
+   29. return true
+
+3.5.  Cryptographic Primitives
+
+3.5.1.  Encoding Functions
+
+   Elements and scalars are encoded as follows:
+
+Encode(value):
+  Input:
+    - value: Element or Scalar
+  Output:
+    - encoding: ByteString
+
+  Steps:
+    1. If value is an Element:
+    2.     return value.compress()  // 32 bytes, compressed Ristretto point
+    3. If value is a Scalar:
+    4.     return value.to_bytes_le()  // 32 bytes, little-endian
+
+3.5.2.  Binary Decomposition
+
+   To decompose a scalar into its binary representation:
+
+   BitDecompose(s):
+     Input:
+       - s: Scalar value
+     Output:
+       - bits: Array of L scalars (each 0 or 1)
+
+     Steps:
+       1. bytes = s.to_bytes_le()  // 32 bytes, little-endian
+       2. For i = 0 to L-1:
+       3.     byte_index = i / 8
+       4.     bit_position = i % 8
+       5.     bit = (bytes[byte_index] >> bit_position) & 1
+       6.     bits[i] = Scalar(bit)
+       7. return bits
+
+   Note: This algorithm produces bits in LSB-first order (i.e., bits[0]
+   is the least significant bit).  The algorithm works for any L < 252,
+   as the scalar is represented in 32 bytes (256 bits), which
+   accommodates the full range of the Ristretto group order.
+
+3.5.3.  Scalar Conversion
+
+   Converting between credit amounts and scalars:
+
+CreditToScalar(amount):
+  Input:
+    - amount: Integer credit amount (0 <= amount < 2^L)
+  Output:
+    - s: Scalar representation
+  Exceptions:
+    - AmountTooBigError: raised when the amount exceeds 2^L
+
+  Steps:
+    1. if amount >= 2^L:
+    2.     return AmountTooBigError
+    3. return Scalar(amount)
+
+ScalarToCredit(s):
+  Input:
+    - s: Scalar value
+  Output:
+    - amount: Integer credit amount or ERROR
+  Exceptions:
+    - ScalarOutOfRangeError: raised when the bytes 16..32 of the scalar value are nonzero
+
+  Steps:
+    1. bytes = s.to_bytes_le()
+    2. // Check high bytes are zero
+    3. For i = 16 to 31:
+    4.     if bytes[i] != 0:
+    5.         return ScalarOutOfRangeError
+    6. amount = bytes[0..15] as u128
+    7. return amount
+
+4.  Protocol Messages and Wire Format
+
+4.1.  Message Encoding
+
+   All protocol messages are encoded using the TLS presentation language
+   from Section 3 of [TLS13].  The following sections define the
+   structure of each message type.
+
+4.1.1.  Issuance Request Message
+
+   struct {
+       opaque K[Ne];         /* Compressed Ristretto point, Ne bytes */
+       opaque pok<1..2^16-1>; /* NISigmaProtocol proof */
+   } IssuanceRequestMsg;
+
+4.1.2.  Issuance Response Message
+
+   struct {
+       opaque A[Ne];         /* Compressed Ristretto point, Ne bytes */
+       opaque e[Ns];         /* Scalar, Ns bytes */
+       opaque c[Ns];         /* Scalar, Ns bytes */
+       opaque pok<1..2^16-1>; /* NISigmaProtocol proof */
+   } IssuanceResponseMsg;
+
+4.1.3.  Spend Proof Message
+
+  struct {
+      opaque k[Ns];           /* Nullifier scalar, Ns bytes */
+      opaque s[Ns];           /* Spend amount scalar, Ns bytes */
+      opaque A_prime[Ne];     /* Compressed Ristretto point, Ne bytes */
+      opaque B_bar[Ne];       /* Compressed Ristretto point, Ne bytes */
+      opaque Com[L][Ne];      /* L compressed Ristretto points */
+      opaque pok<1..2^16-1>; /* NISigmaProtocol proof */
+  } SpendProofMsg;
+
+4.1.4.  Refund Message
+
+   struct {
+       opaque A_star[Ne];    /* Compressed Ristretto point, Ne bytes */
+       opaque e_star[Ns];    /* Scalar, Ns bytes */
+       opaque pok<1..2^16-1>; /* NISigmaProtocol proof */
+   } RefundMsg;
+
+4.1.5.  Error Response
+
+   struct {
+       uint16 error_code;
+       opaque error_message<0..2^16-1>;
+   } ErrorMsg;
+
+   Error codes are defined in Section 5.5.1.
+
+4.2.  Protocol Flow
+
+   The complete protocol flow with message types:
+
+   Client                                          Issuer
+     |                                               |
+     |-- IssuanceRequestMsg ------------------------>|
+     |                                               |
+     |<-- IssuanceResponseMsg -----------------------|
+     |                                               |
+     | (client creates token)                        |
+     |                                               |
+     |-- SpendProofMsg ----------------------------->|
+     |                                               |
+     |<-- RefundMsg or ErrorMsg ---------------------|
+     |                                               |
+
+4.2.1.  Example Usage Scenario
+
+   Consider an API service that sells credits in bundles of 1000:
+
+   1.  *Purchase*: Alice buys 1000 API credits
+
+       *  Alice generates a random nullifier k and blinding factor r
+
+       *  Alice sends IssuanceRequestMsg to the service
+
+       *  Service creates a BBS signature on (1000, k, r) and returns it
+
+       *  Alice now has a token worth 1000 credits
+
+   2.  *First API Call*: Alice makes an API call costing 50 credits
+
+       *  Alice creates a SpendProofMsg proving she has ≥ 50 credits
+
+       *  Alice reveals nullifier k to prevent double-spending
+
+       *  Service verifies the proof and records k as used
+
+       *  Service issues a RefundMsg for a new token worth 950 credits
+
+       *  Alice generates new nullifier k' for the refund token
+
+   3.  *Subsequent Calls*: Alice continues using the API
+
+       *  Each call repeats the spend/refund process
+
+       *  Each new token has a fresh nullifier
+
+       *  The service cannot link Alice's calls together
+
+   This example demonstrates how the protocol maintains privacy while
+   preventing double-spending and enabling flexible partial payments.
+
+5.  Implementation Considerations
+
+5.1.  Nullifier Management
+
+   Implementations MUST maintain a persistent database of used
+   nullifiers to prevent double-spending.  The nullifier storage
+   requirements grow linearly with the number of spent tokens.
+   Implementations MAY use the following strategies to manage storage:
+
+   1.  *Expiration*: If tokens have expiration dates, old nullifiers can
+       be pruned.
+
+   2.  *Sharding*: Nullifiers can be partitioned across multiple
+       databases.
+
+   3.  *Bloom Filters*: Probabilistic data structures can reduce memory
+       usage with a small false-positive rate.
+
+5.2.  Constant-Time Operations
+
+   To prevent timing attacks, implementations MUST use constant-time
+   scalar arithmetic and point operations.  See the timing attack
+   mitigations in the Security Considerations for detailed requirements.
+
+5.3.  Randomness Generation
+
+   All randomness is provided through the PRNG interface (see
+   Appendix B).  The PRNG is used for private key generation, blinding
+   factors, and proof randomness.  See Appendix B for the interface
+   definition and requirements.
+
+5.4.  Point Validation
+
+   All Ristretto points received from external sources MUST be
+   validated:
+
+   1.  *Deserialization*: Verify the point deserializes to a valid
+       Ristretto point
+
+   2.  *Non-Identity*: Verify the point is not the identity element
+
+   3.  *Subgroup Check*: Ristretto guarantees prime-order subgroup
+       membership
+
+   Example validation:
+
+   ValidatePoint(P):
+     1. If P fails to deserialize:
+     2.     return INVALID
+     3. If P == Identity:
+     4.     return INVALID
+     5. // Ristretto ensures prime-order subgroup membership
+     6. return VALID
+
+   All implementations MUST validate points at these locations:
+
+   *  When receiving K in issuance request
+
+   *  When receiving A in issuance response
+
+   *  When receiving A' and B_bar in spend proof
+
+   *  When receiving Com[j] commitments in spend proof
+
+   *  When receiving A* in refund response
+
+5.5.  Error Handling
+
+   Implementations SHOULD NOT provide detailed error messages that could
+   leak information about the verification process.  A single INVALID
+   response should be returned for all verification failures.
+
+5.5.1.  Error Codes
+
+   While detailed error messages should not be exposed to untrusted
+   parties, implementations MAY use the following internal error codes:
+
+   *  INVALID_PROOF: Proof verification failed
+
+   *  NULLIFIER_REUSE: Double-spend attempt detected
+
+   *  MALFORMED_REQUEST: Request format is invalid
+
+   *  INVALID_AMOUNT: Credit amount exceeds maximum (2^L - 1)
+
+5.6.  Parameter Selection
+
+   The bit length L determines the range of credit values (0 to 2^L -
+   1).  Implementations MUST enforce L < 252 to fit within the Ristretto
+   group order.  Larger L supports higher credit values but increases
+   proof size and verification time linearly.
+
+5.6.1.  Performance Characteristics
+
+   The spending proof uses a single LinearRelation with 2L + 3 equations
+   and a witness of 3L + 7 scalars.  The NISigmaProtocol interface
+   handles all proof generation and verification.
+
+   *  *Storage*:
+
+          +==========================+==========================+
+          | Component                | Size                     |
+          +==========================+==========================+
+          | Token size               | 160 bytes (5 × 32 bytes) |
+          +--------------------------+--------------------------+
+          | Spend proof size         | 32 × (6L + 14) bytes     |
+          +--------------------------+--------------------------+
+          | Nullifier database entry | 32 bytes per spent token |
+          +--------------------------+--------------------------+
+
+                                  Table 1
+
+   Note: Token size is independent of L.  The spend proof contains k, s,
+   A', B_bar (4 × 32 bytes), Com[0..L-1] (L × 32 bytes), and the pok
+   output from NISigmaProtocol which encodes 2L + 3 first-round group
+   elements and 3L + 7 response scalars.
+
+6.  Suites for ACT
+
+   A suite for ACT specifies the parameters used to implement the
+   functionality required for the protocol to take place.  The suite
+   should be available to both the client and server, and agreement on
+   the specific instantiation is assumed throughout.
+
+   A suite contains instantiations of the following functionalities:
+
+   *  Group: A prime-order group exposing the interface detailed in
+      Section 2.1 of [RFC9497].  For the HashToGroup function, the
+      domain separation tag (DST) is constructed in accordance with the
+      recommendations in Section 3.1 of [RFC9380].
+
+   *  NISigmaProtocol: These are parameters used to implement the Fiat-
+      Shamir transform in accordance with the recommendations in
+      [FIAT-SHAMIR].
+
+   *  PRNG: A cryptographically secure pseudorandom number generator
+      providing the random_scalar() method, backed by a CSPRNG in
+      accordance with [FIPS186].
+
+   *  MAX_BIT_LENGTH: Specifies the maximum number of bits allowed to
+      represent credits.
+
+6.1.  ACT(ristretto255, SHAKE128)
+
+   The group is ristretto255 as specified in [RFC9496].  It also
+   specifies the Order(), Identity(), and Generator() functions.
+
+   The HashToGroup(msg, DST) function uses hash_to_ristretto255
+   [RFC9380] with DST = "HashToGroup-" || domain_separator, and
+   expand_message = expand_message_xmd using SHA-512.
+
+   SerializeElement(A) is the 'Encode' function from Section 4.3.2 of
+   [RFC9496] producing an array of Ne=32 bytes.
+
+   DeserializeElement(bytes) is the 'Decode' function from Section 4.3.1
+   of [RFC9496].  This function must validate that the input is the
+   valid canonical byte representation of an element of the group.  This
+   function must raise an error if deserialization fails, or if the
+   resulting element is the group identity element.
+
+   SerializeScalar(s) outputs a Ns=32 byte array representing the
+   little-endian encoding of the scalar value with the top three bits
+   set to zero.
+
+   DeserializeScalar(bytes) attempts to deserialize a scalar from a
+   little-endian 32-byte string.  This function must fail if the input
+   does not represent an integer between zero and Order()-1 inclusive.
+   Note that this means the top three bits of the input MUST be zero.
+
+   The NISigmaProtocol interface is implemented by
+   NISchnorrProofShake128Ris255 as follows:
+
+   class Ristretto255Codec(ByteSchnorrCodec):
+       GG = ristretto255
+
+   class NISchnorrProofShake128Ris255(NISigmaProtocol):
+       Protocol = SchnorrProof
+       Codec = Ristretto255Codec
+       Hash = SHAKE128
+
+   where SHAKE128 is the extendable-output function defined in
+   [FIPS202].
+
+   The PRNG is instantiated as defined in Appendix B.
+
+   Set MAX_BIT_LENGTH=252 bits.
+
+7.  Security Considerations
+
+7.1.  Security Model and Definitions
+
+7.1.1.  Threat Model
+
+   We consider a setting with:
+
+   *  Multiple issuers who can operate independently, though malicious
+      issuers may collude with each other
+
+   *  Potentially malicious clients who may attempt to spend more
+      credits than they should (whether by forging tokens, spending more
+      credits than a token has, or double-spending a token)
+
+7.1.2.  Security Properties
+
+   The protocol provides the following security guarantees:
+
+   1.  *Unforgeability*: For an honest issuer I, no probabilistic
+       polynomial-time (PPT) adversary controlling a set of malicious
+       clients and other malicious issuers can spend more credits than
+       have been issued by I.
+
+   2.  *Anonymity/Unlinkability*: For an honest client C, no adversary
+       controlling a set of malicious issuers and other malicious
+       clients can link a token issuance/refund to C with a token spend
+       by C.  This property is information-theoretic in nature.
+
+7.2.  Cryptographic Assumptions
+
+   Security relies on:
+
+   1.  *The q-SDH Assumption* in the Ristretto255 group.  We refer to
+       [TZ23] for the formal definition.
+
+   2.  *Random Oracle Model*: The hash function used by the
+       NISigmaProtocol (SHAKE128 in the ristretto255 suite) is modeled
+       as a random oracle.
+
+7.3.  Privacy Limitations
+
+   The protocol does NOT provide:
+
+   1.  *Network-Level Privacy*: IP addresses and network metadata can
+       still link transactions.
+
+   2.  *Amount Privacy*: The spent amount s is revealed to the issuer.
+
+   3.  *Timing Privacy*: Transaction timing patterns could potentially
+       be used for correlation.
+
+7.4.  Implementation Vulnerabilities and Mitigations
+
+7.4.1.  Critical Security Requirements
+
+   1.  *RNG Failures*: Weak randomness can completely break the
+       protocol's security.
+
+       *Attack Vector*: Predictable or repeated nonces in proofs can
+       allow complete recovery of secret values including private keys
+       and token contents.
+
+       *Mitigations*:
+
+       *  MUST use cryptographically secure RNGs (e.g., OS-provided
+          entropy sources)
+
+       *  MUST reseed after fork() operations to prevent nonce reuse
+
+       *  MUST implement forward-secure RNG state management
+
+       *  SHOULD use separate RNG instances for different protocol
+          components
+
+       *  MUST zeroize RNG state on process termination
+
+   2.  *Timing Attacks*: Variable-time operations can leak information
+       about secret values.
+
+       *Attack Vector*: Timing variations in scalar arithmetic or bit
+       operations can reveal secret bit patterns, potentially exposing
+       credit balances or allowing token forgery.
+
+       *Mitigations*:
+
+       *  MUST use constant-time scalar arithmetic libraries
+
+       *  MUST avoid early-exit conditions based on secret values
+
+       *  The algebraic range proof eliminates conditional branches on
+          secret bit values, reducing the timing attack surface compared
+          to CDS OR-proof approaches
+
+       *  Critical constant-time operations include:
+
+          -  Scalar multiplication and addition
+
+          -  Binary decomposition in range proofs
+
+          -  Challenge verification comparisons
+
+   3.  *Nullifier Database Attacks*: Corruption or manipulation of the
+       nullifier database enables double-spending.
+
+       *Attack Vectors*:
+
+       *  Database corruption allowing nullifier deletion
+
+       *  Race conditions in concurrent nullifier checks
+
+       *Mitigations*:
+
+       *  MUST use ACID-compliant database transactions
+
+       *  MUST check nullifier uniqueness within the same transaction as
+          insertion
+
+       *  SHOULD implement append-only audit logs for nullifier
+          operations
+
+       *  MUST implement proper database backup and recovery procedures
+
+   4.  *Eavesdropping/Message Modification Attacks*: A network-level
+       adversary can copy spend proofs or modify messages sent between
+       an honest client and issuer.
+
+       *Attack Vectors*:
+
+       *  Eavesdropping and copying of proofs
+
+       *  Message modifications causing protocol failure
+
+       *Mitigations*:
+
+       *  Client and issuer MUST use TLS 1.3 or above when
+          communicating.
+
+   5.  *State Management Vulnerabilities*: Improper state handling can
+       lead to security breaches.
+
+       *Attack Vectors*:
+
+       *  State confusion between protocol sessions
+
+       *  Memory disclosure of sensitive state
+
+       *  Incomplete state cleanup
+
+       *Mitigations*:
+
+       *  MUST use separate state objects for each protocol session
+
+       *  MUST zeroize all sensitive data (keys, nonces, intermediate
+          values) after use
+
+       *  SHOULD use memory protection mechanisms (e.g., mlock) for
+          sensitive data
+
+       *  MUST implement proper error handling that doesn't leak state
+          information
+
+       *  SHOULD use explicit state machines for protocol flow
+
+   6.  *Concurrency and Race Conditions*: Parallel operations can
+       introduce vulnerabilities.
+
+       *Attack Vectors*:
+
+       *  TOCTOU (Time-of-check to time-of-use) vulnerabilities in
+          nullifier checking
+
+       *  Race conditions in balance updates
+
+       *  Concurrent modification of shared state
+
+       *Mitigations*:
+
+       *  MUST use appropriate locking for all shared resources
+
+       *  MUST perform nullifier check and insertion atomically
+
+       *  SHOULD document thread-safety guarantees
+
+       *  MUST ensure atomic read-modify-write for all critical
+          operations
+
+7.5.  Known Attack Scenarios
+
+7.5.1.  1.  Parallel Spend Attack
+
+   *Scenario*: A malicious client attempts to spend the same token
+   multiple times by initiating parallel spend operations before any
+   nullifier is recorded.
+
+   *Prevention*: Atomic nullifier checking and recording as described in
+   the nullifier database and concurrency mitigations above.
+
+7.5.2.  2.  Balance Inflation Attack
+
+   *Scenario*: An attacker attempts to create a proof claiming to have
+   more credits than actually issued by manipulating the range proof.
+
+   *Prevention*: The cryptographic soundness of the range proof prevents
+   this attack.
+
+7.5.3.  3.  Token Linking Attack
+
+   *Scenario*: An issuer attempts to link transactions by analyzing
+   patterns in nullifiers, amounts, or timing.
+
+   *Prevention*: Nullifiers are cryptographically random and unlinkable.
+   However, implementations MAY add random delays and amount obfuscation
+   where possible.
+
+7.6.  Protocol Composition and State Management
+
+7.6.1.  State Management Requirements
+
+   Before they make a spend request or an issue request, the client MUST
+   store their private state (the nullifier, the blinding factor, and
+   the new balance) durably.
+
+   For the issuer, the spend and refund operations MUST be treated as an
+   atomic transaction.  However, even more is required.  If a nullifier
+   associated with a given spend is persisted to the database, clients
+   MUST be able to access the associated refund.  If they cannot access
+   this, then they can lose access to the rest of their credits.  For
+   performance reasons, an issuer SHOULD automatically clean these up
+   after some expiry, but if they do so, they MUST inform the client of
+   this policy so the client can ensure they can retry to retrieve the
+   rest of their credits in time.  Issuers MAY implement functionality
+   for clients to acknowledge receipt of the refund, allowing the issuer
+   to delete the refund record.  Alternatively, issuers MAY clean up
+   refund records in bulk at a specified expiration date.
+
+7.6.2.  Version Negotiation
+
+   To support protocol evolution, implementations MAY include version
+   negotiation in the initial handshake.  All parties MUST agree on the
+   protocol version before proceeding.
+
+7.7.  Quantum Resistance
+
+   This protocol is NOT quantum-resistant.  The discrete logarithm
+   problem can be solved efficiently by quantum computers using Shor's
+   algorithm.  Organizations requiring long-term security should
+   consider post-quantum alternatives.  However, user privacy is
+   preserved even in the presence of a cryptographically relevant
+   quantum computer.
+
+8.  IANA Considerations
+
+   This document has no IANA actions.
+
+9.  References
+
+9.1.  Normative References
+
+   [FIAT-SHAMIR]
+              Orrù, M., "Fiat-Shamir Transformation", Work in Progress,
+              Internet-Draft, draft-irtf-cfrg-fiat-shamir-00, 8 August
+              2025, <https://datatracker.ietf.org/doc/html/draft-irtf-
+              cfrg-fiat-shamir-00>.
+
+   [FIPS186]  "Digital Signature Standard (DSS)", National Institute of
+              Standards and Technology (U.S.),
+              DOI 10.6028/nist.fips.186-5, February 2023,
+              <https://doi.org/10.6028/nist.fips.186-5>.
+
+   [FIPS202]  "SHA-3 standard :: permutation-based hash and extendable-
+              output functions", National Institute of Standards and
+              Technology (U.S.), DOI 10.6028/nist.fips.202, 2015,
+              <https://doi.org/10.6028/nist.fips.202>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [RFC9380]  Faz-Hernandez, A., Scott, S., Sullivan, N., Wahby, R. S.,
+              and C. A. Wood, "Hashing to Elliptic Curves", RFC 9380,
+              DOI 10.17487/RFC9380, August 2023,
+              <https://www.rfc-editor.org/rfc/rfc9380>.
+
+   [RFC9496]  de Valence, H., Grigg, J., Hamburg, M., Lovecruft, I.,
+              Tankersley, G., and F. Valsorda, "The ristretto255 and
+              decaf448 Groups", RFC 9496, DOI 10.17487/RFC9496, December
+              2023, <https://www.rfc-editor.org/rfc/rfc9496>.
+
+   [RFC9497]  Davidson, A., Faz-Hernandez, A., Sullivan, N., and C. A.
+              Wood, "Oblivious Pseudorandom Functions (OPRFs) Using
+              Prime-Order Groups", RFC 9497, DOI 10.17487/RFC9497,
+              December 2023, <https://www.rfc-editor.org/rfc/rfc9497>.
+
+   [SIGMA]    Orrù, M. and C. Yun, "Interactive Sigma Proofs", Work in
+              Progress, Internet-Draft, draft-irtf-cfrg-sigma-protocols-
+              00, 8 August 2025, <https://datatracker.ietf.org/doc/html/
+              draft-irtf-cfrg-sigma-protocols-00>.
+
+   [TLS13]    Rescorla, E., "The Transport Layer Security (TLS) Protocol
+              Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018,
+              <https://www.rfc-editor.org/rfc/rfc8446>.
+
+9.2.  Informative References
+
+   [BBS]      "Short Group Signatures", 2004,
+              <https://crypto.stanford.edu/~dabo/pubs/papers/
+              groupsigs.pdf>.
+
+   [FST]      Fiat, A. and A. Shamir, "How To Prove Yourself: Practical
+              Solutions to Identification and Signature Problems",
+              Springer Berlin Heidelberg, Lecture Notes in Computer
+              Science pp. 186-194, DOI 10.1007/3-540-47721-7_12,
+              ISBN ["9783540180470"], April 2007,
+              <https://doi.org/10.1007/3-540-47721-7_12>.
+
+   [KVAC]     "Keyed-Verification Anonymous Credentials", 2014,
+              <https://eprint.iacr.org/2013/516.pdf>.
+
+   [TZ23]     "Revisiting BBS Signatures", 2023,
+              <https://eprint.iacr.org/2023/275>.
+
+Appendix A.  Test Vectors
+
+   This appendix provides test vectors for implementers to verify their
+   implementations.  All values are encoded in hexadecimal.
+
+   TODO
+
+Appendix B.  PRNG Interface
+
+   This appendix defines the abstract PRNG interface used throughout the
+   protocol and a deterministic SeededPRNG construction for test vector
+   generation.
+
+B.1.  Abstract Interface
+
+   interface PRNG:
+     random_scalar() -> Scalar
+       // Returns a uniformly distributed random scalar in [0, q).
+       // The implementation MUST draw sufficient entropy (at least 64 bytes)
+       // and reduce modulo the group order q.
+
+   In production, the PRNG MUST be backed by a CSPRNG in accordance with
+   [FIPS186].  The random_scalar() method draws 64 bytes from the
+   underlying CSPRNG and reduces modulo the group order to produce a
+   uniformly distributed scalar.
+
+B.2.  SeededPRNG for Test Vectors
+
+   For deterministic test vector generation, the following SeededPRNG
+   construction uses SHAKE128 as the underlying stream:
+
+   class SeededPRNG(PRNG):
+     state: SHAKE128 instance
+
+     SeededPRNG(seed):
+       Input:
+         - seed: Byte Array.
+       Steps:
+         1. self.state = SHAKE128.init()
+         2. self.state.absorb(seed)
+
+     random_scalar() -> Scalar:
+       Output:
+         - s: Scalar.
+       Steps:
+         1. bytes = self.state.squeeze(64)  // 64 bytes of output
+         2. s = from_little_endian_bytes(bytes) mod q
+         3. return s
+
+   where SHAKE128 is defined in [FIPS202].
+
+   WARNING: SeededPRNG MUST NOT be used in production.  It is provided
+   solely for generating reproducible test vectors.  Production
+   implementations MUST use OS-provided entropy sources.
+
+Appendix C.  Implementation Status
+
+   This section records the status of known implementations of the
+   protocol defined by this specification at the time of posting of this
+   Internet-Draft, and is based on a proposal described in RFC 7942.
+
+C.1.  anonymous-credit-tokens
+
+   Organization: Google
+
+   Description: Reference implementation in Rust
+
+   Maturity: Beta
+
+   Coverage: Complete protocol implementation
+
+   License: Apache 2.0
+
+   Contact: sgschlesinger@gmail.com
+
+   URL: https://github.com/SamuelSchlesinger/anonymous-credit-tokens
+
+Appendix D.  Terminology Glossary
+
+   This glossary provides quick definitions of key terms used throughout
+   this document:
+
+   *ACT (Anonymous Credit Tokens)*: The privacy-preserving
+   authentication protocol specified in this document.
+
+   *Blind Signature*: A cryptographic signature where the signer signs a
+   message without seeing its content.
+
+   *Refund*: The refund issued for the remaining balance after a partial
+   spend.
+
+   *Credit*: A numerical unit of authorization that can be spent by
+   clients.
+
+   *Domain Separator*: A unique string used to ensure cryptographic
+   isolation between different deployments.
+
+   *Element*: A point in the Ristretto255 elliptic curve group.
+
+   *Issuer*: The entity that creates and signs credit tokens.
+
+   *Nullifier*: A unique value revealed during spending that prevents
+   double-spending of the same token.
+
+   *Partial Spending*: The ability to spend less than the full value of
+   a token and receive change.
+
+   *Scalar*: An integer modulo the group order q, used in cryptographic
+   operations.
+
+   *Sigma Protocol*: An interactive zero-knowledge proof protocol
+   following a commit-challenge-response pattern.
+
+   *Token*: A cryptographic credential containing a BBS signature and
+   associated data (A, e, k, r, c).
+
+   *Unlinkability*: The property that transactions cannot be correlated
+   with each other or with token issuance.
+
+Appendix E.  Acknowledgments
+
+   The authors would like to thank the Crypto Forum Research Group for
+   their valuable feedback and suggestions.  Special thanks to the
+   contributors who provided implementation guidance and security
+   analysis.
+
+   This work builds upon the foundational research in anonymous
+   credentials and zero-knowledge proofs by numerous researchers in the
+   cryptographic community, particularly the work on BBS signatures by
+   Boneh, Boyen, and Shacham, and keyed-verification anonymous
+   credentials by Chase, Meiklejohn, and Zaverucha.
+
+Authors' Addresses
+
+   Samuel Schlesinger
+   Google
+   Email: samschlesinger@google.com
+
+
+   Jonathan Katz
+   Google
+   Email: jkcrypto@google.com
+
+
+   Armando Faz-Hernandez
+   Cloudflare, Inc.
+   Email: armfazh@cloudflare.com
