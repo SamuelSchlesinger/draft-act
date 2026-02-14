@@ -93,7 +93,7 @@ Anonymous Credit Tokens (ACT) help resolve this tension by
 providing a cryptographic protocol that enables credit-based systems
 without client tracking. Built on keyed-verification anonymous
 credentials {{KVAC}} and privately verifiable BBS-style signatures
-{{BBS}}, the protocol allows services to issue, track, and spend
+{{BBS}}, the protocol allows services to issue, manage, and spend
 credits while maintaining client privacy.
 
 ## Key Properties
@@ -188,7 +188,7 @@ This document uses the following notation:
 
 - `x = y`: Assignment of the value y to the variable x.
 
-- `[n]`: The set of integers {0, 1, ..., n-1}
+- `[n]`: The set of integers {0, 1, ..., n-1}.
 
 - `|x|`: The length of byte array x.
 
@@ -197,6 +197,10 @@ This document uses the following notation:
 - We use additive notation for group operations, so group elements are added
   together like `a + b` and scalar multiplication of a group element by a scalar
   is written as `a * n`, with group element `a` and scalar `n`.
+
+- In protocol pseudocode, `G` denotes the generator of the group (i.e.,
+  `G.Generator()`) when used in arithmetic expressions. When used as a function
+  parameter (e.g., `KeyGen(G, rng)`), `G` denotes the Group interface.
 
 The protocol uses the following data types:
 
@@ -396,7 +400,8 @@ SetGenerators(G, domain_separator):
     1. G0 = G.Generator()
     2. H1, H2, H3 = [G0]*3
     3. counter = 0
-    4. while G0 == H1 == H2 == H3:
+    4. while H1 == G0 or H2 == G0 or H3 == G0 or
+            H1 == H2 or H1 == H3 or H2 == H3:
     5.   ctr = I2OSP(counter, 1)
     6.   H1 = G.HashToGroup("H1", "GenH1" || ctr || domain_separator)
     7.   H2 = G.HashToGroup("H2", "GenH2" || ctr || domain_separator)
@@ -496,7 +501,7 @@ IssueResponse(sk, request, c, rng):
     - c: Credit amount to issue (c > 0)
     - rng: PRNG.
   Output:
-    - response: Issuance response or INVALID
+    - response: Issuance response
   Exceptions:
     - InvalidIssuanceRequestProof, raised when the client proof verification fails
 
@@ -674,18 +679,20 @@ VerifyAndRefund(sk, proof, rng):
 
   Steps:
     1. Parse proof and extract nullifier k
+    // The following steps (2-7) MUST be performed atomically
+    // to prevent double-spending via race conditions.
     2. // Check nullifier hasn't been used
     3. if k in used_nullifiers:
     4.     raise DoubleSpendError
-    5. // Verify the proof (see VerifySpendProof)
-    6. if not VerifySpendProof(sk, proof):
-    7.     raise InvalidSpendProof
-    8. // Record nullifier
-    9. used_nullifiers.add(k)
-    10. // Issue refund for remaining balance
-    11. K' = Sum(Com[j] * 2^j for j in [L])
-    12. refund = IssueRefund(sk, K', rng)
-    13. return refund
+    // Verify the proof; raises IdentityPointError or
+    // InvalidClientSpendProof on failure (see VerifySpendProof)
+    5. VerifySpendProof(sk, proof)
+    6. // Record nullifier
+    7. used_nullifiers.add(k)
+    8. // Issue refund for remaining balance
+    9. K' = Sum(Com[j] * 2^j for j in [L])
+   10. refund = IssueRefund(sk, K', rng)
+   11. return refund
 ~~~
 
 ### Refund Issuance {#refund-issuance}
@@ -767,8 +774,6 @@ VerifySpendProof(sk, proof):
   Input:
     - sk: Issuer's private key
     - proof: Spend proof from client
-  Output:
-    - valid: Boolean indicating if proof is valid
   Exceptions:
     - IdentityPointError: raised when A' is the identity
     - InvalidClientSpendProof: raised when the proof verification fails
@@ -824,8 +829,6 @@ VerifySpendProof(sk, proof):
    26. verifier = NISigmaProtocol(session_id, statement)
    27. if not verifier.verify(pok):
    28.     raise InvalidClientSpendProof
-
-   29. return true
 ~~~
 
 
@@ -833,7 +836,8 @@ VerifySpendProof(sk, proof):
 
 ### Encoding Functions
 
-Elements and scalars are encoded as follows:
+Elements and scalars are encoded using the suite-specific serialization
+functions. For the ACT(ristretto255, SHAKE128) suite ({{suites}}):
 
 ~~~
 Encode(value):
@@ -844,9 +848,9 @@ Encode(value):
 
   Steps:
     1. If value is an Element:
-    2.     return value.compress()  // 32 bytes, compressed Ristretto point
+    2.     return SerializeElement(value)  // Ne bytes
     3. If value is a Scalar:
-    4.     return value.to_bytes_le()  // 32 bytes, little-endian
+    4.     return SerializeScalar(value)   // Ns bytes
 ~~~
 
 ### Binary Decomposition {#binary-decomposition}
@@ -871,9 +875,9 @@ BitDecompose(s):
 ~~~
 
 Note: This algorithm produces bits in LSB-first order (i.e., `bits[0]` is the
-least significant bit). The algorithm works for any L < 252, as the scalar is
-represented in 32 bytes (256 bits), which accommodates the full range of the
-Ristretto group order.
+least significant bit). The algorithm works for any L <= MAX_BIT_LENGTH, as
+the scalar is represented in 32 bytes (256 bits), which accommodates the
+full range of the Ristretto group order.
 
 ### Scalar Conversion
 
@@ -890,7 +894,7 @@ CreditToScalar(amount):
 
   Steps:
     1. if amount >= 2^L:
-    2.     return AmountTooBigError
+    2.     raise AmountTooBigError
     3. return Scalar(amount)
 
 ScalarToCredit(s):
@@ -999,7 +1003,8 @@ Consider an API service that sells credits in bundles of 1000:
 1. **Purchase**: Alice buys 1000 API credits
    - Alice generates a random nullifier k and blinding factor r
    - Alice sends IssuanceRequestMsg to the service
-   - Service creates a BBS signature on (1000, k, r) and returns it
+   - Service creates a BBS signature on the blinded commitment K (which
+     binds the credit amount, nullifier, and blinding factor) and returns it
    - Alice now has a token worth 1000 credits
 
 2. **First API Call**: Alice makes an API call costing 50 credits
@@ -1093,7 +1098,7 @@ implementations MAY use the following internal error codes:
 ## Parameter Selection
 
 The bit length L determines the range of credit values (0 to 2^L - 1).
-Implementations MUST enforce L < 252 to fit within the Ristretto group
+Implementations MUST enforce L <= MAX_BIT_LENGTH to fit within the group
 order. Larger L supports higher credit values but increases proof size
 and verification time linearly.
 
