@@ -1050,7 +1050,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger &amp; Meunier</td>
-<td class="center">Expires 17 August 2026</td>
+<td class="center">Expires 18 August 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1063,12 +1063,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-schlesinger-privacypass-act-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-02-13" class="published">13 February 2026</time>
+<time datetime="2026-02-14" class="published">14 February 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-08-17">17 August 2026</time></dd>
+<dd class="expires"><time datetime="2026-08-18">18 August 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1123,7 +1123,7 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.<a href="#section-abs
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 17 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 18 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1291,23 +1291,29 @@ of the protocols, and the remainder of the document specifies the protocols them
 <a href="#section-2" class="section-number selfRef">2. </a><a href="#name-motivation" class="section-name selfRef">Motivation</a>
       </h2>
 <p id="section-2-1">To demonstrate how ACT is useful, one can use a similar example to
-the one presented in <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-01#section-2" class="relref">Section 2</a> of [<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>: a client that wishes to keep its IP address private while accessing a service. <span>[<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span> offers the origin to limit the number of requests a client can make to N. This is enforced by each origin getting its own presentation context, and limiting the number of presentations per context to N. This means that, from a single credential, a client
-can produce N presentations and access the system N times,
-unlinkably. These presentations can be generated in parallel.<a href="#section-2-1" class="pilcrow">¶</a></p>
-<p id="section-2-2">On the other hand, consider a credential initially holding N credits. A client redeeming
-all N credits individually has to spend <code>1</code>, receive a refunded credential with N-1 credits,
-spend <code>1</code> from that credential, receive a refunded credential with N-2 credits, and so on.
-Because the client cannot spend from a credential until they receive the refunded credential
-from their previous spend, a single live session is enforced per initial credential.
-This provides concurrency control. A client is also able to spend more than <code>1</code> credit at once,
-allowing for more efficient redemption of multiple credits.
-Finally, as each new presentation requires obtaining a refunded credential from the previous spend,
-the origin gains the ability to invalidate a session by declining to issue a refunded credential.
-This creates the
-ability to shed harmful future traffic or redirect it in a favorable way.<a href="#section-2-2" class="pilcrow">¶</a></p>
-<p id="section-2-3">One such use case for this is a privacy proxy, another is privately accessing
-web APIs like the artificial intelligence models, and finally zero trust networks
-which act as forward proxies for their user traffic.<a href="#section-2-3" class="pilcrow">¶</a></p>
+the one presented in <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-01#section-2" class="relref">Section 2</a> of [<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>: a client that wishes to keep its
+IP address private while accessing a service. <span>[<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span> offers the origin to
+limit the number of requests a client can make to N. This is enforced by each
+origin getting its own presentation context, and limiting the number of
+presentations per context to N. This means that, from a single credential, a
+client can produce N presentations and access the system N times, unlinkably.
+These presentations can be generated in parallel.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">ACT takes a different approach. Consider a credential initially holding N
+credits. A client redeeming all N credits individually has to spend <code>1</code>,
+receive a refunded credential with N-1 credits, spend <code>1</code> from that
+credential, receive a refunded credential with N-2 credits, and so on.
+Because the client cannot spend from a credential until they receive the
+refunded credential from their previous spend, a single live session is
+enforced per initial credential. This provides concurrency control. A client
+is also able to spend more than <code>1</code> credit at once, allowing for more
+efficient redemption of multiple credits. Finally, as each new presentation
+requires obtaining a refunded credential from the previous spend, the origin
+gains the ability to invalidate a session by declining to issue a refunded
+credential. This creates the ability to shed harmful future traffic or
+redirect it in a favorable way.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-3">Example use cases include privacy proxies, privately accessing web APIs such
+as artificial intelligence models, and zero trust networks that act as forward
+proxies for their user traffic.<a href="#section-2-3" class="pilcrow">¶</a></p>
 <p id="section-2-4">Therefore, ACT provides the following properties:<a href="#section-2-4" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-2-5">
 <li id="section-2-5.1">
@@ -1348,7 +1354,8 @@ the Issuer for issuing and verifying Tokens.<a href="#section-3-3.1.1" class="pi
 the Issuer for issuing and verifying Tokens.<a href="#section-3-3.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-3-4">OPEN ISSUE: Consider taking them from <span>[<a href="#ACT" class="cite xref">ACT</a>]</span><a href="#section-3-4" class="pilcrow">¶</a></p>
+<p id="section-3-4">The following terms are used as defined in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>: Credit, Token, Nullifier,
+Scalar, Element, and Domain Separator.<a href="#section-3-4" class="pilcrow">¶</a></p>
 <p id="section-3-5">Unless otherwise specified, this document encodes protocol messages in TLS
 notation from <span><a href="https://rfc-editor.org/rfc/rfc8446#section-3" class="relref">Section 3</a> of [<a href="#TLS13" class="cite xref">TLS13</a>]</span>. Moreover, all constants are in
 network byte order.<a href="#section-3-5" class="pilcrow">¶</a></p>
@@ -1671,7 +1678,7 @@ skI, pkI = KeyGen()
 <p id="section-6-3">The Issuer Public Key ID, denoted <code>issuer_key_id</code>, is computed as the
 SHA-256 hash of the Issuer Public Key, i.e., <code>issuer_key_id = SHA-256(pkI_serialized)</code>,
 where <code>pkI_serialized</code> is the serialized version of <code>pkI</code> as described in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1" class="relref">Section 4.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6-3" class="pilcrow">¶</a></p>
-<p id="section-6-4">OPEN ISSUE: Coordinate with <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> specification authors on the serialization format (CBOR vs TLS presentation language) to ensure consistency.<a href="#section-6-4" class="pilcrow">¶</a></p>
+<p id="section-6-4">Protocol messages are encoded using CBOR as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4" class="relref">Section 4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6-4" class="pilcrow">¶</a></p>
 <div id="request-context-extension">
 <section id="section-6.1">
         <h3 id="name-request-context-extension">
@@ -1736,7 +1743,7 @@ struct {
 } TokenChallenge;
 </pre><a href="#section-7-2" class="pilcrow">¶</a>
 </div>
-<p id="section-7-3">OPEN ISSUE: This token type value (0xE5AD) was chosen arbitrarily and may be too close to the ARC token type. This should be coordinated with IANA registry assignments.<a href="#section-7-3" class="pilcrow">¶</a></p>
+<p id="section-7-3">Note: The token type value 0xE5AD is provisional pending IANA assignment.<a href="#section-7-3" class="pilcrow">¶</a></p>
 <p id="section-7-4">With the exception of <code>credential_context</code>, all fields are exactly as specified
 in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.1.1" class="relref">Section 2.1.1</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span>. The <code>credential_context</code> field is defined as
 follows:<a href="#section-7-4" class="pilcrow">¶</a></p>
@@ -1755,7 +1762,12 @@ expiration on the credential. Origins might do this by constructing <code>creden
 as F(current time window), where F is a pseudorandom function. Semantically, this is
 equivalent to the Origin asking the Client for a token from a credential that is
 bound to "current time window."<a href="#section-7-6" class="pilcrow">¶</a></p>
-<p id="section-7-7">OPEN ISSUE: give more guidance about how to construct credential_context and redemption_context depending on the application's needs.<a href="#section-7-7" class="pilcrow">¶</a></p>
+<p id="section-7-7">Origins <span class="bcp14">SHOULD</span> construct <code>credential_context</code> using time-based epochs (e.g.,
+<code>F(current time window)</code> where F is a pseudorandom function) to enforce
+credential expiration, or per-application binding values to isolate credential
+usage across different services. The <code>redemption_context</code> <span class="bcp14">SHOULD</span> be set to a
+fresh random value for each TokenChallenge to ensure token freshness, or left
+empty when freshness is not required.<a href="#section-7-7" class="pilcrow">¶</a></p>
 <p id="section-7-8">In addition to this updated TokenChallenge, the HTTP authentication challenge
 also <span class="bcp14">SHOULD</span> contain the following additional attribute:<a href="#section-7-8" class="pilcrow">¶</a></p>
 <ul class="normal">
@@ -2026,23 +2038,30 @@ request_context = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
-refund = VerifyAndRefund(skI, request_context, spend_proof)
+t = &lt;Origin-configured credits to return to the client&gt;
+refund = VerifyAndRefund(skI, spend_proof, t)
 </pre><a href="#section-9.2-5" class="pilcrow">¶</a>
 </div>
-<p id="section-9.2-6">This function returns the <code>refund</code> serialized according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.4" class="relref">Section 4.1.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> if the spend proof is valid, and nil otherwise.<a href="#section-9.2-6" class="pilcrow">¶</a></p>
-<p id="section-9.2-7">As mentioned in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2.2" class="relref">Section 2.2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span>, Origins <span class="bcp14">SHOULD</span> implement some form of double-spend prevention that prevents a token with the same nonce from being redeemed twice.
-With ACT, the Origin <span class="bcp14">SHOULD</span> check that the nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier
-for  use in future double-spending checks.
+<p id="section-9.2-6">The parameter <code>t</code> controls how many of the spent credits are returned to
+the client (0 &lt;= t &lt;= cost). Setting t = 0 consumes the full spend amount;
+setting t &gt; 0 enables pre-authorization patterns where the origin holds
+credits temporarily and returns unused ones. The origin determines <code>t</code>
+based on its own policy (e.g., from the TokenChallenge or application
+logic).<a href="#section-9.2-6" class="pilcrow">¶</a></p>
+<p id="section-9.2-7">This function returns the <code>refund</code> serialized according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-00#section-4.1.4" class="relref">Section 4.1.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> if the spend proof is valid, and nil otherwise.<a href="#section-9.2-7" class="pilcrow">¶</a></p>
+<p id="section-9.2-8">As mentioned in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2.2" class="relref">Section 2.2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span>, Origins <span class="bcp14">MUST</span> implement double-spend prevention that prevents a token with the same nonce from being redeemed twice.
+With ACT, the Origin <span class="bcp14">MUST</span> check that the nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier
+for use in future double-spending checks.
 To reduce the overhead of performing double spend checks, the Origin <span class="bcp14">MAY</span> store and
-look up the nullifiers corresponding to the associated request_context value.<a href="#section-9.2-7" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-9.2-8">
+look up the nullifiers corresponding to the associated request_context value.<a href="#section-9.2-8" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-9.2-9">
 <pre>
 struct {
     uint8_t refund[Nrefund];
 } Refund;
-</pre><a href="#section-9.2-8" class="pilcrow">¶</a>
+</pre><a href="#section-9.2-9" class="pilcrow">¶</a>
 </div>
-<p id="section-9.2-9">The Origin sends the refund back to the client encoded as the above <code>Refund</code> struct.<a href="#section-9.2-9" class="pilcrow">¶</a></p>
+<p id="section-9.2-10">The Origin sends the refund back to the client encoded as the above <code>Refund</code> struct.<a href="#section-9.2-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="new-credential-from-refund">
@@ -2087,10 +2106,10 @@ and unlinkability guarantees, are analyzed in <span>[<a href="#ACT" class="cite 
         <h3 id="name-double-spend-prevention">
 <a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-double-spend-prevention" class="section-name selfRef">Double-Spend Prevention</a>
         </h3>
-<p id="section-10.2-1"><span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2.2" class="relref">Section 2.2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span> specifies double spending requirements that Origin <span class="bcp14">SHOULD</span>
+<p id="section-10.2-1"><span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2.2" class="relref">Section 2.2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span> specifies double spending requirements that Origin <span class="bcp14">MUST</span>
 follow.<a href="#section-10.2-1" class="pilcrow">¶</a></p>
 <p id="section-10.2-2">For ACT, the double-spend prevention mechanism relies on Origins maintaining
-state to track nullifiers. As described in <a href="#refund" class="auto internal xref">Section 9.2</a>, Origins <span class="bcp14">SHOULD</span> check that a nullifier
+state to track nullifiers. As described in <a href="#refund" class="auto internal xref">Section 9.2</a>, Origins <span class="bcp14">MUST</span> check that a nullifier
 has not been previously seen before accepting a spend proof. This check is critical for
 preventing credential reuse attacks.<a href="#section-10.2-2" class="pilcrow">¶</a></p>
 <p id="section-10.2-3">The nullifier space is large (32 bytes), making random collisions computationally
