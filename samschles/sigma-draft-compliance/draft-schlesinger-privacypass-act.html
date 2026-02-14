@@ -1193,7 +1193,7 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.<a href="#section-abs
             <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-configuration" class="internal xref">Configuration</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
-                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-request-context-extension" class="internal xref">Request Context Extension</a></p>
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-request-context" class="internal xref">Request Context</a></p>
 </li>
             </ul>
 </li>
@@ -1365,10 +1365,15 @@ network byte order.<a href="#section-3-4" class="pilcrow">¶</a></p>
 <p id="section-3-7">The <code>concat(a, b, ...)</code> function denotes length-prefixed concatenation,
 where each input is prefixed with a 2-byte big-endian length. This ensures
 unambiguous parsing of the concatenated result.<a href="#section-3-7" class="pilcrow">¶</a></p>
-<p id="section-3-8">Note: This document uses the term "credential" to refer to what the ACT
+<p id="section-3-8">The <code>HashToScalar(msg)</code> function hashes a byte string to a Scalar using
+the suite's extendable-output function (SHAKE128 for the ristretto255 suite):
+squeeze 64 bytes from <code>SHAKE128(msg)</code> and reduce modulo the group order <code>q</code>.
+This matches the scalar derivation used by the <code>SeededPRNG</code> construction in
+<span>[<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-3-8" class="pilcrow">¶</a></p>
+<p id="section-3-9">Note: This document uses the term "credential" to refer to what the ACT
 specification <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> calls a "token" (the cryptographic object containing a
 BBS signature and associated data). The term "Token" in this document refers
-to the Privacy Pass Token structure presented to Origins.<a href="#section-3-8" class="pilcrow">¶</a></p>
+to the Privacy Pass Token structure presented to Origins.<a href="#section-3-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="overview">
@@ -1557,8 +1562,8 @@ This enforces a strict serialization of operations per credential chain.<a href=
                 <text x="132" y="244">(New</text>
                 <text x="196" y="244">credential</text>
                 <text x="260" y="244">with</text>
-                <text x="308" y="244">N-cost</text>
-                <text x="372" y="244">credits)</text>
+                <text x="316" y="244">N-cost+t</text>
+                <text x="388" y="244">credits)</text>
               </g>
             </svg><a href="#section-5.2-2.1" class="pilcrow">¶</a>
 </div>
@@ -1576,9 +1581,10 @@ blocked waiting for a refund response.<a href="#section-5.2-4.2.1" class="pilcro
 </li>
           <li class="normal" id="section-5.2-4.3">
             <p id="section-5.2-4.3.1"><strong>Refunded</strong>: Client has received a valid refund and constructed a new credential
-with the remaining balance. If the new balance is greater than 0, the client
-returns to the Initial state with the new credential. If the balance is 0, the
-credential is exhausted.<a href="#section-5.2-4.3.1" class="pilcrow">¶</a></p>
+with balance <code>m + t</code>, where <code>m = N - cost</code> is the remaining balance after spending
+and <code>t</code> is the partial return amount from the Origin (<code>0 &lt;= t &lt;= cost</code>). If the
+new balance is greater than 0, the client returns to the Initial state with the
+new credential. If the balance is 0, the credential is exhausted.<a href="#section-5.2-4.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-5.2-5">The transition from Spent to Refunded may fail if the origin does not provide a
@@ -1690,53 +1696,47 @@ skI, pkI = KeyGen(G, rng)
 SHA-256 hash of the Issuer Public Key, i.e., <code>issuer_key_id = SHA-256(pkI_serialized)</code>,
 where <code>pkI_serialized</code> is the serialized version of <code>pkI</code> using <code>SerializeElement</code>
 as described in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-6.1" class="relref">Section 6.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6-4" class="pilcrow">¶</a></p>
-<div id="request-context-extension">
+<div id="request-context">
 <section id="section-6.1">
-        <h3 id="name-request-context-extension">
-<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-request-context-extension" class="section-name selfRef">Request Context Extension</a>
+        <h3 id="name-request-context">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-request-context" class="section-name selfRef">Request Context</a>
         </h3>
 <p id="section-6.1-1">This Privacy Pass integration binds credentials to application-specific contexts
 using a <code>request_context</code> parameter. This approach is inspired by the Anonymous
 Rate-Limited Credentials (ARC) protocol <span>[<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>, which threads a similar
 context parameter through its cryptographic operations for domain separation.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
-<p id="section-6.1-2">IMPORTANT: The current CFRG ACT specification <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> does not include
-<code>request_context</code> parameters in its cryptographic functions. To support the
-Privacy Pass integration described in this document, the ACT specification would
-need to be extended with the following changes:<a href="#section-6.1-2" class="pilcrow">¶</a></p>
+<p id="section-6.1-2">The ACT specification <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> includes <code>request_context</code> as a first-class parameter
+(<code>ctx</code>) in the following cryptographic functions:<a href="#section-6.1-2" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-6.1-3">
 <li id="section-6.1-3.1">
             <p id="section-6.1-3.1.1"><strong>IssueRequest</strong>: No changes needed - the client generates a blinded commitment
 without knowledge of the final context binding.<a href="#section-6.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-6.1-3.2">
-            <p id="section-6.1-3.2.1"><strong>IssueResponse</strong>: Add <code>request_context</code> as an input parameter alongside the
-credit amount <code>c</code>. The issuer determines the appropriate context based on its
-policy (e.g., derived from TokenChallenge fields) and binds the credential to
-this context. The function would hash the context into a scalar and include it
-in the credential signature, similar to how ARC hashes <code>requestContext</code> into <code>m2</code>.<a href="#section-6.1-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-6.1-3.2.1"><strong>IssueResponse</strong>: Takes <code>request_context</code> as the <code>ctx</code> input parameter alongside
+the credit amount <code>c</code>. The issuer determines the appropriate context based on its
+policy (e.g., derived from TokenChallenge fields), hashes it to a scalar using
+<code>HashToScalar</code>, and binds the credential to this context via the BBS signature.<a href="#section-6.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-6.1-3.3">
-            <p id="section-6.1-3.3.1"><strong>VerifyAndRefund</strong>: Add <code>request_context</code> as an input parameter to verify
-that the spend proof is bound to the correct application context. The issuer
-reconstructs the context from the TokenChallenge and uses it during verification.<a href="#section-6.1-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-6.1-3.3.1"><strong>VerifyAndRefund</strong>: The <code>request_context</code> is revealed in the clear as part of
+the <code>SpendProof</code> structure. The verifier extracts it from the spend proof and
+checks that it matches the expected application context reconstructed from the
+TokenChallenge.<a href="#section-6.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-6.1-3.4">
-            <p id="section-6.1-3.4.1"><strong>Credential Structure</strong>: The Anonymous Credit Token structure would be extended
-to include the context-bound component within the BBS signature, analogous to
-how ARC credentials include <code>m2</code> for presentation context binding.<a href="#section-6.1-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-6.1-3.4.1"><strong>Credential Structure</strong>: The Anonymous Credit Token structure includes the
+context-bound component (<code>ctx</code>) within the BBS signature.<a href="#section-6.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 <p id="section-6.1-4">The key insight is that <code>request_context</code> is determined by the issuer (like the
 credit amount), not by the client. The issuer sets the context during IssueResponse
-based on the TokenChallenge requirements, and both parties reconstruct it from
-TokenChallenge fields during spending.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
-<p id="section-6.1-5">Until these extensions are incorporated into the CFRG ACT specification, the
-function calls in this document should be understood as describing the intended
-behavior with request_context support. Implementations <span class="bcp14">SHOULD</span> coordinate with
-the CFRG ACT specification authors to ensure compatibility.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
-<p id="section-6.1-6">For reference on how request context threading works in practice, see
+based on the TokenChallenge requirements. During spending, the context is revealed
+in the spend proof, allowing the verifier to confirm that the credential was bound
+to the correct application context.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
+<p id="section-6.1-5">For reference on how request context threading works in practice, see
 <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-01#section-3" class="relref">Section 3</a> of [<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>, which demonstrates the pattern of binding credentials
-to application-specific contexts through cryptographic commitments.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
+to application-specific contexts through cryptographic commitments.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1925,16 +1925,17 @@ the Issuer.<a href="#section-8.2-2.2.1" class="pilcrow">¶</a></p>
 TokenRequest.encoded_request according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.1" class="relref">Section 4.1.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>, yielding <code>request</code>.
 If this fails, the Issuer <span class="bcp14">MUST</span> return an HTTP 422 (Unprocessable Content)
 error to the client. Otherwise, if the Issuer is willing to produce a credential
-for the Client, the Issuer determines both the number of initial credits and the
-request_context based on its policy (e.g., based on attestation results, payment
-verification, or TokenChallenge requirements). The request_context binds the
-credential to the specific application context:<a href="#section-8.2-4" class="pilcrow">¶</a></p>
+for the Client, the Issuer determines the number of initial credits based on its
+policy (e.g., based on attestation results, payment verification, or
+TokenChallenge requirements). The request_context is derived from the
+TokenChallenge fields and hashed to a scalar for the <code>ctx</code> parameter:<a href="#section-8.2-4" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.2-5">
 <pre>
-request_context = concat(tokenChallenge.issuer_name,
+context_input = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
+request_context = HashToScalar(context_input)
 response = IssueResponse(skI, request, initial_credits, request_context, rng)
 </pre><a href="#section-8.2-5" class="pilcrow">¶</a>
 </div>
@@ -2042,7 +2043,8 @@ as defined in <a href="#setup" class="auto internal xref">Section 6</a>.<a href=
           <li class="normal" id="section-9.1-7.4">
             <p id="section-9.1-7.4.1">"encoded_spend_proof" is a variable-length field containing the serialized
 <code>spend_proof</code> value as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.3" class="relref">Section 4.1.3</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>. The spend proof contains
-the nullifier (field 1) and spend amount (field 2), among other cryptographic values.<a href="#section-9.1-7.4.1" class="pilcrow">¶</a></p>
+the nullifier (field 1), spend amount (field 2), and request context (field 3),
+among other cryptographic values.<a href="#section-9.1-7.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2058,37 +2060,50 @@ Origin then extracts the relevant fields from the spend proof:<a href="#section-
 <div class="alignLeft art-text artwork" id="section-9.2-2">
 <pre>
 // Extract fields from SpendProofMsg (see Section 4.1.3 of ACT)
-nullifier = spend_proof.k      // Field 1: nullifier (32 bytes)
-spend_amount = spend_proof.s   // Field 2: spend amount (32 bytes)
+nullifier = spend_proof.k        // Field 1: nullifier (32 bytes)
+spend_amount = spend_proof.s     // Field 2: spend amount (32 bytes)
+request_context = spend_proof.ctx // Field 3: request context (32 bytes)
 </pre><a href="#section-9.2-2" class="pilcrow">¶</a>
 </div>
 <p id="section-9.2-3">The Origin <span class="bcp14">SHOULD</span> verify that the spend_amount matches the requested cost from
 TokenChallenge to ensure the client is spending the expected amount.<a href="#section-9.2-3" class="pilcrow">¶</a></p>
-<p id="section-9.2-4">To verify the Token and issue a refund, the Origin constructs the request_context
-and invokes VerifyAndRefund:<a href="#section-9.2-4" class="pilcrow">¶</a></p>
+<p id="section-9.2-4">The Origin <span class="bcp14">SHOULD</span> also verify that the <code>request_context</code> revealed in the spend
+proof matches the expected context derived from the TokenChallenge:<a href="#section-9.2-4" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-9.2-5">
 <pre>
-request_context = concat(tokenChallenge.issuer_name,
+context_input = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
-refund = VerifyAndRefund(skI, spend_proof, request_context, rng)
+expected_context = HashToScalar(context_input)
 </pre><a href="#section-9.2-5" class="pilcrow">¶</a>
 </div>
-<p id="section-9.2-6">This function returns the <code>refund</code> serialized according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.4" class="relref">Section 4.1.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> if the spend proof is valid, and nil otherwise.<a href="#section-9.2-6" class="pilcrow">¶</a></p>
-<p id="section-9.2-7">As mentioned in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2.2" class="relref">Section 2.2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span>, Origins <span class="bcp14">SHOULD</span> implement some form of double-spend prevention that prevents a token with the same nonce from being redeemed twice.
+<p id="section-9.2-6">If <code>request_context != expected_context</code>, the Origin <span class="bcp14">MUST</span> reject the spend proof.<a href="#section-9.2-6" class="pilcrow">¶</a></p>
+<p id="section-9.2-7">To verify the Token and issue a refund, the Origin invokes VerifyAndRefund with
+the partial return amount <code>t</code>. The parameter <code>t</code> specifies how many of the spent
+credits to return to the client. Setting <code>t = 0</code> means no partial return (the
+Origin keeps the full spend amount), while <code>t &gt; 0</code> returns that many credits back
+to the client. The value of <code>t</code> <span class="bcp14">MUST</span> satisfy <code>0 &lt;= t &lt;= spend_amount</code>:<a href="#section-9.2-7" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-9.2-8">
+<pre>
+refund = VerifyAndRefund(skI, spend_proof, t, rng)
+</pre><a href="#section-9.2-8" class="pilcrow">¶</a>
+</div>
+<p id="section-9.2-9">This function returns the <code>refund</code> serialized according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.4" class="relref">Section 4.1.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> if the spend proof is valid, and nil otherwise. The request_context is extracted directly from the spend proof during verification, so the Origin does not need to pass it separately.<a href="#section-9.2-9" class="pilcrow">¶</a></p>
+<p id="section-9.2-10">As mentioned in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2.2" class="relref">Section 2.2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span>, Origins <span class="bcp14">SHOULD</span> implement some form of double-spend prevention that prevents a token with the same nonce from being redeemed twice.
 With ACT, the Origin <span class="bcp14">SHOULD</span> check that the nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier
 for use in future double-spending checks.
 To reduce the overhead of performing double spend checks, the Origin <span class="bcp14">MAY</span> store and
-look up the nullifiers corresponding to the associated request_context value.<a href="#section-9.2-7" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-9.2-8">
+look up the nullifiers corresponding to the associated request_context value
+(which is extracted from the spend proof).<a href="#section-9.2-10" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-9.2-11">
 <pre>
 struct {
     opaque refund&lt;1..2^16-1&gt;;
 } Refund;
-</pre><a href="#section-9.2-8" class="pilcrow">¶</a>
+</pre><a href="#section-9.2-11" class="pilcrow">¶</a>
 </div>
-<p id="section-9.2-9">The Origin sends the refund back to the client encoded as the above <code>Refund</code> struct.<a href="#section-9.2-9" class="pilcrow">¶</a></p>
+<p id="section-9.2-12">The Origin sends the refund back to the client encoded as the above <code>Refund</code> struct.<a href="#section-9.2-12" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="new-credential-from-refund">
@@ -2103,7 +2118,13 @@ so, clients invoke the <code>ConstructRefundToken</code> function from <span><a 
 credential = ConstructRefundToken(pkI, spend_proof, refund, state)
 </pre><a href="#section-9.3-2" class="pilcrow">¶</a>
 </div>
-<p id="section-9.3-3">The client then uses this new credential instance for subsequent spend operations.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
+<p id="section-9.3-3">The resulting credential has a balance of <code>new_balance = m + t</code>, where <code>m</code> is
+the remaining balance after the spend (i.e., <code>m = original_balance - cost</code>) and
+<code>t</code> is the partial return amount specified by the Origin during <code>VerifyAndRefund</code>.
+When <code>t = 0</code> (the default), the new credential balance equals <code>m</code>, which is the
+original balance minus the full spend amount. When <code>t &gt; 0</code>, the client receives
+<code>t</code> credits back, resulting in a higher balance on the new credential.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
+<p id="section-9.3-4">The client then uses this new credential instance for subsequent spend operations.<a href="#section-9.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
