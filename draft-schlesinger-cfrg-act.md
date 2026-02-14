@@ -380,7 +380,8 @@ an instance of the protocol.
 It ensures cryptographic separation between different ACT instances.
 - `L` is the bit length for representing credit values, such
 that `L <= MAX_BIT_LENGTH`, where `MAX_BIT_LENGTH` is defined per suite.
-- `H1`, `H2`, `H3` are auxiliary group generators used for commitments.
+- `H1`, `H2`, `H3`, `H4` are auxiliary group generators used for commitments.
+`H4` is the fourth generator point used for request_context binding.
 The {{SetGenerators}}{:format="title"} function deterministically
 generates them through hashing.
 The discrete-logarithm relations between these generators and the main generator MUST NOT be known to any party.
@@ -392,20 +393,22 @@ SetGenerators(G, domain_separator):
     - G: Group.
     - domain_separator: Byte Array.
   Output:
-    - H1, H2, H3: Group Element.
+    - H1, H2, H3, H4: Group Element.
 
   Steps:
     1. G0 = G.Generator()
-    2. H1, H2, H3 = [G0]*3
+    2. H1, H2, H3, H4 = [G0]*4
     3. counter = 0
-    4. while H1 == G0 or H2 == G0 or H3 == G0 or
-            H1 == H2 or H1 == H3 or H2 == H3:
+    4. while H1 == G0 or H2 == G0 or H3 == G0 or H4 == G0 or
+            H1 == H2 or H1 == H3 or H1 == H4 or
+            H2 == H3 or H2 == H4 or H3 == H4:
     5.   ctr = I2OSP(counter, 1)
     6.   H1 = G.HashToGroup("GenH1" || ctr || domain_separator)
     7.   H2 = G.HashToGroup("GenH2" || ctr || domain_separator)
     8.   H3 = G.HashToGroup("GenH3" || ctr || domain_separator)
-    9.   counter += 1
-   10. return H1, H2, H3
+    9.   H4 = G.HashToGroup("GenH4" || ctr || domain_separator)
+   10.   counter += 1
+   11. return H1, H2, H3, H4
 ~~~
 {: #SetGenerators }
 
@@ -492,11 +495,12 @@ IssueRequest(rng):
 ### Issuer: Issuance Response
 
 ~~~
-IssueResponse(sk, request, c, rng):
+IssueResponse(sk, request, c, ctx, rng):
   Input:
     - sk: Issuer's private key
     - request: Client's issuance request
     - c: Credit amount to issue (c >= 0)
+    - ctx: Request context scalar
     - rng: PRNG.
   Output:
     - response: Issuance response
@@ -513,20 +517,20 @@ IssueResponse(sk, request, c, rng):
     6. if not verifier.verify(pok):
     7.     raise InvalidIssuanceRequestProof
 
-    // Create BBS signature on (c, k, r)
+    // Create BBS signature on (c, ctx, k, r)
     8. e <- Zq
-    9. X_A = G + H1 * c + K    // K = H2 * k + H3 * r
+    9. X_A = G + H1 * c + H4 * ctx + K    // K = H2 * k + H3 * r
    10. A = X_A * (1/(e + sk))
    11. X_G = G * (e + sk)
 
    // Generate proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G * (e+sk)
    12. statement = LinearRelation(group)
    13. append_dleq(statement, A, G, X_A, X_G)
-   14. session_id = domain_separator + "respond"
+   14. session_id = domain_separator + "respond" + Encode(c) + Encode(ctx)
    15. prover = NISigmaProtocol(session_id, statement)
    16. witness = [e + sk]
    17. pok = prover.prove(witness, rng)
-   18. response = (A, e, c, pok)
+   18. response = (A, e, c, ctx, pok)
    19. return response
 ~~~
 
@@ -544,19 +548,19 @@ VerifyIssuance(pk, response, state):
     - InvalidIssuanceResponseProof, raised when the server proof verification fails
 
   Steps:
-    1. Parse response as (A, e, c, pok)
+    1. Parse response as (A, e, c, ctx, pok)
     2. Parse state as (k, r, K)
 
     // Verify proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G * (e+sk)
-    3. X_A = G + H1 * c + K
+    3. X_A = G + H1 * c + H4 * ctx + K
     4. X_G = G * e + pk
     5. statement = LinearRelation(group)
     6. append_dleq(statement, A, G, X_A, X_G)
-    7. session_id = domain_separator + "respond"
+    7. session_id = domain_separator + "respond" + Encode(c) + Encode(ctx)
     8. verifier = NISigmaProtocol(session_id, statement)
     9. if not verifier.verify(pok):
    10.     raise InvalidIssuanceResponseProof
-   11. token = (A, e, k, r, c)
+   11. token = (A, e, k, r, c, ctx)
    12. return token
 ~~~
 
@@ -570,7 +574,7 @@ containing c credits (where 0 <= s <= c):
 ~~~
 ProveSpend(token, s, rng):
   Input:
-    - token: Credit token (A, e, k, r, c)
+    - token: Credit token (A, e, k, r, c, ctx)
     - s: Amount to spend (0 <= s <= c)
     - rng: PRNG.
   Output:
@@ -580,7 +584,7 @@ ProveSpend(token, s, rng):
   Steps:
     // Randomize the signature
     1. r1, r2 <- Zq
-    2. B = G + H1 * c + H2 * k + H3 * r
+    2. B = G + H1 * c + H2 * k + H3 * r + H4 * ctx
     3. A' = A * (r1 * r2)
     4. B_bar = B * r1
     5. r3 = 1/r1
@@ -597,7 +601,7 @@ ProveSpend(token, s, rng):
 
     // Compute derived public values
    14. A_bar = B_bar * r2 - A' * e  // Equivalent to A' * sk
-   15. H1_prime = G + H2 * k
+   15. H1_prime = G + H2 * k + H4 * ctx
    16. For j = 0 to L-1:
    17.     s2[j] = (1 - b[j]) * s_com[j]
    18. k2 = (1 - b[0]) * kstar
@@ -621,7 +625,7 @@ ProveSpend(token, s, rng):
    26. statement.append_equation(H1p_var,
          [(r3_var, B_bar_var), (c_var, negH1_var), (r_var, negH3_var)])
    27. statement.set_elements([(negH1_var, -H1),
-         (negH3_var, -H3), (H1p_var, G + H2 * k)])
+         (negH3_var, -H3), (H1p_var, G + H2 * k + H4 * ctx)])
 
     // Eqs 3..2+2L: Range proof (2L equations)
    28. (b_vars, s_com_vars, s2_vars, kstar_var, k2_var) =
@@ -650,47 +654,54 @@ ProveSpend(token, s, rng):
    42. witness += [kstar, k2]
 
     // Generate non-interactive proof
-   43. session_id = domain_separator + "spend"
+   43. session_id = domain_separator + "spend" + Encode(k) + Encode(ctx)
    44. prover = NISigmaProtocol(session_id, statement)
    45. pok = prover.prove(witness, rng)
 
     // Construct output
    46. r_star = Sum(s_com[j] * 2^j for j in [L])
-   47. proof = (k, s, A', B_bar, Com, pok)
-   48. state = (kstar, r_star, m)
+   47. proof = (k, s, ctx, A', B_bar, Com, pok)
+   48. state = (kstar, r_star, m, ctx)
    49. return (proof, state)
 ~~~
 
 ### Issuer: Spend Verification and Refund
 
 ~~~
-VerifyAndRefund(sk, proof, rng):
+VerifyAndRefund(sk, proof, t, rng):
   Input:
     - sk: Issuer's private key
     - proof: Client's spend proof
+    - t: Partial refund amount (0 <= t <= s)
     - rng: PRNG.
   Output:
     - refund: Refund for remaining credits
   Exceptions:
     - DoubleSpendError: raised when the nullifier has been used before
     - InvalidSpendProof: raised when the spend proof verification fails
+    - InvalidRefundAmount: raised when t > s or t does not fit in L bits
 
   Steps:
-    1. Parse proof and extract nullifier k
-    // The following steps (2-7) MUST be performed atomically
+    1. Parse proof and extract nullifier k, spend amount s, and ctx
+    // Validate refund amount
+    2. if t > s:
+    3.     raise InvalidRefundAmount
+    4. if t >= 2^L:
+    5.     raise InvalidRefundAmount
+    // The following steps (6-11) MUST be performed atomically
     // to prevent double-spending via race conditions.
-    2. // Check nullifier hasn't been used
-    3. if k in used_nullifiers:
-    4.     raise DoubleSpendError
+    6. // Check nullifier hasn't been used
+    7. if k in used_nullifiers:
+    8.     raise DoubleSpendError
     // Verify the proof; raises IdentityPointError or
     // InvalidClientSpendProof on failure (see VerifySpendProof)
-    5. VerifySpendProof(sk, proof)
-    6. // Record nullifier
-    7. used_nullifiers.add(k)
-    8. // Issue refund for remaining balance
-    9. K' = Sum(Com[j] * 2^j for j in [L])
-   10. refund = IssueRefund(sk, K', rng)
-   11. return refund
+    9. VerifySpendProof(sk, proof)
+   10. // Record nullifier
+   11. used_nullifiers.add(k)
+   12. // Issue refund for remaining balance
+   13. K' = Sum(Com[j] * 2^j for j in [L])
+   14. refund = IssueRefund(sk, K', t, ctx, rng)
+   15. return refund
 ~~~
 
 ### Refund Issuance {#refund-issuance}
@@ -699,10 +710,12 @@ After verifying a spend proof, the issuer creates a refund token for the
 remaining balance:
 
 ~~~
-IssueRefund(sk, K', rng):
+IssueRefund(sk, K', t, ctx, rng):
   Input:
     - sk: Issuer's private key
     - K': Commitment to remaining balance and new nullifier
+    - t: Partial refund amount
+    - ctx: Request context scalar
     - rng: PRNG.
   Output:
     - refund: Refund response
@@ -710,18 +723,18 @@ IssueRefund(sk, K', rng):
   Steps:
     // Create new BBS signature on remaining balance
     1. e <- Zq
-    2. X_A = G + K'
+    2. X_A = G + K' + H1 * t + H4 * ctx
     3. A = X_A * (1/(e + sk))
     4. X_G = G * (e + sk)
 
     // Generate proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G * (e + sk)
     5. statement = LinearRelation(group)
     6. append_dleq(statement, A, G, X_A, X_G)
-    7. session_id = domain_separator + "refund"
+    7. session_id = domain_separator + "refund" + Encode(e) + Encode(t) + Encode(ctx)
     8. prover = NISigmaProtocol(session_id, statement)
     9. witness = [e + sk]
    10. pok = prover.prove(witness, rng)
-   11. refund = (A, e, pok)
+   11. refund = (A, e, t, pok)
    12. return refund
 ~~~
 
@@ -735,32 +748,44 @@ ConstructRefundToken(pk, spend_proof, refund, state):
     - pk: Issuer's public key
     - spend_proof: The spend proof sent to issuer
     - refund: Issuer's refund response
-    - state: Client state (k*, r*, m)
+    - state: Client state (k*, r*, m, ctx)
   Output:
     - token: New credit token or INVALID
   Exceptions:
     - InvalidRefundProof: When the refund proof verification fails
+    - InvalidRefundAmount: When t does not fit in L bits or m+t does not fit in L bits
 
   Steps:
-    1. Parse refund as (A, e, pok)
-    2. Parse state as (k*, r*, m)
+    1. Parse refund as (A, e, t, pok)
+    2. Parse state as (k*, r*, m, ctx)
+
+    // Validate t fits in L bits
+    3. if t >= 2^L:
+    4.     raise InvalidRefundAmount
+
+    // Compute new balance
+    5. new_balance = m + t
+
+    // Validate new balance fits in L bits
+    6. if new_balance >= 2^L:
+    7.     raise InvalidRefundAmount
 
     // Reconstruct commitment
-    3. K' = Sum(spend_proof.Com[j] * 2^j for j in [L])
-    4. X_A = G + K'
-    5. X_G = G * e + pk
+    8. K' = Sum(spend_proof.Com[j] * 2^j for j in [L])
+    9. X_A = G + K' + H1 * t + H4 * ctx
+   10. X_G = G * e + pk
 
     // Verify proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G * (e + sk)
-    6. statement = LinearRelation(group)
-    7. append_dleq(statement, A, G, X_A, X_G)
-    8. session_id = domain_separator + "refund"
-    9. verifier = NISigmaProtocol(session_id, statement)
-   10. if not verifier.verify(pok):
-   11.     raise InvalidRefundProof
+   11. statement = LinearRelation(group)
+   12. append_dleq(statement, A, G, X_A, X_G)
+   13. session_id = domain_separator + "refund" + Encode(e) + Encode(t) + Encode(ctx)
+   14. verifier = NISigmaProtocol(session_id, statement)
+   15. if not verifier.verify(pok):
+   16.     raise InvalidRefundProof
 
    // Construct new token
-   12. token = (A, e, k*, r*, m)
-   13. return token
+   17. token = (A, e, k*, r*, new_balance, ctx)
+   18. return token
 ~~~
 
 ### Spend Proof Verification {#spend-verification}
@@ -777,7 +802,7 @@ VerifySpendProof(sk, proof):
     - InvalidClientSpendProof: raised when the proof verification fails
 
   Steps:
-    1. Parse proof as (k, s, A', B_bar, Com, pok)
+    1. Parse proof as (k, s, ctx, A', B_bar, Com, pok)
 
     // Check A' is not identity
     2. if A' == Identity:
@@ -785,7 +810,7 @@ VerifySpendProof(sk, proof):
 
     // Compute issuer's view
     4. A_bar = A' * sk
-    5. H1_prime = G + H2 * k
+    5. H1_prime = G + H2 * k + H4 * ctx
     6. Com_total = H1 * s + Sum(Com[j] * 2^j for j in [L])
 
     // Build the same LinearRelation as ProveSpend
@@ -823,7 +848,7 @@ VerifySpendProof(sk, proof):
    24. statement.append_equation(Com_total_var, terms)
 
     // Verify non-interactive proof
-   25. session_id = domain_separator + "spend"
+   25. session_id = domain_separator + "spend" + Encode(k) + Encode(ctx)
    26. verifier = NISigmaProtocol(session_id, statement)
    27. if not verifier.verify(pok):
    28.     raise InvalidClientSpendProof
@@ -937,6 +962,7 @@ struct {
     opaque A[Ne];         /* Compressed Ristretto point, Ne bytes */
     opaque e[Ns];         /* Scalar, Ns bytes */
     opaque c[Ns];         /* Scalar, Ns bytes */
+    opaque ctx[Ns];       /* Request context scalar, Ns bytes */
     opaque pok<1..2^16-1>; /* NISigmaProtocol proof */
 } IssuanceResponseMsg;
 ~~~
@@ -947,6 +973,7 @@ struct {
 struct {
     opaque k[Ns];           /* Nullifier scalar, Ns bytes */
     opaque s[Ns];           /* Spend amount scalar, Ns bytes */
+    opaque ctx[Ns];         /* Request context scalar, Ns bytes */
     opaque A_prime[Ne];     /* Compressed Ristretto point, Ne bytes */
     opaque B_bar[Ne];       /* Compressed Ristretto point, Ne bytes */
     opaque Com[L][Ne];      /* L compressed Ristretto points */
@@ -960,6 +987,7 @@ struct {
 struct {
     opaque A_star[Ne];    /* Compressed Ristretto point, Ne bytes */
     opaque e_star[Ns];    /* Scalar, Ns bytes */
+    opaque t[Ns];         /* Partial refund amount scalar, Ns bytes */
     opaque pok<1..2^16-1>; /* NISigmaProtocol proof */
 } RefundMsg;
 ~~~
@@ -1110,12 +1138,12 @@ handles all proof generation and verification.
 
 | Component | Size |
 |-----------|------|
-| Token size | 160 bytes (5 × 32 bytes) |
-| Spend proof size | 32 × (4L + 12) + 2 bytes |
+| Token size | 192 bytes (6 × 32 bytes) |
+| Spend proof size | 32 × (4L + 13) + 2 bytes |
 | Nullifier database entry | 32 bytes per spent token |
 
 Note: Token size is independent of L. The spend proof contains
-`k`, `s`, `A'`, `B_bar` (4 × 32 bytes), `Com[0..L-1]` (L × 32 bytes),
+`k`, `s`, `ctx`, `A'`, `B_bar` (5 × 32 bytes), `Com[0..L-1]` (L × 32 bytes),
 and the compact `pok` output from `NISigmaProtocol` which encodes
 a challenge scalar and `3L + 7` response scalars,
 prefixed by a 2-byte length field.
@@ -1476,7 +1504,7 @@ This glossary provides quick definitions of key terms used throughout this docum
 
 **Sigma Protocol**: An interactive zero-knowledge proof protocol following a commit-challenge-response pattern.
 
-**Token**: A cryptographic credential containing a BBS signature and associated data (A, e, k, r, c).
+**Token**: A cryptographic credential containing a BBS signature and associated data (A, e, k, r, c, ctx).
 
 **Unlinkability**: The property that transactions cannot be correlated with each other or with token issuance.
 
