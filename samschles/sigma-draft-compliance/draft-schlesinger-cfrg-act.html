@@ -2884,7 +2884,7 @@ handles all proof generation and verification.<a href="#section-5.6.1-1" class="
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">Spend proof size</td>
-                <td class="text-left" rowspan="1" colspan="1">32 × (6L + 14) + 2 bytes</td>
+                <td class="text-left" rowspan="1" colspan="1">32 × (4L + 12) + 2 bytes</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">Nullifier database entry</td>
@@ -2894,8 +2894,8 @@ handles all proof generation and verification.<a href="#section-5.6.1-1" class="
           </table>
 <p id="section-5.6.1-4">Note: Token size is independent of L. The spend proof contains
 <code>k</code>, <code>s</code>, <code>A'</code>, <code>B_bar</code> (4 × 32 bytes), <code>Com[0..L-1]</code> (L × 32 bytes),
-and the <code>pok</code> output from <code>NISigmaProtocol</code> which encodes
-<code>2L + 3</code> first-round group elements and <code>3L + 7</code> response scalars,
+and the compact <code>pok</code> output from <code>NISigmaProtocol</code> which encodes
+a challenge scalar and <code>3L + 7</code> response scalars,
 prefixed by a 2-byte length field.<a href="#section-5.6.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
