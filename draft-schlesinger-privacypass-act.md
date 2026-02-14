@@ -301,7 +301,7 @@ The Issuer Public Key ID, denoted `issuer_key_id`, is computed as the
 SHA-256 hash of the Issuer Public Key, i.e., `issuer_key_id = SHA-256(pkI_serialized)`,
 where `pkI_serialized` is the serialized version of `pkI` as described in {{Section 4.1 of ACT}}.
 
-OPEN ISSUE: Coordinate with {{ACT}} specification authors on the serialization format (CBOR vs TLS presentation language) to ensure consistency.
+The serialization format uses the TLS presentation language as specified in {{ACT}}.
 
 ## Request Context Extension {#request-context-extension}
 
@@ -421,7 +421,7 @@ the Client first creates a credential request message using the `IssueRequest`
 function from {{ACT}} as follows:
 
 ~~~
-(clientSecrets, request) = IssueRequest()
+(clientSecrets, request) = IssueRequest(rng)
 ~~~
 
 The Client then creates a TokenRequest structure as follows:
@@ -489,7 +489,7 @@ request_context = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
-response = IssueResponse(skI, request, initial_credits, request_context)
+response = IssueResponse(skI, request, initial_credits, request_context, rng)
 ~~~
 
 The Issuer then creates a TokenResponse structured as follows:
@@ -603,7 +603,7 @@ request_context = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
-refund = VerifyAndRefund(skI, request_context, spend_proof)
+refund = VerifyAndRefund(skI, request_context, spend_proof, rng)
 ~~~
 
 This function returns the `refund` serialized according to {{Section 4.1.4 of ACT}} if the spend proof is valid, and nil otherwise.
