@@ -98,7 +98,7 @@ approaches require tracking client identities and creating detailed
 logs of client behavior, raising significant privacy concerns in an
 era of increasing data protection awareness and regulation.
 
-Anonymous Credit Tokens (ACT) helps to resolve this tension by
+Anonymous Credit Tokens (ACT) help to resolve this tension by
 providing a cryptographic protocol that enables credit-based systems
 without client tracking. Built on keyed-verification anonymous
 credentials {{KVAC}} and privately verifiable BBS-style signatures
@@ -125,11 +125,6 @@ suitable for privacy-preserving credit systems:
 4. **Balance Privacy**: During spending, only the amount being spent
    is revealed, not the total balance in the token, protecting
    clients from balance-based profiling.
-
-5. **Performance**: The protocol's operations are performant enough
-   to make it useful in modern web systems. This protocol has
-   performance characteristics which make it suitable for a large
-   number of applications.
 
 ## Use Cases
 
@@ -171,14 +166,15 @@ interaction follows three main phases:
 
 The protocol is designed with the following goals:
 
-- **Privacy**: The issuer cannot link credit tokens to specific clients or link
-  multiple transactions by the same client.
+- **Privacy**: Unlinkability between issuance and spending; see the Security
+  Properties section for the formal definition.
 
 - **Security**: Clients cannot spend more credits than they possess or use the
   same credits multiple times.
 
-- **Efficiency**: All operations should be computationally efficient, suitable
-  for high-volume web services.
+- **Efficiency**: All operations should be computationally efficient, with
+  performance characteristics suitable for high-volume web services and a
+  large number of applications.
 
 - **Simplicity**: The protocol should be straightforward to implement and
   integrate into existing systems relative to other comparable solutions.
@@ -254,8 +250,11 @@ The protocol requires the following system parameters:
 Parameters:
   - G: Generator of the Ristretto group
   - H1, H2, H3, H4: Additional generators for commitments
-  - L: Bit length for credit values (configurable, must satisfy L <= 128)
+  - L: Bit length for credit values (configurable, must satisfy 1 <= L <= 128)
 ~~~
+
+Implementations MUST enforce 1 <= L <= 128. See the Parameter Selection
+section for the rationale behind this constraint.
 
 The generators H1, H2, H3, and H4 MUST be generated deterministically from a
 nothing-up-my-sleeve value to ensure they are independent of each other and of
@@ -301,6 +300,9 @@ follow this structured format:
 ~~~
 domain_separator = "ACT-v1:" || organization || ":" || service || ":" || deployment_id || ":" || version
 ~~~
+
+Each component (organization, service, deployment_id, version) MUST NOT
+contain the colon character ':'.
 
 Where:
 
@@ -444,23 +446,23 @@ VerifyIssuance(pk, request, response, state):
     2. Parse response as (A, e, gamma_resp, z, c, ctx)
     3. Parse state as (k, r)
     4. // Verify proof
-    6. X_A = G + H1 * c + H4 * ctx + K
-    7. X_G = G * e + pk
-    8. Y_A = A * z - X_A * gamma_resp
-    9. Y_G = G * z - X_G * gamma_resp
-    10. transcript_resp = CreateTranscript("respond")
-    11. AddToTranscript(transcript_resp, c)
-    12. AddToTranscript(transcript_resp, ctx)
-    13. AddToTranscript(transcript_resp, e)
-    14. AddToTranscript(transcript_resp, A)
-    15. AddToTranscript(transcript_resp, X_A)
-    16. AddToTranscript(transcript_resp, X_G)
-    17. AddToTranscript(transcript_resp, Y_A)
-    18. AddToTranscript(transcript_resp, Y_G)
-    19. if GetChallenge(transcript_resp) != gamma_resp:
-    20.     raise InvalidIssuanceResponseProof
-    21. token = (A, e, k, r, c, ctx)
-    22. return token
+    5. X_A = G + H1 * c + H4 * ctx + K
+    6. X_G = G * e + pk
+    7. Y_A = A * z - X_A * gamma_resp
+    8. Y_G = G * z - X_G * gamma_resp
+    9. transcript_resp = CreateTranscript("respond")
+    10. AddToTranscript(transcript_resp, c)
+    11. AddToTranscript(transcript_resp, ctx)
+    12. AddToTranscript(transcript_resp, e)
+    13. AddToTranscript(transcript_resp, A)
+    14. AddToTranscript(transcript_resp, X_A)
+    15. AddToTranscript(transcript_resp, X_G)
+    16. AddToTranscript(transcript_resp, Y_A)
+    17. AddToTranscript(transcript_resp, Y_G)
+    18. if GetChallenge(transcript_resp) != gamma_resp:
+    19.     raise InvalidIssuanceResponseProof
+    20. token = (A, e, k, r, c, ctx)
+    21. return token
 ~~~
 
 ## Token Spending
@@ -488,151 +490,151 @@ ProveSpend(token, s):
     - InvalidAmount: raised when s > c or s >= 2^L or c >= 2^L
 
   Steps:
-    0. // Validate inputs
-    0a. if s >= 2^L:
-    0b.     raise InvalidAmount
-    0c. if c >= 2^L:
-    0d.     raise InvalidAmount
-    0e. if s > c:
-    0f.     raise InvalidAmount
+    1. // Validate inputs
+    2. if s >= 2^L:
+    3.     raise InvalidAmount
+    4. if c >= 2^L:
+    5.     raise InvalidAmount
+    6. if s > c:
+    7.     raise InvalidAmount
 
-    1. // Randomize the signature
-    2. r1, r2 <- Zq
-    3. B = G + H1 * c + H2 * k + H3 * r + H4 * ctx
-    4. A' = A * (r1 * r2)
-    5. B_bar = B * r1
-    6. r3 = 1/r1
+    8. // Randomize the signature
+    9. r1, r2 <- Zq
+    10. B = G + H1 * c + H2 * k + H3 * r + H4 * ctx
+    11. A' = A * (r1 * r2)
+    12. B_bar = B * r1
+    13. r3 = 1/r1
 
-    7. // Generate initial proof components
-    8. c' <- Zq
-    9. r' <- Zq
-    10. e' <- Zq
-    11. r2' <- Zq
-    12. r3' <- Zq
+    14. // Generate initial proof components
+    15. c' <- Zq
+    16. r' <- Zq
+    17. e' <- Zq
+    18. r2' <- Zq
+    19. r3' <- Zq
 
-    13. // Compute first round messages
-    14. A1 = A' * e' + B_bar * r2'
-    15. A2 = B_bar * r3' + H1 * c' + H3 * r'
+    20. // Compute first round messages
+    21. A1 = A' * e' + B_bar * r2'
+    22. A2 = B_bar * r3' + H1 * c' + H3 * r'
 
-    16. // Decompose c - s into bits
-    17. m = c - s
-    18. (i[0], ..., i[L-1]) = BitDecompose(m)  // See Section 3.7
+    23. // Decompose c - s into bits
+    24. m = c - s
+    25. (i[0], ..., i[L-1]) = BitDecompose(m)  // See Section 3.7
 
-    19. // Create commitments for each bit
-    20. k* <- Zq
-    21. s[0] <- Zq
-    22. Com[0] = H1 * i[0] + H2 * k* + H3 * s[0]
-    23. For j = 1 to L-1:
-    24.     s[j] <- Zq
-    25.     Com[j] = H1 * i[j] + H3 * s[j]
+    26. // Create commitments for each bit
+    27. k* <- Zq
+    28. s[0] <- Zq
+    29. Com[0] = H1 * i[0] + H2 * k* + H3 * s[0]
+    30. For j = 1 to L-1:
+    31.     s[j] <- Zq
+    32.     Com[j] = H1 * i[j] + H3 * s[j]
 
-    26. // Initialize range proof arrays
-    27. C = array[L][2]
-    28. C' = array[L][2]
-    29. gamma0 = array[L]
-    30. z = array[L][2]
+    33. // Initialize range proof arrays
+    34. C = array[L][2]
+    35. C' = array[L][2]
+    36. gamma0 = array[L]
+    37. z = array[L][2]
 
-    31. // Process bit 0 (with k* component)
-    32. C[0][0] = Com[0]
-    33. C[0][1] = Com[0] - H1
-    34. k0' <- Zq
-    35. s_prime = array[L]
-    36. s_prime[0] <- Zq
-    37. gamma0[0] <- Zq
-    38. w0 <- Zq
-    39. z[0] <- Zq
+    38. // Process bit 0 (with k* component)
+    39. C[0][0] = Com[0]
+    40. C[0][1] = Com[0] - H1
+    41. k0' <- Zq
+    42. s_prime = array[L]
+    43. s_prime[0] <- Zq
+    44. gamma0[0] <- Zq
+    45. w0 <- Zq
+    46. z[0] <- Zq
 
-    40. if i[0] == 0:
-    41.     C'[0][0] = H2 * k0' + H3 * s_prime[0]
-    42.     C'[0][1] = H2 * w0 + H3 * z[0] - C[0][1] * gamma0[0]
-    43. else:
-    44.     C'[0][0] = H2 * w0 + H3 * z[0] - C[0][0] * gamma0[0]
-    45.     C'[0][1] = H2 * k0' + H3 * s_prime[0]
+    47. if i[0] == 0:
+    48.     C'[0][0] = H2 * k0' + H3 * s_prime[0]
+    49.     C'[0][1] = H2 * w0 + H3 * z[0] - C[0][1] * gamma0[0]
+    50. else:
+    51.     C'[0][0] = H2 * w0 + H3 * z[0] - C[0][0] * gamma0[0]
+    52.     C'[0][1] = H2 * k0' + H3 * s_prime[0]
 
-    46. // Process remaining bits
-    47. For j = 1 to L-1:
-    48.     C[j][0] = Com[j]
-    49.     C[j][1] = Com[j] - H1
-    50.     s_prime[j] <- Zq
-    51.     gamma0[j] <- Zq
-    52.     z[j] <- Zq
-    53.
-    54.     if i[j] == 0:
-    55.         C'[j][0] = H3 * s_prime[j]
-    56.         C'[j][1] = H3 * z[j] - C[j][1] * gamma0[j]
-    57.     else:
-    58.         C'[j][0] = H3 * z[j] - C[j][0] * gamma0[j]
-    59.         C'[j][1] = H3 * s_prime[j]
+    53. // Process remaining bits
+    54. For j = 1 to L-1:
+    55.     C[j][0] = Com[j]
+    56.     C[j][1] = Com[j] - H1
+    57.     s_prime[j] <- Zq
+    58.     gamma0[j] <- Zq
+    59.     z[j] <- Zq
+    60.
+    61.     if i[j] == 0:
+    62.         C'[j][0] = H3 * s_prime[j]
+    63.         C'[j][1] = H3 * z[j] - C[j][1] * gamma0[j]
+    64.     else:
+    65.         C'[j][0] = H3 * z[j] - C[j][0] * gamma0[j]
+    66.         C'[j][1] = H3 * s_prime[j]
 
-    60. // Compute K' commitment
-    61. K' = Sum(Com[j] * 2^j for j in [L])
-    62. r* = Sum(s[j] * 2^j for j in [L])
-    63. k' <- Zq
-    64. s' <- Zq
-    65. C = H1 * (-c') + H2 * k' + H3 * s'
+    67. // Compute K' commitment
+    68. K' = Sum(Com[j] * 2^j for j in [L])
+    69. r* = Sum(s[j] * 2^j for j in [L])
+    70. k' <- Zq
+    71. s' <- Zq
+    72. C_final = H1 * (-c') + H2 * k' + H3 * s'
 
-    66. // Generate challenge using transcript
-    67. transcript = CreateTranscript("spend")
-    68. AddToTranscript(transcript, k)
-    69. AddToTranscript(transcript, ctx)
-    70. AddToTranscript(transcript, A')
-    71. AddToTranscript(transcript, B_bar)
-    72. AddToTranscript(transcript, A1)
-    73. AddToTranscript(transcript, A2)
-    74. For j = 0 to L-1:
-    75.     AddToTranscript(transcript, Com[j])
-    76. For j = 0 to L-1:
-    77.     AddToTranscript(transcript, C'[j][0])
-    78.     AddToTranscript(transcript, C'[j][1])
-    79. AddToTranscript(transcript, C)
-    80. gamma = GetChallenge(transcript)
+    73. // Generate challenge using transcript
+    74. transcript = CreateTranscript("spend")
+    75. AddToTranscript(transcript, k)
+    76. AddToTranscript(transcript, ctx)
+    77. AddToTranscript(transcript, A')
+    78. AddToTranscript(transcript, B_bar)
+    79. AddToTranscript(transcript, A1)
+    80. AddToTranscript(transcript, A2)
+    81. For j = 0 to L-1:
+    82.     AddToTranscript(transcript, Com[j])
+    83. For j = 0 to L-1:
+    84.     AddToTranscript(transcript, C'[j][0])
+    85.     AddToTranscript(transcript, C'[j][1])
+    86. AddToTranscript(transcript, C_final)
+    87. gamma = GetChallenge(transcript)
 
-    81. // Compute responses
-    82. e_bar = -gamma * e + e'
-    83. r2_bar = gamma * r2 + r2'
-    84. r3_bar = gamma * r3 + r3'
-    85. c_bar = -gamma * c + c'
-    86. r_bar = -gamma * r + r'
+    88. // Compute responses
+    89. e_bar = -gamma * e + e'
+    90. r2_bar = gamma * r2 + r2'
+    91. r3_bar = gamma * r3 + r3'
+    92. c_bar = -gamma * c + c'
+    93. r_bar = -gamma * r + r'
 
-    87. // Complete range proof responses
-    88. z_final = array[L][2]
-    89. gamma0_final = array[L]
-    90.
-    91. // For bit 0
-    92. if i[0] == 0:
-    93.     gamma0_final[0] = gamma - gamma0[0]
-    94.     w00 = gamma0_final[0] * k* + k0'
-    95.     w01 = w0
-    96.     z_final[0][0] = gamma0_final[0] * s[0] + s_prime[0]
-    97.     z_final[0][1] = z[0]
-    98. else:
-    99.     gamma0_final[0] = gamma0[0]
-    100.    w00 = w0
-    101.    w01 = (gamma - gamma0_final[0]) * k* + k0'
-    102.    z_final[0][0] = z[0]
-    103.    z_final[0][1] = (gamma - gamma0_final[0]) * s[0] + s_prime[0]
+    94. // Complete range proof responses
+    95. z_final = array[L][2]
+    96. gamma0_final = array[L]
+    97.
+    98. // For bit 0
+    99. if i[0] == 0:
+    100.    gamma0_final[0] = gamma - gamma0[0]
+    101.    w00 = gamma0_final[0] * k* + k0'
+    102.    w01 = w0
+    103.    z_final[0][0] = gamma0_final[0] * s[0] + s_prime[0]
+    104.    z_final[0][1] = z[0]
+    105. else:
+    106.    gamma0_final[0] = gamma0[0]
+    107.    w00 = w0
+    108.    w01 = (gamma - gamma0_final[0]) * k* + k0'
+    109.    z_final[0][0] = z[0]
+    110.    z_final[0][1] = (gamma - gamma0_final[0]) * s[0] + s_prime[0]
 
-    104. // For remaining bits
-    105. For j = 1 to L-1:
-    106.     if i[j] == 0:
-    107.         gamma0_final[j] = gamma - gamma0[j]
-    108.         z_final[j][0] = gamma0_final[j] * s[j] + s_prime[j]
-    109.         z_final[j][1] = z[j]
-    110.     else:
-    111.         gamma0_final[j] = gamma0[j]
-    112.         z_final[j][0] = z[j]
-    113.         z_final[j][1] = (gamma - gamma0_final[j]) * s[j] + s_prime[j]
+    111. // For remaining bits
+    112. For j = 1 to L-1:
+    113.     if i[j] == 0:
+    114.         gamma0_final[j] = gamma - gamma0[j]
+    115.         z_final[j][0] = gamma0_final[j] * s[j] + s_prime[j]
+    116.         z_final[j][1] = z[j]
+    117.     else:
+    118.         gamma0_final[j] = gamma0[j]
+    119.         z_final[j][0] = z[j]
+    120.         z_final[j][1] = (gamma - gamma0_final[j]) * s[j] + s_prime[j]
 
-    114. k_bar = gamma * k* + k'
-    115. s_bar = gamma * r* + s'
+    121. k_bar = gamma * k* + k'
+    122. s_bar = gamma * r* + s'
 
-    116. // Construct proof
-    117. proof = (k, s, ctx, A', B_bar, Com, gamma, e_bar,
-    118.          r2_bar, r3_bar, c_bar, r_bar,
-    119.          w00, w01, gamma0_final, z_final,
-    120.          k_bar, s_bar)
-    121. state = (k*, r*, m, ctx)
-    122. return (proof, state)
+    123. // Construct proof
+    124. proof = (k, s, ctx, A', B_bar, Com, gamma, e_bar,
+    125.          r2_bar, r3_bar, c_bar, r_bar,
+    126.          w00, w01, gamma0_final, z_final,
+    127.          k_bar, s_bar)
+    128. state = (k*, r*, m, ctx)
+    129. return (proof, state)
 ~~~
 
 ### Issuer: Spend Verification and Refund
@@ -647,7 +649,7 @@ VerifyAndRefund(sk, proof, t):
     - refund: Refund for remaining credits
   Exceptions:
     - DoubleSpendError: raised when the nullifier has been used before
-    - InvalidRefundResponseProof: raised when the refund proof verification fails
+    - InvalidSpendProof: raised when the spend proof verification fails
 
   Steps:
     1. Parse proof and extract nullifier k
@@ -656,7 +658,7 @@ VerifyAndRefund(sk, proof, t):
     4.     raise DoubleSpendError
     5. // Verify the proof (see Section 3.5.2)
     6. if not VerifySpendProof(sk, proof):
-    7.     raise InvalidRefundResponseProof
+    7.     raise InvalidSpendProof
     8. // Record nullifier
     9. used_nullifiers.add(k)
     10. // Issue refund for remaining balance
@@ -783,7 +785,7 @@ VerifySpendProof(sk, proof):
   Output:
     - valid: Boolean indicating if proof is valid
   Exceptions:
-    - IdentityPointError: raised when A' is not the identity
+    - IdentityPointError: raised when A' is the identity
     - InvalidClientSpendProof: raised when the challenge does not match the reconstruction
 
   Steps:
@@ -833,22 +835,22 @@ VerifySpendProof(sk, proof):
     34. AddToTranscript(transcript, k)
     35. AddToTranscript(transcript, ctx)
     36. AddToTranscript(transcript, A')
-    36. AddToTranscript(transcript, B_bar)
-    37. AddToTranscript(transcript, A1)
-    38. AddToTranscript(transcript, A2)
-    39. For j = 0 to L-1:
-    40.     AddToTranscript(transcript, Com[j])
-    41. For j = 0 to L-1:
-    42.     AddToTranscript(transcript, C'[j][0])
-    43.     AddToTranscript(transcript, C'[j][1])
-    44. AddToTranscript(transcript, C_final)
-    45. gamma_check = GetChallenge(transcript)
+    37. AddToTranscript(transcript, B_bar)
+    38. AddToTranscript(transcript, A1)
+    39. AddToTranscript(transcript, A2)
+    40. For j = 0 to L-1:
+    41.     AddToTranscript(transcript, Com[j])
+    42. For j = 0 to L-1:
+    43.     AddToTranscript(transcript, C'[j][0])
+    44.     AddToTranscript(transcript, C'[j][1])
+    45. AddToTranscript(transcript, C_final)
+    46. gamma_check = GetChallenge(transcript)
 
-    46. // Verify challenge matches
-    47. if gamma != gamma_check:
-    48.     raise InvalidVerifySpendProof
+    47. // Verify challenge matches
+    48. if gamma != gamma_check:
+    49.     raise InvalidVerifySpendProof
 
-    49. return true
+    50. return true
 ~~~
 
 
@@ -908,8 +910,8 @@ GetChallenge(transcript):
 
   Steps:
     1. hash = transcript.hasher.output(64)  // 64 bytes of output
-    3. challenge = from_little_endian_bytes(hash) mod q
-    4. return challenge
+    2. challenge = from_little_endian_bytes(hash) mod q
+    3. return challenge
 ~~~
 
 This approach ensures:
@@ -976,9 +978,7 @@ BitDecompose(s):
 ~~~
 
 Note: This algorithm produces bits in LSB-first order (i.e., `bits[0]` is the
-least significant bit). The algorithm works for any L <= 128, which ensures
-that credit values fit within a u128 integer and that scalar arithmetic
-remains well within the Ristretto group order.
+least significant bit). See Section 3.1 for constraints on L.
 
 ### Scalar Conversion
 
@@ -1018,8 +1018,8 @@ ScalarToCredit(s):
 ## Message Encoding
 
 All protocol messages SHOULD be encoded using deterministic CBOR (RFC 8949) for
-interoperability. The following sections define the structure of each message
-type.
+interoperability. Decoders MUST reject messages containing unknown CBOR map
+keys. The following sections define the structure of each message type.
 
 ### Issuance Request Message
 
@@ -1153,30 +1153,16 @@ manage storage:
 2. **Sharding**: Nullifiers can be partitioned across multiple databases.
 
 3. **Bloom Filters**: Probabilistic data structures can reduce memory usage
-   with a small false-positive rate.
+   with a small false-positive rate. WARNING: false positives cause
+   legitimate spends to be rejected. Bloom filters MUST NOT be the sole
+   nullifier check; a positive result MUST be confirmed against authoritative
+   storage before rejecting a spend.
 
 ## Constant-Time Operations
 
-To prevent timing attacks, implementations MUST use constant-time operations
-for:
-
-- Scalar arithmetic
-- Point operations
-- Conditional selections in range proofs
-
-In particular, the range proof generation MUST use constant-time conditional
-selection when choosing between bit values 0 and 1. The following pattern
-should be used:
-
-~~~
-ConstantTimeSelect(condition, value_if_true, value_if_false):
-  // Returns value_if_true if condition is true (1),
-  // value_if_false if condition is false (0)
-  // Must execute in constant time regardless of condition
-~~~
-
-This is critical in the range proof generation where bit values must not leak
-through timing channels.
+Implementations MUST use constant-time operations for all secret-dependent
+computations. See the Security Considerations section for detailed
+requirements and mitigations.
 
 ## Randomness Generation
 
@@ -1253,18 +1239,13 @@ implementations MAY use the following internal error codes:
 ## Parameter Selection
 
 Implementations MUST choose L based on their maximum credit requirements and
-performance constraints. Note that L MUST satisfy L <= 128 to ensure credit
-values fit within a u128 integer.
+performance constraints. See Section 3.1 for constraints on L.
 
 The bit length L is configurable and determines the range of credit values (0
 to 2^L - 1). The choice of L involves several trade-offs:
 
 1. **Range**: Larger L supports higher credit values
 2. **Performance**: Proof size and verification time scale linearly with L
-3. **Security**: L must satisfy L <= 128 so that credit values remain representable as u128 integers and scalar arithmetic stays well within the group order
-
-The implementation MUST enforce L <= 128 to ensure proper credit value
-representation and scalar arithmetic.
 
 ### Performance Characteristics
 
@@ -1286,11 +1267,11 @@ The protocol has the following computational complexity:
 
 - **Spending**:
 
-| Operation | Group Operations | Group Exponentiations | Scalar Additions | Scalar Multiplications |
-|-----------|------------------|-----------------------|------------------|------------------------|
-| Client Request | 17 + 4L | 27 + 8L | 13 + 5L | 12 + 3L |
-| Issuer Response | 16 + 4L | 24 + 5L | 4 + L | 1 |
-| Client Credit Token Construction | 3 | 5 | L | L |
+| Operation | Group Operations | Group Exponentiations | Scalar Additions | Scalar Multiplications | Hashes |
+|-----------|------------------|-----------------------|------------------|------------------------|--------|
+| Client Request | 17 + 4L | 27 + 8L | 13 + 5L | 12 + 3L | 1 |
+| Issuer Response | 16 + 4L | 24 + 5L | 4 + L | 1 | 1 |
+| Client Credit Token Construction | 3 | 5 | L | L | 1 |
 
 Note: L is the configurable bit length for credit values.
 
@@ -1350,12 +1331,6 @@ However, the protocol does NOT provide:
    within the same context (e.g., per-service or per-epoch), not per-client values.
    The ctx value persists across refunds: a token produced by a refund inherits the
    ctx of the original token.
-
-## Security Properties
-
-The protocol ensures:
-
-1. **Unforgeability**: Clients cannot spend more credits than they have been issued by the issuer.
 
 ## Implementation Vulnerabilities and Mitigations
 
@@ -1484,10 +1459,8 @@ constrained this could be useful.
 
 ### Session Management
 
-Each protocol session (issuance or spend/refund) MUST:
-
-- Use fresh randomness
-- Not reuse any random values across sessions
+Each protocol session (issuance or spend/refund) MUST use fresh randomness.
+See the Randomness Generation section for detailed RNG requirements.
 
 ### Version Negotiation
 

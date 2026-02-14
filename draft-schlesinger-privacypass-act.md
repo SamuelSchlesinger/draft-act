@@ -68,25 +68,31 @@ of the protocols, and the remainder of the document specifies the protocols them
 # Motivation
 
 To demonstrate how ACT is useful, one can use a similar example to
-the one presented in {{Section 2 of ARC_PP}}: a client that wishes to keep its IP address private while accessing a service. {{ARC_PP}} offers the origin to limit the number of requests a client can make to N. This is enforced by each origin getting its own presentation context, and limiting the number of presentations per context to N. This means that, from a single credential, a client
-can produce N presentations and access the system N times,
-unlinkably. These presentations can be generated in parallel.
+the one presented in {{Section 2 of ARC_PP}}: a client that wishes to keep its
+IP address private while accessing a service. {{ARC_PP}} offers the origin to
+limit the number of requests a client can make to N. This is enforced by each
+origin getting its own presentation context, and limiting the number of
+presentations per context to N. This means that, from a single credential, a
+client can produce N presentations and access the system N times, unlinkably.
+These presentations can be generated in parallel.
 
-On the other hand, consider a credential initially holding N credits. A client redeeming
-all N credits individually has to spend `1`, receive a refunded credential with N-1 credits,
-spend `1` from that credential, receive a refunded credential with N-2 credits, and so on.
-Because the client cannot spend from a credential until they receive the refunded credential
-from their previous spend, a single live session is enforced per initial credential.
-This provides concurrency control. A client is also able to spend more than `1` credit at once,
-allowing for more efficient redemption of multiple credits.
-Finally, as each new presentation requires obtaining a refunded credential from the previous spend,
-the origin gains the ability to invalidate a session by declining to issue a refunded credential.
-This creates the
-ability to shed harmful future traffic or redirect it in a favorable way.
+ACT takes a different approach. Consider a credential initially holding N
+credits. A client redeeming all N credits individually has to spend `1`,
+receive a refunded credential with N-1 credits, spend `1` from that
+credential, receive a refunded credential with N-2 credits, and so on.
+Because the client cannot spend from a credential until they receive the
+refunded credential from their previous spend, a single live session is
+enforced per initial credential. This provides concurrency control. A client
+is also able to spend more than `1` credit at once, allowing for more
+efficient redemption of multiple credits. Finally, as each new presentation
+requires obtaining a refunded credential from the previous spend, the origin
+gains the ability to invalidate a session by declining to issue a refunded
+credential. This creates the ability to shed harmful future traffic or
+redirect it in a favorable way.
 
-One such use case for this is a privacy proxy, another is privately accessing
-web APIs like the artificial intelligence models, and finally zero trust networks
-which act as forward proxies for their user traffic.
+Example use cases include privacy proxies, privately accessing web APIs such
+as artificial intelligence models, and zero trust networks that act as forward
+proxies for their user traffic.
 
 Therefore, ACT provides the following properties:
 
@@ -111,7 +117,8 @@ used throughout this document.
 - Issuer Private Key: The private key (from a private-public key pair) used by
   the Issuer for issuing and verifying Tokens.
 
-OPEN ISSUE: Consider taking them from {{ACT}}
+The following terms are used as defined in {{ACT}}: Credit, Token, Nullifier,
+Scalar, Element, and Domain Separator.
 
 Unless otherwise specified, this document encodes protocol messages in TLS
 notation from {{Section 3 of !TLS13=RFC8446}}. Moreover, all constants are in
@@ -300,7 +307,7 @@ The Issuer Public Key ID, denoted `issuer_key_id`, is computed as the
 SHA-256 hash of the Issuer Public Key, i.e., `issuer_key_id = SHA-256(pkI_serialized)`,
 where `pkI_serialized` is the serialized version of `pkI` as described in {{Section 4.1 of ACT}}.
 
-OPEN ISSUE: Coordinate with {{ACT}} specification authors on the serialization format (CBOR vs TLS presentation language) to ensure consistency.
+Protocol messages are encoded using CBOR as specified in {{Section 4 of ACT}}.
 
 ## Request Context Extension {#request-context-extension}
 
@@ -354,7 +361,7 @@ struct {
 } TokenChallenge;
 ~~~
 
-OPEN ISSUE: This token type value (0xE5AD) was chosen arbitrarily and may be too close to the ARC token type. This should be coordinated with IANA registry assignments.
+Note: The token type value 0xE5AD is provisional pending IANA assignment.
 
 With the exception of `credential_context`, all fields are exactly as specified
 in {{Section 2.1.1 of AUTHSCHEME}}. The `credential_context` field is defined as
@@ -373,7 +380,12 @@ as F(current time window), where F is a pseudorandom function. Semantically, thi
 equivalent to the Origin asking the Client for a token from a credential that is
 bound to "current time window."
 
-OPEN ISSUE: give more guidance about how to construct credential_context and redemption_context depending on the application's needs.
+Origins SHOULD construct `credential_context` using time-based epochs (e.g.,
+`F(current time window)` where F is a pseudorandom function) to enforce
+credential expiration, or per-application binding values to isolate credential
+usage across different services. The `redemption_context` SHOULD be set to a
+fresh random value for each TokenChallenge to ensure token freshness, or left
+empty when freshness is not required.
 
 In addition to this updated TokenChallenge, the HTTP authentication challenge
 also SHOULD contain the following additional attribute:
@@ -595,14 +607,22 @@ request_context = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
-refund = VerifyAndRefund(skI, request_context, spend_proof)
+t = <Origin-configured credits to return to the client>
+refund = VerifyAndRefund(skI, spend_proof, t)
 ~~~
+
+The parameter `t` controls how many of the spent credits are returned to
+the client (0 <= t <= cost). Setting t = 0 consumes the full spend amount;
+setting t > 0 enables pre-authorization patterns where the origin holds
+credits temporarily and returns unused ones. The origin determines `t`
+based on its own policy (e.g., from the TokenChallenge or application
+logic).
 
 This function returns the `refund` serialized according to {{Section 4.1.4 of ACT}} if the spend proof is valid, and nil otherwise.
 
-As mentioned in {{Section 2.2.2 of AUTHSCHEME}}, Origins SHOULD implement some form of double-spend prevention that prevents a token with the same nonce from being redeemed twice.
-With ACT, the Origin SHOULD check that the nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier
-for  use in future double-spending checks.
+As mentioned in {{Section 2.2.2 of AUTHSCHEME}}, Origins MUST implement double-spend prevention that prevents a token with the same nonce from being redeemed twice.
+With ACT, the Origin MUST check that the nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier
+for use in future double-spending checks.
 To reduce the overhead of performing double spend checks, the Origin MAY store and
 look up the nullifiers corresponding to the associated request_context value.
 
@@ -641,11 +661,11 @@ and unlinkability guarantees, are analyzed in {{ACT}}.
 
 ## Double-Spend Prevention
 
-{{Section 2.2.2 of AUTHSCHEME}} specifies double spending requirements that Origin SHOULD
+{{Section 2.2.2 of AUTHSCHEME}} specifies double spending requirements that Origin MUST
 follow.
 
 For ACT, the double-spend prevention mechanism relies on Origins maintaining
-state to track nullifiers. As described in {{refund}}, Origins SHOULD check that a nullifier
+state to track nullifiers. As described in {{refund}}, Origins MUST check that a nullifier
 has not been previously seen before accepting a spend proof. This check is critical for
 preventing credential reuse attacks.
 
