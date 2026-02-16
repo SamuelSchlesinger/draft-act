@@ -1753,12 +1753,16 @@ ciphersuite uses the standard pairing-based variant, enabling public
 verification.<a href="#section-1.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-1.5-2.2">
-            <p id="section-1.5-2.2.1"><strong>Sigma Protocols</strong> <span>[<a href="#ORRU-SIGMA" class="cite xref">ORRU-SIGMA</a>]</span>: The zero-knowledge proof framework used
-for spending proofs.<a href="#section-1.5-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-1.5-2.2.1"><strong>Sigma Protocols</strong>: The zero-knowledge proof framework used
+for spending proofs. Related work on standardizing sigma protocols
+includes <span>[<a href="#ORRU-SIGMA" class="cite xref">ORRU-SIGMA</a>]</span>.<a href="#section-1.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-1.5-2.3">
-            <p id="section-1.5-2.3.1"><strong>Fiat-Shamir Transform</strong> <span>[<a href="#ORRU-FS" class="cite xref">ORRU-FS</a>]</span>: The technique to make the interactive
-proofs non-interactive.<a href="#section-1.5-2.3.1" class="pilcrow">¶</a></p>
+            <p id="section-1.5-2.3.1"><strong>Fiat-Shamir Transform</strong>: The technique to make the interactive
+proofs non-interactive. Related work on the Fiat-Shamir transform
+includes <span>[<a href="#ORRU-FS" class="cite xref">ORRU-FS</a>]</span>. Note that this protocol uses its own
+BLAKE3-based transcript construction rather than following those
+specifications directly.<a href="#section-1.5-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.5-3">The protocol can be viewed as a specialized instantiation of anonymous
@@ -2870,8 +2874,7 @@ interact.<a href="#section-4.5.1-3" class="pilcrow">¶</a></p>
 <a href="#section-4.5.2" class="section-number selfRef">4.5.2. </a><a href="#name-hash-function-and-fiat-sham" class="section-name selfRef">Hash Function and Fiat-Shamir Transform</a>
           </h4>
 <p id="section-4.5.2-1">The Fiat-Shamir transform is shared between both ciphersuites. The protocol
-uses BLAKE3 <span>[<a href="#BLAKE3" class="cite xref">BLAKE3</a>]</span> as the underlying hash function, following the sigma
-protocol framework <span>[<a href="#ORRU-SIGMA" class="cite xref">ORRU-SIGMA</a>]</span>. Challenges are generated using a transcript
+uses BLAKE3 <span>[<a href="#BLAKE3" class="cite xref">BLAKE3</a>]</span> as the underlying hash function. Challenges are generated using a transcript
 that accumulates all protocol messages:<a href="#section-4.5.2-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-4.5.2-2">
 <pre>
