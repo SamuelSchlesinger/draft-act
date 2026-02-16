@@ -223,11 +223,15 @@ This protocol builds upon several cryptographic primitives:
   ciphersuite uses the standard pairing-based variant, enabling public
   verification.
 
-- **Sigma Protocols** {{ORRU-SIGMA}}: The zero-knowledge proof framework used
-  for spending proofs.
+- **Sigma Protocols**: The zero-knowledge proof framework used
+  for spending proofs. Related work on standardizing sigma protocols
+  includes {{ORRU-SIGMA}}.
 
-- **Fiat-Shamir Transform** {{ORRU-FS}}: The technique to make the interactive
-  proofs non-interactive.
+- **Fiat-Shamir Transform**: The technique to make the interactive
+  proofs non-interactive. Related work on the Fiat-Shamir transform
+  includes {{ORRU-FS}}. Note that this protocol uses its own
+  BLAKE3-based transcript construction rather than following those
+  specifications directly.
 
 The protocol can be viewed as a specialized instantiation of anonymous
 credentials {{KVAC}} optimized for numerical values and partial
@@ -1194,8 +1198,7 @@ interact.
 ### Hash Function and Fiat-Shamir Transform
 
 The Fiat-Shamir transform is shared between both ciphersuites. The protocol
-uses BLAKE3 {{BLAKE3}} as the underlying hash function, following the sigma
-protocol framework {{ORRU-SIGMA}}. Challenges are generated using a transcript
+uses BLAKE3 {{BLAKE3}} as the underlying hash function. Challenges are generated using a transcript
 that accumulates all protocol messages:
 
 ~~~

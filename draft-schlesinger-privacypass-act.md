@@ -42,7 +42,11 @@ informative:
 --- abstract
 
 This document specifies the issuance and redemption protocols for
-tokens based on the Anonymous Credit Tokens (ACT) protocol.
+tokens based on the Anonymous Credit Tokens (ACT) protocol. Two
+token types are defined: ACT(Ristretto255) for privately verifiable
+tokens (requiring the Issuer's secret key for verification), and
+ACT(BLS12-381) for publicly verifiable tokens (verifiable by anyone
+with the Issuer's public key).
 
 --- middle
 
@@ -60,6 +64,12 @@ a credential initially holding N credits, along with its subsequent refunded cre
 can be presented up to N times. When a client spends a certain number of credits from
 a credential, that credential is invalidated and the client receives a new credential
 with the remaining balance.
+
+{{ACT}} defines two ciphersuites: ACT-Ristretto255-BLAKE3 for private verification
+(where spend proofs can only be verified by the Issuer using its secret key) and
+ACT-BLS12381-G1-BLAKE3 for public verification (where spend proofs can be verified
+by anyone with the Issuer's public key). This document specifies the Privacy Pass
+integration for both ciphersuites.
 
 This document specifies the issuance and redemption protocols for ACT. {{motivation}}
 describes motivation for this new type of token, {{overview}} presents an overview
@@ -118,7 +128,7 @@ used throughout this document.
   the Issuer for issuing and verifying Tokens.
 
 The following terms are used as defined in {{ACT}}: Credit, Token, Nullifier,
-Scalar, Element, and Domain Separator.
+Scalar, Element, Domain Separator, and Ciphersuite.
 
 Unless otherwise specified, this document encodes protocol messages in TLS
 notation from {{Section 3 of !TLS13=RFC8446}}. Moreover, all constants are in
@@ -160,11 +170,24 @@ ACT credential. This interaction is shown below.
 Similar to the core Privacy Pass protocols, the TokenChallenge can
 be interactive or non-interactive, and per-origin or cross-origin.
 
-ACT is only compatible with deployment models where the Issuer and Origin
-are operated by the same entity (see {{Section 4 of ARCHITECTURE}}), as
-tokens produced from a credential are not publicly verifiable. The details
-of attestation are outside the scope of the issuance protocol; see
-{{Section 4 of ARCHITECTURE}} for information about how attestation can
+The deployment models compatible with ACT depend on the ciphersuite:
+
+- **ACT(Ristretto255)**: Only compatible with deployment models where the
+  Issuer and Origin are operated by the same entity (see {{Section 4 of
+  ARCHITECTURE}}), as tokens produced from a credential are not publicly
+  verifiable. The Issuer's secret key is required for spend proof
+  verification.
+
+- **ACT(BLS12-381)**: Compatible with deployment models where the Origin
+  and Issuer are operated by the same entity or by different entities. Spend
+  proofs are publicly verifiable using only the Issuer's public key, so the
+  Origin can verify spend proofs independently. However, refund issuance
+  still requires the Issuer's secret key, so the Origin MUST forward spend
+  proofs to the Issuer to obtain refunds when Origin and Issuer are
+  separate entities.
+
+The details of attestation are outside the scope of the issuance protocol;
+see {{Section 4 of ARCHITECTURE}} for information about how attestation can
 be implemented in each of the relevant deployment models.
 
 The issuance and redemption protocols in this document are built on
@@ -305,9 +328,11 @@ skI, pkI = KeyGen()
 
 The Issuer Public Key ID, denoted `issuer_key_id`, is computed as the
 SHA-256 hash of the Issuer Public Key, i.e., `issuer_key_id = SHA-256(pkI_serialized)`,
-where `pkI_serialized` is the serialized version of `pkI` as described in {{Section 4.1 of ACT}}.
+where `pkI_serialized` is the serialized version of `pkI` as described in {{Section 5.3.1 of ACT}}.
+Note that the public key size differs by ciphersuite: 32 bytes for ACT(Ristretto255) and
+96 bytes for ACT(BLS12-381).
 
-Protocol messages are encoded using CBOR as specified in {{Section 4 of ACT}}.
+Protocol messages are encoded using CBOR as specified in {{Section 5 of ACT}}.
 
 ## Request Context Extension {#request-context-extension}
 
@@ -349,11 +374,12 @@ to application-specific contexts through cryptographic commitments.
 
 The ACT protocol uses a modified TokenChallenge structure from the one
 specified in {{AUTHSCHEME}}. In particular, the updated TokenChallenge
-structure is as follows:
+structure is as follows, with the token_type set according to the
+ciphersuite:
 
 ~~~
 struct {
-    uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
+    uint16_t token_type; /* 0xE5AD or 0xE5AE */
     opaque issuer_name<1..2^16-1>;
     opaque redemption_context<0..32>;
     opaque origin_info<0..2^16-1>;
@@ -361,7 +387,12 @@ struct {
 } TokenChallenge;
 ~~~
 
-Note: The token type value 0xE5AD is provisional pending IANA assignment.
+The token_type field is set to one of the following values:
+
+- 0xE5AD: ACT(Ristretto255) - privately verifiable tokens
+- 0xE5AE: ACT(BLS12-381) - publicly verifiable tokens
+
+Note: These token type values are provisional pending IANA assignment.
 
 With the exception of `credential_context`, all fields are exactly as specified
 in {{Section 2.1.1 of AUTHSCHEME}}. The `credential_context` field is defined as
@@ -395,7 +426,7 @@ also SHOULD contain the following additional attribute:
 
 Implementation-specific steps: the client should store the Origin-provided input `tokenChallenge` so that when they receive a new `tokenChallenge` value, they can check if it has changed and which fields are different. This will inform the client's behavior - for example, if `credential_context` is being used to enforce an expiration on the credential, then if the `credential_context` has changed, this can prompt the client to request a new credential.
 
-# Credential Issuance Protocol
+# Credential Issuance Protocol {#credential-issuance-protocol}
 
 Issuers provide an Issuer Private and Public Key, denoted `skI` and `pkI`
 respectively, used to produce credentials as input to the protocol. See {{setup}}
@@ -432,7 +463,7 @@ The Client then creates a TokenRequest structure as follows:
 
 ~~~
 struct {
-  uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
+  uint16_t token_type; /* 0xE5AD or 0xE5AE */
   uint8_t truncated_issuer_key_id;
   uint8_t encoded_request[Nrequest];
 } TokenRequest;
@@ -440,7 +471,8 @@ struct {
 
 The structure fields are defined as follows:
 
-- "token_type" is a 2-octet integer.
+- "token_type" is a 2-octet integer, set to 0xE5AD for ACT(Ristretto255) or
+  0xE5AE for ACT(BLS12-381), matching the TokenChallenge.
 
 - "truncated_issuer_key_id" is the least significant byte of the `issuer_key_id`
   ({{setup}}) in network byte order (in other words, the last 8
@@ -449,7 +481,9 @@ The structure fields are defined as follows:
   and referenced information for more details.
 
 - "encoded_request" is the Nrequest-octet request, computed as the serialization
-  of the `request` value as defined in {{Section 4.1.1 of ACT}}.
+  of the `request` value as defined in {{Section 5.1.1 of ACT}}. The size of
+  Nrequest depends on the ciphersuite (point sizes differ between Ristretto255
+  and BLS12-381).
 
 The Client then generates an HTTP POST request to send to the Issuer Request URL,
 with the TokenRequest as the content. The media type for this request is
@@ -470,17 +504,18 @@ Content-Length: <Length of TokenRequest>
 
 Upon receipt of the request, the Issuer validates the following conditions:
 
-- The TokenRequest contains a supported token_type equal to value 0xE5AD.
+- The TokenRequest contains a supported token_type equal to 0xE5AD or 0xE5AE.
 - The TokenRequest.truncated_token_key_id corresponds to the truncated key ID
   of an Issuer Public Key, with corresponding secret key `skI`, owned by
-  the Issuer.
-- The TokenRequest.encoded_request is of the correct size (`Nrequest`).
+  the Issuer, for the matching ciphersuite.
+- The TokenRequest.encoded_request is of the correct size (`Nrequest`) for
+  the indicated ciphersuite.
 
 If any of these conditions is not met, the Issuer MUST return an HTTP 422
 (Unprocessable Content) error to the client.
 
 If these conditions are met, the Issuer then tries to deserialize
-TokenRequest.encoded_request according to {{Section 4.1.1 of ACT}}, yielding `request`.
+TokenRequest.encoded_request according to {{Section 5.1.1 of ACT}}, yielding `request`.
 If this fails, the Issuer MUST return an HTTP 422 (Unprocessable Content)
 error to the client. Otherwise, if the Issuer is willing to produce a credential
 for the Client, the Issuer determines both the number of initial credits and the
@@ -507,7 +542,9 @@ struct {
 The structure fields are defined as follows:
 
 - "encoded_response" is the Nresponse-octet encoded issuance response message, computed
-  as the serialization of `response` as specified in {{Section 4.1.2 of ACT}}.
+  as the serialization of `response` as specified in {{Section 5.1.2 of ACT}}. Note that
+  Nresponse differs by ciphersuite: the ACT-Ristretto255-BLAKE3 response includes DLEQ
+  proof fields, while the ACT-BLS12381-G1-BLAKE3 response omits them.
 
 The Issuer generates an HTTP response with status code 200 whose content
 consists of TokenResponse, with the content type set as
@@ -524,7 +561,7 @@ Content-Length: <Length of TokenResponse>
 ## Credential Finalization
 
 Upon receipt, the Client handles the response and, if successful, deserializes
-the content values `TokenResponse.encoded_response` according to {{Section 4.1.2 of ACT}}
+the content values `TokenResponse.encoded_response` according to {{Section 5.1.2 of ACT}}
 yielding `response`. If deserialization fails, the Client aborts the protocol.
 Otherwise, the Client processes the response as follows:
 
@@ -564,7 +601,7 @@ The resulting Token value is then constructed as follows:
 
 ~~~
 struct {
-    uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
+    uint16_t token_type; /* 0xE5AD or 0xE5AE */
     uint8_t challenge_digest[32];
     uint8_t issuer_key_id[Nid];
     uint8_t encoded_spend_proof[Nspend_proof];
@@ -573,7 +610,8 @@ struct {
 
 The structure fields are defined as follows:
 
-- "token_type" is a 2-octet integer, in network byte order, equal to 0xE5AD.
+- "token_type" is a 2-octet integer, in network byte order, set to 0xE5AD for
+  ACT(Ristretto255) or 0xE5AE for ACT(BLS12-381).
 
 - "challenge_digest" is a 32-octet value containing the hash of the original TokenChallenge, SHA-256(TokenChallenge).
 
@@ -581,17 +619,19 @@ The structure fields are defined as follows:
 as defined in {{setup}}.
 
 - "encoded_spend_proof" is a Nspend_proof-octet encoded spend proof, set to the serialized
-`spend_proof` value as specified in {{Section 4.1.3 of ACT}}. The spend proof contains
+`spend_proof` value as specified in {{Section 5.1.3 of ACT}}. The spend proof contains
 the nullifier (field 1) and spend amount (field 2), among other cryptographic values.
+Note that Nspend_proof differs by ciphersuite: the ACT-BLS12381-G1-BLAKE3 spend proof
+includes an additional `a_bar` field for public verifiability.
 
 ## Token Refund {#refund}
 
 Upon receiving a Token from the Client, the Origin deserializes the spend_proof
-according to {{Section 4.1.3 of ACT}}, yielding a SpendProofMsg structure. The
+according to {{Section 5.1.3 of ACT}}, yielding a SpendProofMsg structure. The
 Origin then extracts the relevant fields from the spend proof:
 
 ~~~
-// Extract fields from SpendProofMsg (see Section 4.1.3 of ACT)
+// Extract fields from SpendProofMsg (see Section 5.1.3 of ACT)
 nullifier = spend_proof.k      // Field 1: nullifier (32 bytes)
 spend_amount = spend_proof.s   // Field 2: spend amount (32 bytes)
 ~~~
@@ -599,8 +639,16 @@ spend_amount = spend_proof.s   // Field 2: spend amount (32 bytes)
 The Origin SHOULD verify that the spend_amount matches the requested cost from
 TokenChallenge to ensure the client is spending the expected amount.
 
-To verify the Token and issue a refund, the Origin constructs the request_context
-and invokes VerifyAndRefund:
+For ACT(BLS12-381), the Origin MAY first verify the spend proof publicly
+using only the Issuer's public key, by invoking `VerifySpendProof(pkI,
+spend_proof)` as specified in {{Section 4.4.6 of ACT}}. This allows the Origin
+to reject invalid proofs before forwarding to the Issuer for refund issuance,
+and is particularly useful in deployments where Origin and Issuer are separate
+entities.
+
+To verify the Token and issue a refund, the Origin (or Issuer, in split
+deployments for ACT(BLS12-381)) constructs the request_context and invokes
+VerifyAndRefund:
 
 ~~~
 request_context = concat(tokenChallenge.issuer_name,
@@ -618,7 +666,7 @@ credits temporarily and returns unused ones. The origin determines `t`
 based on its own policy (e.g., from the TokenChallenge or application
 logic).
 
-This function returns the `refund` serialized according to {{Section 4.1.4 of ACT}} if the spend proof is valid, and nil otherwise.
+This function returns the `refund` serialized according to {{Section 5.1.4 of ACT}} if the spend proof is valid, and nil otherwise.
 
 As mentioned in {{Section 2.2.2 of AUTHSCHEME}}, Origins MUST implement double-spend prevention that prevents a token with the same nonce from being redeemed twice.
 With ACT, the Origin MUST check that the nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier
@@ -637,7 +685,7 @@ The Origin sends the refund back to the client encoded as the above `Refund` str
 ## New Credential from Refund
 
 Unlike {{ARC}}, clients must construct a new credential instance based on the `Refund` response. To do
-so, clients invoke the `ConstructRefundToken` function from {{Section 3.4.4 of ACT}} as follows:
+so, clients invoke the `ConstructRefundToken` function from {{Section 4.4.4 of ACT}} as follows:
 
 ~~~
 credential = ConstructRefundToken(pkI, spend_proof, refund, state)
@@ -650,9 +698,18 @@ The client then uses this new credential instance for subsequent spend operation
 ## Privacy Properties
 
 Privacy considerations for tokens based on deployment details, such as issuer configuration
-and issuer selection, are discussed in {{Section 6.1 of ARCHITECTURE}}. Note that ACT
-requires a joint Origin and Issuer configuration (where the Issuer and Origin are operated
-by the same entity) given that tokens produced from credentials are not publicly verifiable.
+and issuer selection, are discussed in {{Section 6.1 of ARCHITECTURE}}.
+
+For ACT(Ristretto255), the Issuer and Origin MUST be operated by the same entity,
+as tokens produced from credentials are not publicly verifiable and require the
+Issuer's secret key for spend proof verification.
+
+For ACT(BLS12-381), spend proofs are publicly verifiable using only the Issuer's
+public key. This enables deployment models where the Origin and Issuer are separate
+entities. In such deployments, the Origin can independently verify spend proofs, while
+forwarding them to the Issuer for refund issuance. Deployments using ACT(BLS12-381)
+with split Origin and Issuer SHOULD ensure that the Issuer's public key is distributed
+to Origins through an authenticated channel to prevent key substitution attacks.
 
 ACT credentials offer Origin-Client unlinkability, Issuer-Client unlinkability, and
 redemption context unlinkability, as described in {{Section 3.3 of ARCHITECTURE}}. The
@@ -736,6 +793,8 @@ outside the scope of this specification.
 This document updates the "Privacy Pass Token Type" Registry with the
 following entries.
 
+## ACT (Ristretto255)
+
 * Value: 0xE5AD
 * Name: ACT (Ristretto255)
 * Token Structure: As defined in {{Section 2.2 of AUTHSCHEME}}
@@ -748,6 +807,21 @@ following entries.
 * Nid: 32
 * Reference: This document
 * Notes: None
+
+## ACT (BLS12-381)
+
+* Value: 0xE5AE
+* Name: ACT (BLS12-381)
+* Token Structure: As defined in {{Section 2.2 of AUTHSCHEME}}
+* Token Key Encoding: Serialized as described in {{setup}}
+* TokenChallenge Structure: As defined in {{Section 2.1 of AUTHSCHEME}}
+* Public Verifiability: Y
+* Public Metadata: N
+* Private Metadata: N
+* Nk: 0 (not applicable)
+* Nid: 32
+* Reference: This document
+* Notes: Spend proofs are publicly verifiable using the Issuer public key
 
 
 --- back
