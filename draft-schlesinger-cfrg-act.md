@@ -36,6 +36,10 @@ normative:
     title: "BLAKE3: One Function, Fast Everywhere"
     target: https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf
     date: 2020-01-09
+  BLS12-381:
+    title: "BLS12-381: Design and Implementation"
+    target: https://electriccoin.co/blog/new-snark-curve/
+    date: 2017-03-11
 
 informative:
   RFC9474:
@@ -66,10 +70,15 @@ informative:
 This document specifies Anonymous Credit Tokens (ACT), a
 privacy-preserving authentication protocol that enables numerical
 credit systems without tracking individual clients. Based on
-keyed-verification anonymous credentials and privately verifiable
-BBS-style signatures, the protocol allows issuers to grant tokens
-containing credits that clients can later spend anonymously with
-that issuer.
+anonymous credentials and BBS-style signatures, the protocol allows
+issuers to grant tokens containing credits that clients can later
+spend anonymously.
+
+Two ciphersuites are defined. ACT-Ristretto255-BLAKE3 uses
+Ristretto255 with privately verifiable BBS-style signatures, where
+only the issuer can verify spend proofs. ACT-BLS12381-G1-BLAKE3 uses
+BLS12-381 pairings, enabling publicly verifiable spend proofs that
+anyone with the issuer's public key can verify.
 
 The protocol's key features include: (1) unlinkable transactions -
 the issuer cannot correlate credit issuance with spending, or link
@@ -100,10 +109,25 @@ era of increasing data protection awareness and regulation.
 
 Anonymous Credit Tokens (ACT) help to resolve this tension by
 providing a cryptographic protocol that enables credit-based systems
-without client tracking. Built on keyed-verification anonymous
-credentials {{KVAC}} and privately verifiable BBS-style signatures
-{{BBS}}, the protocol allows services to issue, track, and spend
-credits while maintaining client privacy.
+without client tracking. Built on anonymous credentials {{KVAC}} and
+BBS-style signatures {{BBS}}, the protocol allows services to issue,
+track, and spend credits while maintaining client privacy.
+
+The protocol is defined in terms of two ciphersuites:
+
+- **ACT-Ristretto255-BLAKE3**: Uses Ristretto255 {{RFC9496}} with
+  keyed-verification (privately verifiable) BBS-style signatures. Only
+  the issuer, who holds the secret key, can verify spend proofs.
+
+- **ACT-BLS12381-G1-BLAKE3**: Uses BLS12-381 {{BLS12-381}} pairings
+  with publicly verifiable BBS-style signatures. Anyone with the
+  issuer's public key can verify spend proofs, enabling third-party
+  verification without revealing the issuer's secret key.
+
+Both ciphersuites share the same protocol structure, range proof
+machinery, and Fiat-Shamir transcript framework. They differ in the
+underlying group, key generation, signature verification method, and
+encoding sizes.
 
 ## Key Properties
 
@@ -142,6 +166,11 @@ Anonymous Credit Tokens can be applied to various scenarios:
   - Usage-based billing without tracking individual request patterns
   - Protection against competitive analysis through usage monitoring
 
+- **Third-Party Auditing** (ACT-BLS12381-G1-BLAKE3 only): With
+  publicly verifiable spend proofs, external auditors or relay
+  services can verify that spend proofs are valid without access to
+  the issuer's secret key.
+
 ## Protocol Overview
 
 The protocol involves two parties: an issuer (typically a service
@@ -161,6 +190,11 @@ interaction follows three main phases:
    proof, checks the nullifier hasn't been used before, and issues a
    new token (which remains hidden from the issuer) for any remaining
    balance.
+
+In the publicly verifiable ciphersuite (ACT-BLS12381-G1-BLAKE3),
+spend proof verification can additionally be performed by any third
+party holding the issuer's public key, without requiring the issuer's
+secret key.
 
 ## Design Goals
 
@@ -184,8 +218,10 @@ The protocol is designed with the following goals:
 This protocol builds upon several cryptographic primitives:
 
 - **BBS Signatures** {{BBS}}: The core signature scheme that enables efficient
-  proofs of possession. We use a variant that is privately verifiable, which
-  avoids the need for pairings and makes our protocol more efficient.
+  proofs of possession. The ACT-Ristretto255-BLAKE3 ciphersuite uses a
+  privately verifiable variant that avoids pairings. The ACT-BLS12381-G1-BLAKE3
+  ciphersuite uses the standard pairing-based variant, enabling public
+  verification.
 
 - **Sigma Protocols** {{ORRU-SIGMA}}: The zero-knowledge proof framework used
   for spending proofs.
@@ -193,9 +229,62 @@ This protocol builds upon several cryptographic primitives:
 - **Fiat-Shamir Transform** {{ORRU-FS}}: The technique to make the interactive
   proofs non-interactive.
 
-The protocol can be viewed as a specialized instantiation of keyed-verification
-anonymous credentials {{KVAC}} optimized for numerical values and partial
+The protocol can be viewed as a specialized instantiation of anonymous
+credentials {{KVAC}} optimized for numerical values and partial
 spending.
+
+# Ciphersuites
+
+This document defines two ciphersuites that instantiate the ACT
+protocol. Both share the same protocol structure but differ in the
+underlying group operations and verification mechanisms.
+
+## ACT-Ristretto255-BLAKE3 (Private Verification) {#ciphersuite-ristretto}
+
+~~~
+Ciphersuite: ACT-Ristretto255-BLAKE3
+  - Group: Ristretto255 (RFC 9496)
+  - Group element encoding: 32 bytes (compressed Ristretto point)
+  - Scalar encoding: 32 bytes (little-endian)
+  - Group order q: 2^252 + 27742317777372353535851937790883648493
+  - Generator: G (standard Ristretto255 generator)
+  - Hash-to-group: HashToRistretto255 (Section 4.4.1)
+  - Public key: Element in same group (W = G * x)
+  - Signature verification: DLEQ proof
+  - Protocol version: "curve25519-ristretto anonymous-credits v1.0"
+  - Domain separator prefix: "ACT-v1:"
+  - Spend proof verifiability: Issuer only (requires secret key)
+~~~
+
+In this ciphersuite, issuance and refund responses include DLEQ
+(Discrete Log Equality) proofs that allow the client to verify
+correct signature computation. Spend proofs can only be verified by
+the issuer using the secret key.
+
+## ACT-BLS12381-G1-BLAKE3 (Public Verification) {#ciphersuite-bls}
+
+~~~
+Ciphersuite: ACT-BLS12381-G1-BLAKE3
+  - Group G1: BLS12-381 G1 (48-byte compressed elements)
+  - Group G2: BLS12-381 G2 (96-byte compressed, for public key only)
+  - Scalar encoding: 32 bytes (little-endian)
+  - Group order q: 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
+  - Generator G1_gen: Standard BLS12-381 G1 generator
+  - Generator G2_gen: Standard BLS12-381 G2 generator
+  - Hash-to-group: HashToG1 (Section 4.4.2)
+  - Public key: G2 element (W = G2_gen * x)
+  - Signature verification: Pairing check
+  - Protocol version: "bls12-381 anonymous-credits-public v1.0"
+  - Domain separator prefix: "ACT-public-v1:"
+  - Spend proof verifiability: Anyone with public key
+~~~
+
+In this ciphersuite, the issuer's public key is a G2 element, while
+all token computations use G1. Signature verification uses the
+BLS12-381 pairing `e: G1 x G2 -> GT`. Because verification requires
+only the public key (not the secret key), spend proofs can be
+verified by any third party. Issuance and refund responses omit DLEQ
+proofs since the client verifies via pairing checks instead.
 
 # Conventions and Definitions
 
@@ -221,24 +310,33 @@ This document uses the following notation:
   together like `a + b` and scalar multiplication of a group element by a scalar
   is written as `a * n`, with group element `a` and scalar `n`.
 
+- `e(P, Q)`: Bilinear pairing of G1 element P and G2 element Q
+  (ACT-BLS12381-G1-BLAKE3 only)
+
 ## Data Types
 
 The protocol uses the following data types:
 
 - **Scalar**: An integer modulo the group order q
-- **Element**: An element of the Ristretto255 group
+- **G1Element**: An element of the primary group (Ristretto255 or BLS12-381 G1)
+- **G2Element**: An element of BLS12-381 G2 (ACT-BLS12381-G1-BLAKE3 only)
 - **ByteString**: A sequence of bytes
+
+In the ACT-Ristretto255-BLAKE3 ciphersuite, "Element" refers to a
+Ristretto255 group element. In the ACT-BLS12381-G1-BLAKE3 ciphersuite,
+token computations use G1 elements, and the public key is a G2 element.
 
 ## Cryptographic Parameters
 
-The protocol uses the Ristretto group {{RFC9496}}, which provides a prime-order
-group abstraction over Curve25519. It would be easy to adapt this approach to
-using any other prime order group based on the contents of this document. The
-key parameters are:
+Both ciphersuites use prime-order groups. The key parameters are:
 
-- **q**: The prime order of the group (2^252 + 27742317777372353535851937790883648493)
-- **G**: The standard generator of the Ristretto group
+- **q**: The prime order of the group
+- **G**: The standard generator (Ristretto255 generator or BLS12-381 G1 generator)
 - **L**: The bit length for credit values
+
+For ACT-BLS12381-G1-BLAKE3, additionally:
+
+- **G2_gen**: The standard generator of BLS12-381 G2
 
 # Protocol Specification
 
@@ -248,8 +346,8 @@ The protocol requires the following system parameters:
 
 ~~~
 Parameters:
-  - G: Generator of the Ristretto group
-  - H1, H2, H3, H4: Additional generators for commitments
+  - G: Generator of the primary group
+  - H1, H2, H3, H4: Additional generators for commitments (in G1)
   - L: Bit length for credit values (configurable, must satisfy 1 <= L <= 128)
 ~~~
 
@@ -270,35 +368,29 @@ GenerateParameters(domain_separator):
   Steps:
     1. seed = BLAKE3(LengthPrefixed(domain_separator))
     2. counter = 0
-    3. H1 = HashToRistretto255(seed, counter++)
-    4. H2 = HashToRistretto255(seed, counter++)
-    5. H3 = HashToRistretto255(seed, counter++)
-    6. H4 = HashToRistretto255(seed, counter++)
+    3. H1 = HashToGroup(domain_separator, seed, counter++)
+    4. H2 = HashToGroup(domain_separator, seed, counter++)
+    5. H3 = HashToGroup(domain_separator, seed, counter++)
+    6. H4 = HashToGroup(domain_separator, seed, counter++)
     7. return (H1, H2, H3, H4)
-
-HashToRistretto255(seed, counter):
-  Input:
-    - seed: 32-byte seed value
-    - counter: Integer counter for domain separation
-  Output:
-    - P: A valid Ristretto255 point
-
-  Steps:
-    1. hasher = BLAKE3.new()
-    2. hasher.update(LengthPrefixed(domain_separator))
-    3. hasher.update(LengthPrefixed(seed))
-    4. hasher.update(LengthPrefixed(counter.to_le_bytes(4)))
-    5. uniform_bytes = hasher.finalize_xof(64)
-    6. P = OneWayMap(uniform_bytes)
-    7. return P
 ~~~
+
+Where `HashToGroup` is `HashToRistretto255` (Section 4.4.1) for
+ACT-Ristretto255-BLAKE3, or `HashToG1` (Section 4.4.2) for
+ACT-BLS12381-G1-BLAKE3.
 
 The domain_separator MUST be unique for each deployment to ensure
 cryptographic isolation between different services. The domain separator SHOULD
 follow this structured format:
 
 ~~~
-domain_separator = "ACT-v1:" || organization || ":" || service || ":" || deployment_id || ":" || version
+For ACT-Ristretto255-BLAKE3:
+  domain_separator = "ACT-v1:" || organization || ":" || service
+                     || ":" || deployment_id || ":" || version
+
+For ACT-BLS12381-G1-BLAKE3:
+  domain_separator = "ACT-public-v1:" || organization || ":" || service
+                     || ":" || deployment_id || ":" || version
 ~~~
 
 Each component (organization, service, deployment_id, version) MUST NOT
@@ -314,7 +406,7 @@ Where:
 Example: `"ACT-v1:example-corp:payment-api:production:2024-01-15"`
 
 This structured format ensures:
-1. Protocol identification through the "ACT-v1:" prefix
+1. Protocol identification through the prefix (including ciphersuite distinction)
 2. Organizational namespace isolation
 3. Service-level separation within organizations
 4. Environment isolation (production vs staging)
@@ -325,20 +417,18 @@ parameter collision and MUST NOT be used. When parameters need to be updated
 (e.g., for security reasons or protocol upgrades), a new version date MUST be
 used, creating entirely new parameters.
 
-The OneWayMap function is defined in {{RFC9496}} Section 4.3.4, which provides a
-cryptographically secure mapping from uniformly random byte strings to valid
-Ristretto255 points.
-
 ## Key Generation
 
-The issuer generates a key pair as follows:
+### ACT-Ristretto255-BLAKE3
+
+The issuer generates a key pair where the public key is in the same group:
 
 ~~~
 KeyGen():
   Input: None
   Output:
     - sk: Private key (Scalar)
-    - pk: Public key (Group Element)
+    - pk: Public key (G1Element)
 
   Steps:
     1. x <- Zq
@@ -348,12 +438,33 @@ KeyGen():
     5. return (sk, pk)
 ~~~
 
+### ACT-BLS12381-G1-BLAKE3
+
+The issuer generates a key pair where the public key is a G2 element:
+
+~~~
+KeyGen():
+  Input: None
+  Output:
+    - sk: Private key (Scalar)
+    - pk: Public key (G2Element)
+
+  Steps:
+    1. x <- Zq
+    2. W = G2_gen * x
+    3. sk = x
+    4. pk = W
+    5. return (sk, pk)
+~~~
+
 ## Token Issuance
 
 The issuance protocol is an interactive protocol between a client and the
-issuer:
+issuer.
 
 ### Client: Issuance Request
+
+This step is identical for both ciphersuites:
 
 ~~~
 IssueRequest():
@@ -382,6 +493,10 @@ IssueRequest():
 
 ### Issuer: Issuance Response
 
+The issuer verifies the client's request and creates a BBS+ signature. The
+signature computation is shared between ciphersuites, but the response
+differs in whether a DLEQ proof is included.
+
 ~~~
 IssueResponse(sk, request, c, ctx):
   Input:
@@ -403,9 +518,16 @@ IssueResponse(sk, request, c, ctx):
     6. AddToTranscript(transcript, K1)
     7. if GetChallenge(transcript) != gamma:
     8.     raise InvalidIssuanceRequestProof
-    9. // Create BBS signature on (c, ctx, k, r)
+    9. // Create BBS+ signature on (c, ctx, k, r)
     10. e <- Zq
     11. A = (G + H1 * c + H4 * ctx + K) * (1/(e + sk))  // K = H2 * k + H3 * r
+~~~
+
+The remaining steps differ by ciphersuite:
+
+**ACT-Ristretto255-BLAKE3** (with DLEQ proof):
+
+~~~
     12. // Generate proof of correct computation
     13. alpha <- Zq
     14. Y_A = A * alpha
@@ -427,12 +549,24 @@ IssueResponse(sk, request, c, ctx):
     30. return response
 ~~~
 
+**ACT-BLS12381-G1-BLAKE3** (no DLEQ proof needed):
+
+~~~
+    12. response = (A, e, c, ctx)
+    13. return response
+~~~
+
 ### Client: Token Verification
+
+The client verifies the issuer's response and constructs a credit token.
+The verification method differs by ciphersuite.
+
+**ACT-Ristretto255-BLAKE3** (DLEQ proof verification):
 
 ~~~
 VerifyIssuance(pk, request, response, state):
   Input:
-    - pk: Issuer's public key
+    - pk: Issuer's public key (G1Element)
     - request: The issuance request sent
     - response: Issuer's response
     - state: Client state from request generation
@@ -465,6 +599,34 @@ VerifyIssuance(pk, request, response, state):
     21. return token
 ~~~
 
+**ACT-BLS12381-G1-BLAKE3** (pairing check verification):
+
+~~~
+VerifyIssuance(pk, request, response, state):
+  Input:
+    - pk: Issuer's public key (G2Element)
+    - request: The issuance request sent
+    - response: Issuer's response
+    - state: Client state from request generation
+  Output:
+    - token: Credit token
+  Exceptions:
+    - InvalidIssuanceResponseProof, raised when the pairing check fails
+
+  Steps:
+    1. Parse request as (K, gamma, k_bar, r_bar)
+    2. Parse response as (A, e, c, ctx)
+    3. Parse state as (k, r)
+    4. if A == Identity:
+    5.     raise InvalidIssuanceResponseProof
+    6. X_A = G + H1 * c + H4 * ctx + K
+    7. // Pairing check: e(A, pk) == e(X_A - e*A, G2_gen)
+    8. if e(A, pk) != e(X_A - A * e, G2_gen):
+    9.     raise InvalidIssuanceResponseProof
+    10. token = (A, e, k, r, c, ctx)
+    11. return token
+~~~
+
 ## Token Spending
 
 The spending protocol allows a client to spend s credits from a token
@@ -477,6 +639,9 @@ original holder can no longer use the old nullifier, and the recipient
 obtains a token that is cryptographically unlinkable to the original.
 
 ### Client: Spend Proof Generation
+
+The following algorithm is shared between both ciphersuites, with
+ciphersuite-specific additions noted inline for ACT-BLS12381-G1-BLAKE3.
 
 ~~~
 ProveSpend(token, s):
@@ -505,6 +670,9 @@ ProveSpend(token, s):
     12. B_bar = B * r1
     13. r3 = 1/r1
 
+    // [ACT-BLS12381-G1-BLAKE3 only] Compute a_bar for public verification:
+    13a. a_bar = B_bar * r2 - A' * e
+
     14. // Generate initial proof components
     15. c' <- Zq
     16. r' <- Zq
@@ -518,7 +686,7 @@ ProveSpend(token, s):
 
     23. // Decompose c - s into bits
     24. m = c - s
-    25. (i[0], ..., i[L-1]) = BitDecompose(m)  // See Section 3.7
+    25. (i[0], ..., i[L-1]) = BitDecompose(m)  // See Section 4.5
 
     26. // Create commitments for each bit
     27. k* <- Zq
@@ -579,6 +747,8 @@ ProveSpend(token, s):
     76. AddToTranscript(transcript, ctx)
     77. AddToTranscript(transcript, A')
     78. AddToTranscript(transcript, B_bar)
+    // [ACT-BLS12381-G1-BLAKE3 only]:
+    78a. AddToTranscript(transcript, a_bar)
     79. AddToTranscript(transcript, A1)
     80. AddToTranscript(transcript, A2)
     81. For j = 0 to L-1:
@@ -628,13 +798,20 @@ ProveSpend(token, s):
     121. k_bar = gamma * k* + k'
     122. s_bar = gamma * r* + s'
 
-    123. // Construct proof
-    124. proof = (k, s, ctx, A', B_bar, Com, gamma, e_bar,
-    125.          r2_bar, r3_bar, c_bar, r_bar,
-    126.          w00, w01, gamma0_final, z_final,
-    127.          k_bar, s_bar)
-    128. state = (k*, r*, m, ctx)
-    129. return (proof, state)
+    // Construct proof
+    // For ACT-Ristretto255-BLAKE3:
+    123. proof = (k, s, ctx, A', B_bar, Com, gamma, e_bar,
+    124.          r2_bar, r3_bar, c_bar, r_bar,
+    125.          w00, w01, gamma0_final, z_final,
+    126.          k_bar, s_bar)
+    // For ACT-BLS12381-G1-BLAKE3 (includes a_bar):
+    123'. proof = (k, s, ctx, A', B_bar, a_bar, Com, gamma, e_bar,
+    124'.          r2_bar, r3_bar, c_bar, r_bar,
+    125'.          w00, w01, gamma0_final, z_final,
+    126'.          k_bar, s_bar)
+
+    127. state = (k*, r*, m, ctx)
+    128. return (proof, state)
 ~~~
 
 ### Issuer: Spend Verification and Refund
@@ -656,8 +833,8 @@ VerifyAndRefund(sk, proof, t):
     2. // Check nullifier hasn't been used
     3. if k in used_nullifiers:
     4.     raise DoubleSpendError
-    5. // Verify the proof (see Section 3.5.2)
-    6. if not VerifySpendProof(sk, proof):
+    5. // Verify the proof (see Section 3.5.5 or 3.5.6)
+    6. if not VerifySpendProof(sk_or_pk, proof):
     7.     raise InvalidSpendProof
     8. // Record nullifier
     9. used_nullifiers.add(k)
@@ -667,6 +844,11 @@ VerifyAndRefund(sk, proof, t):
     13. return refund
 ~~~
 
+Note: In ACT-Ristretto255-BLAKE3, `VerifySpendProof` takes `sk` (the
+secret key). In ACT-BLS12381-G1-BLAKE3, the issuer's `VerifyAndRefund`
+still uses `sk` internally (for issuing the refund), but the spend
+proof verification itself can use either `sk` or `pk`.
+
 ### Refund Issuance {#refund-issuance}
 
 After verifying a spend proof, the issuer creates a refund token for the
@@ -674,7 +856,9 @@ remaining balance. The issuer may optionally return t credits (where
 0 <= t <= s) back to the client via a partial credit return. This enables
 pre-authorization patterns where the client holds s credits but only t
 are returned unused. The resulting token will have c - s + t credits.
-Use t = 0 to consume the full spend amount:
+Use t = 0 to consume the full spend amount.
+
+The BBS+ signature computation is shared between ciphersuites:
 
 ~~~
 IssueRefund(sk, K', ctx, s, t):
@@ -696,11 +880,17 @@ IssueRefund(sk, K', ctx, s, t):
     4. if t > s:
     5.     raise InvalidAmount
 
-    6. // Create new BBS signature on remaining balance + partial return
+    6. // Create new BBS+ signature on remaining balance + partial return
     7. e* <- Zq
     8. X_A* = G + K' + H1 * t + H4 * ctx
     9. A* = X_A* * (1/(e* + sk))
+~~~
 
+The remaining steps differ by ciphersuite:
+
+**ACT-Ristretto255-BLAKE3** (with DLEQ proof):
+
+~~~
     10. // Generate proof of correct computation
     11. alpha <- Zq
     12. Y_A = A* * alpha
@@ -726,14 +916,23 @@ IssueRefund(sk, K', ctx, s, t):
     29. return refund
 ~~~
 
+**ACT-BLS12381-G1-BLAKE3** (no DLEQ proof needed):
+
+~~~
+    10. refund = (A*, e*, t)
+    11. return refund
+~~~
+
 ### Client: Refund Token Construction
 
-The client verifies the refund and constructs a new credit token:
+The client verifies the refund and constructs a new credit token.
+
+**ACT-Ristretto255-BLAKE3** (DLEQ proof verification):
 
 ~~~
 ConstructRefundToken(pk, spend_proof, refund, state):
   Input:
-    - pk: Issuer's public key
+    - pk: Issuer's public key (G1Element)
     - spend_proof: The spend proof sent to issuer
     - refund: Issuer's refund response
     - state: Client state (k*, r*, m, ctx)
@@ -773,9 +972,43 @@ ConstructRefundToken(pk, spend_proof, refund, state):
     24. return token
 ~~~
 
-### Spend Proof Verification {#spend-verification}
+**ACT-BLS12381-G1-BLAKE3** (pairing check verification):
 
-The issuer verifies a spend proof as follows:
+~~~
+ConstructRefundToken(pk, spend_proof, refund, state):
+  Input:
+    - pk: Issuer's public key (G2Element)
+    - spend_proof: The spend proof sent to issuer
+    - refund: Issuer's refund response
+    - state: Client state (k*, r*, m, ctx)
+  Output:
+    - token: New credit token or INVALID
+  Exceptions:
+    - InvalidRefundProof: When the pairing check fails
+
+  Steps:
+    1. Parse refund as (A*, e*, t)
+    2. Parse state as (k*, r*, m, ctx)
+
+    3. if A* == Identity:
+    4.     raise InvalidRefundProof
+
+    5. // Reconstruct commitment with partial return
+    6. K' = Sum(spend_proof.Com[j] * 2^j for j in [L])
+    7. X_A* = G + K' + H1 * t + H4 * ctx
+
+    8. // Pairing check: e(A*, pk) == e(X_A* - e* * A*, G2_gen)
+    9. if e(A*, pk) != e(X_A* - A* * e*, G2_gen):
+    10.     raise InvalidRefundProof
+
+    11. // Construct new token with remaining balance + partial return
+    12. token = (A*, e*, k*, r*, m + t, ctx)
+    13. return token
+~~~
+
+### Spend Proof Verification: ACT-Ristretto255-BLAKE3 {#spend-verification-private}
+
+The issuer verifies a spend proof using the secret key:
 
 ~~~
 VerifySpendProof(sk, proof):
@@ -797,7 +1030,7 @@ VerifySpendProof(sk, proof):
     3. if A' == Identity:
     4.     raise IdentityPointError
 
-    5. // Compute issuer's view of signature
+    5. // Compute issuer's view of signature using secret key
     6. A_bar = A' * sk
     7. H1_prime = G + H2 * k + H4 * ctx
 
@@ -853,28 +1086,117 @@ VerifySpendProof(sk, proof):
     50. return true
 ~~~
 
+### Spend Proof Verification: ACT-BLS12381-G1-BLAKE3 {#spend-verification-public}
+
+In the publicly verifiable ciphersuite, spend proof verification
+requires only the issuer's public key. This enables any third party
+to verify spend proofs.
+
+~~~
+VerifySpendProof(pk, proof):
+  Input:
+    - pk: Issuer's public key (G2Element)
+    - proof: Spend proof from client
+  Output:
+    - valid: Boolean indicating if proof is valid
+  Exceptions:
+    - IdentityPointError: raised when A' is the identity
+    - InvalidClientSpendProof: raised when the verification fails
+
+  Steps:
+    1. Parse proof as (k, s, ctx, A', B_bar, a_bar, Com, gamma, e_bar,
+                      r2_bar, r3_bar, c_bar, r_bar, w00, w01,
+                      gamma0, z, k_bar, s_bar)
+
+    2. // Check A' is not identity
+    3. if A' == Identity:
+    4.     raise IdentityPointError
+
+    5. // Pairing check: e(A', pk) == e(a_bar, G2_gen)
+    6. if e(A', pk) != e(a_bar, G2_gen):
+    7.     raise InvalidClientSpendProof
+
+    8. H1_prime = G + H2 * k + H4 * ctx
+
+    9. // Verify sigma protocol (same as private, but using provided a_bar)
+    10. A1 = A' * e_bar + B_bar * r2_bar - a_bar * gamma
+    11. A2 = B_bar * r3_bar + H1 * c_bar + H3 * r_bar - H1_prime * gamma
+
+    12. // Range proof verification (identical to private variant)
+    13. gamma1 = array[L]
+    14. C = array[L][2]
+    15. C' = array[L][2]
+
+    16. gamma1[0] = gamma - gamma0[0]
+    17. C[0][0] = Com[0]
+    18. C[0][1] = Com[0] - H1
+    19. C'[0][0] = H2 * w00 + H3 * z[0][0] - C[0][0] * gamma0[0]
+    20. C'[0][1] = H2 * w01 + H3 * z[0][1] - C[0][1] * gamma1[0]
+
+    21. For j = 1 to L-1:
+    22.     gamma1[j] = gamma - gamma0[j]
+    23.     C[j][0] = Com[j]
+    24.     C[j][1] = Com[j] - H1
+    25.     C'[j][0] = H3 * z[j][0] - C[j][0] * gamma0[j]
+    26.     C'[j][1] = H3 * z[j][1] - C[j][1] * gamma1[j]
+
+    27. K' = Sum(Com[j] * 2^j for j in [L])
+    28. Com_total = H1 * s + K'
+    29. C_final = H1 * (-c_bar) + H2 * k_bar + H3 * s_bar - Com_total * gamma
+
+    30. // Recompute challenge using transcript
+    31. transcript = CreateTranscript("spend")
+    32. AddToTranscript(transcript, k)
+    33. AddToTranscript(transcript, ctx)
+    34. AddToTranscript(transcript, A')
+    35. AddToTranscript(transcript, B_bar)
+    36. AddToTranscript(transcript, a_bar)
+    37. AddToTranscript(transcript, A1)
+    38. AddToTranscript(transcript, A2)
+    39. For j = 0 to L-1:
+    40.     AddToTranscript(transcript, Com[j])
+    41. For j = 0 to L-1:
+    42.     AddToTranscript(transcript, C'[j][0])
+    43.     AddToTranscript(transcript, C'[j][1])
+    44. AddToTranscript(transcript, C_final)
+    45. gamma_check = GetChallenge(transcript)
+
+    46. if gamma != gamma_check:
+    47.     raise InvalidVerifySpendProof
+
+    48. return true
+~~~
+
+Note: The key difference from the private variant is step 5-6 (pairing
+check instead of `A_bar = A' * sk`) and step 36 (a_bar included in
+transcript). The range proof verification (steps 12-29) is identical.
 
 ## Cryptographic Primitives
 
 ### Protocol Version
 
-The protocol version string for domain separation is:
+Each ciphersuite uses a distinct protocol version string for domain
+separation:
 
 ~~~
-PROTOCOL_VERSION = "curve25519-ristretto anonymous-credits v1.0"
+ACT-Ristretto255-BLAKE3:
+  PROTOCOL_VERSION = "curve25519-ristretto anonymous-credits v1.0"
+
+ACT-BLS12381-G1-BLAKE3:
+  PROTOCOL_VERSION = "bls12-381 anonymous-credits-public v1.0"
 ~~~
 
-This version string MUST be used consistently across all implementations for
+These version strings MUST be used consistently across all implementations for
 interoperability. The curve specification is included to prevent cross-curve
 attacks and ensure implementations using different curves cannot accidentally
 interact.
 
 ### Hash Function and Fiat-Shamir Transform
 
-The protocol uses BLAKE3 {{BLAKE3}} as the underlying hash function for the
-Fiat-Shamir transform {{ORRU-FS}}. Following the sigma protocol framework
-{{ORRU-SIGMA}}, challenges are generated using a transcript that accumulates
-all protocol messages:
+The Fiat-Shamir transform is shared between both ciphersuites. The protocol
+uses BLAKE3 {{BLAKE3}} as the underlying hash function, following the sigma
+protocol framework {{ORRU-SIGMA}}. Challenges are generated using a transcript
+that accumulates all protocol messages:
 
 ~~~
 CreateTranscript(label):
@@ -916,14 +1238,20 @@ GetChallenge(transcript):
 
 This approach ensures:
 
-- Domain separation through the label and protocol version
+- Domain separation through the label, protocol version, and ciphersuite
 - Inclusion of all public parameters to prevent parameter substitution attacks
 - Proper ordering with length prefixes to prevent ambiguity
 - Deterministic challenge generation from the complete transcript
 
+Note: The PROTOCOL_VERSION string differs between ciphersuites (Section 4.1),
+which ensures that transcripts from different ciphersuites produce different
+challenges even with identical inputs.
+
 ### Encoding Functions
 
-Elements and scalars are encoded as follows:
+Elements and scalars are encoded according to the ciphersuite:
+
+**ACT-Ristretto255-BLAKE3:**
 
 ~~~
 Encode(value):
@@ -939,7 +1267,26 @@ Encode(value):
     4.     return value.to_bytes_le()  // 32 bytes, little-endian
 ~~~
 
-The following function provides consistent length-prefixing for hash inputs:
+**ACT-BLS12381-G1-BLAKE3:**
+
+~~~
+Encode(value):
+  Input:
+    - value: G1Element, G2Element, or Scalar
+  Output:
+    - encoding: ByteString
+
+  Steps:
+    1. If value is a G1Element:
+    2.     return value.to_compressed()  // 48 bytes, compressed G1 point
+    3. If value is a G2Element:
+    4.     return value.to_compressed()  // 96 bytes, compressed G2 point
+    5. If value is a Scalar:
+    6.     return value.to_bytes_le()  // 32 bytes, little-endian
+~~~
+
+The following function provides consistent length-prefixing for hash inputs
+(shared between both ciphersuites):
 
 ~~~
 LengthPrefixed(data):
@@ -956,7 +1303,63 @@ LengthPrefixed(data):
 Note: Implementations MAY use standard serialization formats (e.g. CBOR) for
 complex structures, but MUST ensure deterministic encoding for hash inputs.
 
+### Hash-to-Group
+
+#### HashToRistretto255 (ACT-Ristretto255-BLAKE3) {#hash-to-ristretto}
+
+~~~
+HashToRistretto255(domain_separator, seed, counter):
+  Input:
+    - domain_separator: ByteString
+    - seed: 32-byte seed value
+    - counter: Integer counter for domain separation
+  Output:
+    - P: A valid Ristretto255 point
+
+  Steps:
+    1. hasher = BLAKE3.new()
+    2. hasher.update(LengthPrefixed(domain_separator))
+    3. hasher.update(LengthPrefixed(seed))
+    4. hasher.update(LengthPrefixed(counter.to_le_bytes(4)))
+    5. uniform_bytes = hasher.finalize_xof(64)
+    6. P = OneWayMap(uniform_bytes)
+    7. return P
+~~~
+
+The OneWayMap function is defined in {{RFC9496}} Section 4.3.4, which provides a
+cryptographically secure mapping from uniformly random byte strings to valid
+Ristretto255 points.
+
+#### HashToG1 (ACT-BLS12381-G1-BLAKE3) {#hash-to-g1}
+
+~~~
+HashToG1(domain_separator, seed, counter):
+  Input:
+    - domain_separator: ByteString
+    - seed: 32-byte seed value
+    - counter: Integer counter for domain separation
+  Output:
+    - P: A valid BLS12-381 G1 point
+
+  Steps:
+    1. hasher = BLAKE3.new()
+    2. hasher.update(LengthPrefixed(domain_separator))
+    3. hasher.update(LengthPrefixed(seed))
+    4. hasher.update(LengthPrefixed(counter.to_le_bytes(4)))
+    5. uniform_bytes = hasher.finalize_xof(64)
+    6. s = from_little_endian_bytes(uniform_bytes) mod q
+    7. P = G1_gen * s
+    8. return P
+~~~
+
+This method produces a G1 point with unknown discrete logarithm relative
+to the G1 generator (assuming the hash function behaves as a random oracle).
+The resulting point is guaranteed to be in the prime-order subgroup since
+it is a scalar multiple of the generator.
+
 ### Binary Decomposition {#binary-decomposition}
+
+This algorithm is shared between both ciphersuites.
 
 To decompose a scalar into its binary representation:
 
@@ -981,6 +1384,8 @@ Note: This algorithm produces bits in LSB-first order (i.e., `bits[0]` is the
 least significant bit). See Section 3.1 for constraints on L.
 
 ### Scalar Conversion
+
+This algorithm is shared between both ciphersuites.
 
 Converting between credit amounts and scalars:
 
@@ -1019,13 +1424,23 @@ ScalarToCredit(s):
 
 All protocol messages SHOULD be encoded using deterministic CBOR (RFC 8949) for
 interoperability. Decoders MUST reject messages containing unknown CBOR map
-keys. The following sections define the structure of each message type.
+keys. The following sections define the structure of each message type for
+each ciphersuite.
+
+In the format descriptions below, point sizes depend on the ciphersuite:
+
+- ACT-Ristretto255-BLAKE3: Ristretto point = 32 bytes
+- ACT-BLS12381-G1-BLAKE3: G1 point = 48 bytes, G2 point = 96 bytes
+- Both ciphersuites: Scalar = 32 bytes
 
 ### Issuance Request Message
 
+The issuance request is identical in structure for both ciphersuites (point
+sizes differ):
+
 ~~~
 IssuanceRequestMsg = {
-    1: bstr,  ; K (compressed Ristretto point, 32 bytes)
+    1: bstr,  ; K (compressed point, 32 or 48 bytes)
     2: bstr,  ; gamma (scalar, 32 bytes)
     3: bstr,  ; k_bar (scalar, 32 bytes)
     4: bstr   ; r_bar (scalar, 32 bytes)
@@ -1033,6 +1448,8 @@ IssuanceRequestMsg = {
 ~~~
 
 ### Issuance Response Message
+
+**ACT-Ristretto255-BLAKE3** (includes DLEQ proof):
 
 ~~~
 IssuanceResponseMsg = {
@@ -1045,7 +1462,20 @@ IssuanceResponseMsg = {
 }
 ~~~
 
+**ACT-BLS12381-G1-BLAKE3** (no DLEQ proof):
+
+~~~
+IssuanceResponseMsg = {
+    1: bstr,  ; A (compressed G1 point, 48 bytes)
+    2: bstr,  ; e (scalar, 32 bytes)
+    3: bstr,  ; c (scalar, 32 bytes)
+    4: bstr   ; ctx (scalar, 32 bytes)
+}
+~~~
+
 ### Spend Proof Message
+
+**ACT-Ristretto255-BLAKE3:**
 
 ~~~
 SpendProofMsg = {
@@ -1070,7 +1500,35 @@ SpendProofMsg = {
 }
 ~~~
 
+**ACT-BLS12381-G1-BLAKE3** (adds a_bar field):
+
+~~~
+SpendProofMsg = {
+    1: bstr,           ; k (nullifier, 32 bytes)
+    2: bstr,           ; s (spend amount, 32 bytes)
+    3: bstr,           ; A' (compressed G1 point, 48 bytes)
+    4: bstr,           ; B_bar (compressed G1 point, 48 bytes)
+    5: bstr,           ; a_bar (compressed G1 point, 48 bytes)
+    6: [* bstr],       ; Com array (L compressed G1 points)
+    7: bstr,           ; gamma (scalar, 32 bytes)
+    8: bstr,           ; e_bar (scalar, 32 bytes)
+    9: bstr,           ; r2_bar (scalar, 32 bytes)
+    10: bstr,          ; r3_bar (scalar, 32 bytes)
+    11: bstr,          ; c_bar (scalar, 32 bytes)
+    12: bstr,          ; r_bar (scalar, 32 bytes)
+    13: bstr,          ; w00 (scalar, 32 bytes)
+    14: bstr,          ; w01 (scalar, 32 bytes)
+    15: [* bstr],      ; gamma0 array (L scalars)
+    16: [* [bstr, bstr]], ; z array (L pairs of scalars)
+    17: bstr,          ; k_bar (scalar, 32 bytes)
+    18: bstr,          ; s_bar (scalar, 32 bytes)
+    19: bstr           ; ctx (scalar, 32 bytes)
+}
+~~~
+
 ### Refund Message
+
+**ACT-Ristretto255-BLAKE3** (includes DLEQ proof):
 
 ~~~
 RefundMsg = {
@@ -1082,9 +1540,20 @@ RefundMsg = {
 }
 ~~~
 
+**ACT-BLS12381-G1-BLAKE3** (no DLEQ proof):
+
+~~~
+RefundMsg = {
+    1: bstr,  ; A* (compressed G1 point, 48 bytes)
+    2: bstr,  ; e* (scalar, 32 bytes)
+    3: bstr   ; t (partial return, scalar, 32 bytes)
+}
+~~~
+
 ## Error Responses
 
-Error responses SHOULD use the following format:
+Error responses SHOULD use the following format (shared between both
+ciphersuites):
 
 ~~~
 ErrorMsg = {
@@ -1103,20 +1572,42 @@ interoperability.
 
 ### Public Key
 
+**ACT-Ristretto255-BLAKE3:**
+
 ~~~
 PublicKey = bstr  ; W (compressed Ristretto point, 32 bytes)
 ~~~
 
+**ACT-BLS12381-G1-BLAKE3:**
+
+~~~
+PublicKey = bstr  ; W (compressed G2 point, 96 bytes)
+~~~
+
 ### Private Key
+
+**ACT-Ristretto255-BLAKE3:**
 
 ~~~
 PrivateKey = {
     1: bstr,  ; x (secret scalar, 32 bytes)
-    2: bstr   ; W (public key point, 32 bytes)
+    2: bstr   ; W (public key, compressed Ristretto point, 32 bytes)
 }
 ~~~
 
 Decoders MUST verify that W == G * x upon deserialization to prevent use
+of inconsistent key material.
+
+**ACT-BLS12381-G1-BLAKE3:**
+
+~~~
+PrivateKey = {
+    1: bstr,  ; x (secret scalar, 32 bytes)
+    2: bstr   ; W (public key, compressed G2 point, 96 bytes)
+}
+~~~
+
+Decoders MUST verify that W == G2_gen * x upon deserialization to prevent use
 of inconsistent key material.
 
 ## Client State Serialization
@@ -1128,7 +1619,8 @@ store or transmit client state SHOULD use these formats for interoperability.
 ### Pre-Issuance State
 
 The client MUST persist this state after generating an issuance request
-and before receiving the issuance response.
+and before receiving the issuance response. This format is identical for
+both ciphersuites.
 
 ~~~
 PreIssuance = {
@@ -1143,7 +1635,7 @@ The client MUST persist the credit token after issuance or refund.
 
 ~~~
 CreditToken = {
-    1: bstr,  ; A (BBS signature point, compressed Ristretto, 32 bytes)
+    1: bstr,  ; A (BBS signature point, compressed, 32 or 48 bytes)
     2: bstr,  ; e (signature scalar, 32 bytes)
     3: bstr,  ; k (nullifier, scalar, 32 bytes)
     4: bstr,  ; r (blinding factor, scalar, 32 bytes)
@@ -1155,7 +1647,8 @@ CreditToken = {
 ### Pre-Refund State
 
 The client MUST persist this state after generating a spend proof and
-before receiving the refund response.
+before receiving the refund response. This format is identical for both
+ciphersuites.
 
 ~~~
 PreRefund = {
@@ -1185,6 +1678,19 @@ Client                                          Issuer
   |                                               |
 ~~~
 
+In ACT-BLS12381-G1-BLAKE3, a third-party verifier can additionally verify
+spend proofs:
+
+~~~
+Client                                          Issuer
+  |                                               |
+  |-- SpendProofMsg ----------------------------->|
+  |                   \                            |
+  |                    \--- SpendProofMsg -------->| Third-Party
+  |                                               | Verifier
+  |                                               | (has pk only)
+~~~
+
 ### Example Usage Scenario
 
 Consider an API service that sells credits in bundles of 1000:
@@ -1192,11 +1698,11 @@ Consider an API service that sells credits in bundles of 1000:
 1. **Purchase**: Alice buys 1000 API credits
    - Alice generates a random nullifier k and blinding factor r
    - Alice sends IssuanceRequestMsg to the service
-   - Service creates a BBS signature on (1000, k, r) and returns it
+   - Service creates a BBS+ signature on (1000, k, r) and returns it
    - Alice now has a token worth 1000 credits
 
 2. **First API Call**: Alice makes an API call costing 50 credits
-   - Alice creates a SpendProofMsg proving she has ≥ 50 credits
+   - Alice creates a SpendProofMsg proving she has >= 50 credits
    - Alice reveals nullifier k to prevent double-spending
    - Service verifies the proof and records k as used
    - Service issues a RefundMsg for a new token worth 950 credits
@@ -1265,6 +1771,8 @@ WARNING: Leakage of even a few bits of a nonce can allow complete recovery of th
 
 ## Point Validation
 
+### ACT-Ristretto255-BLAKE3
+
 All Ristretto points received from external sources MUST be validated:
 
 1. **Deserialization**: Verify the point deserializes to a valid Ristretto point
@@ -1283,13 +1791,27 @@ ValidatePoint(P):
   6. return VALID
 ~~~
 
+### ACT-BLS12381-G1-BLAKE3
+
+All G1 and G2 points received from external sources MUST be validated:
+
+1. **Deserialization**: Verify the point deserializes to a valid compressed
+   G1 or G2 point (including on-curve check)
+2. **Non-Identity**: Verify the point is not the identity element
+3. **Subgroup Check**: BLS12-381 G1 has cofactor h = 1 (prime-order),
+   so standard `from_compressed` deserialization suffices. G2 has a
+   non-trivial cofactor, so implementations MUST perform a subgroup check
+   for G2 points (public keys) or use a deserializer that verifies
+   subgroup membership.
+
 All implementations MUST validate points at these locations:
 
 - When receiving `K` in issuance request
 - When receiving `A` in issuance response
-- When receiving `A'` and `B_bar` in spend proof
+- When receiving `A'`, `B_bar`, and `a_bar` (ACT-BLS12381-G1-BLAKE3) in spend proof
 - When receiving `Com[j]` commitments in spend proof
 - When receiving `A*` in refund response
+- When receiving a public key (G2 element, ACT-BLS12381-G1-BLAKE3)
 
 ## Error Handling
 
@@ -1324,7 +1846,7 @@ The protocol has the following computational complexity:
 
 **Notation for Operations:**
 
-- **Group Operations**: Point additions in the Ristretto255 group (e.g., P + Q)
+- **Group Operations**: Point additions in the group (e.g., P + Q)
 - **Group Exponentiations**: Scalar multiplication of group elements (e.g., P * s)
 - **Scalar Additions/Multiplications**: Arithmetic operations modulo the group order q
 
@@ -1333,28 +1855,38 @@ The protocol has the following computational complexity:
 | Operation | Group Operations | Group Exponentiations | Scalar Additions | Scalar Multiplications | Hashes |
 |-----------|------------------|-----------------------|------------------|------------------------|--------|
 | Client Request | 2 | 4 | 2 | 1 | 1 |
-| Issuer Response | 5 | 8 | 3 | 1 | 2 |
-| Client Credit Token Construction | 5 | 5 | 0 | 0 | 1 |
+| Issuer Response (Ristretto) | 5 | 8 | 3 | 1 | 2 |
+| Issuer Response (BLS12-381) | 2 | 3 | 0 | 0 | 1 |
+| Client Verify (Ristretto) | 5 | 5 | 0 | 0 | 1 |
+| Client Verify (BLS12-381) | 1 | 1 | 0 | 0 | 2P |
+
+Note: "2P" denotes two pairing computations.
 
 - **Spending**:
 
 | Operation | Group Operations | Group Exponentiations | Scalar Additions | Scalar Multiplications | Hashes |
 |-----------|------------------|-----------------------|------------------|------------------------|--------|
 | Client Request | 17 + 4L | 27 + 8L | 13 + 5L | 12 + 3L | 1 |
-| Issuer Response | 16 + 4L | 24 + 5L | 4 + L | 1 | 1 |
-| Client Credit Token Construction | 3 | 5 | L | L | 1 |
+| Issuer Response (Ristretto) | 16 + 4L | 24 + 5L | 4 + L | 1 | 1 |
+| Issuer Response (BLS12-381) | 16 + 4L | 24 + 5L | 4 + L | 1 | 1 + 2P |
+| Client Refund (Ristretto) | 3 | 5 | L | L | 1 |
+| Client Refund (BLS12-381) | 2 | 2 | L | L | 2P |
 
-Note: L is the configurable bit length for credit values.
+Note: The BLS12-381 spend verification includes 2 pairing computations plus
+the sigma protocol verification. Pairings are computationally expensive
+(~1ms each) but enable third-party verification.
 
 - **Storage**:
 
-| Component | Size |
-|-----------|------|
-| Token size | 192 bytes (6 × 32 bytes) |
-| Spend proof size | 32 × (14 + 4L) bytes |
-| Nullifier database entry | 32 bytes per spent token |
+| Component | Ristretto | BLS12-381 |
+|-----------|-----------|-----------|
+| Token size | 192 bytes (6 x 32) | 240 bytes (48 + 5 x 32 + 48 padding) |
+| Spend proof size | 32 x (14 + 4L) bytes | 32 x (14 + 4L) + 3 x 48 bytes |
+| Nullifier database entry | 32 bytes | 32 bytes |
+| Public key | 32 bytes | 96 bytes |
 
-Note: Token size is independent of L.
+Note: Token size is independent of L. The BLS12-381 spend proof is larger
+due to the a_bar field and larger point encodings.
 
 # Security Considerations
 
@@ -1371,17 +1903,35 @@ We consider a setting with:
 
 The protocol provides the following security guarantees:
 
-1. **Unforgeability**: For an honest isser I, no probabilistic polynomial-time (PPT) adversary controlling a set of malicious clients and other malicious issuers can spend more credits than have been issued by I.
+1. **Unforgeability**: For an honest issuer I, no probabilistic polynomial-time (PPT) adversary controlling a set of malicious clients and other malicious issuers can spend more credits than have been issued by I.
 
 2. **Anonymity/Unlinkability**: For an honest client C, no adversary controlling a set of malicious issuers and other malicious clients can link a token issuance/refund to C with a token spend by C. This property is information-theoretic in nature.
+
+3. **Public Verifiability** (ACT-BLS12381-G1-BLAKE3 only): Any party holding
+   the issuer's public key can verify that a spend proof is valid. This is a
+   weaker form of verification than the issuer's (which also checks the
+   nullifier database), but it cryptographically guarantees that the spending
+   party holds a valid token with sufficient balance.
 
 ## Cryptographic Assumptions
 
 Security relies on:
 
-1. **The q-SDH Assumption** in the Ristretto255 group. We refer to {{TZ23}} for the formal definition.
+1. **The q-SDH Assumption**:
+
+   - For ACT-Ristretto255-BLAKE3: The q-SDH assumption in the Ristretto255
+     group. We refer to {{TZ23}} for the formal definition.
+
+   - For ACT-BLS12381-G1-BLAKE3: The q-SDH assumption in both the G1 and G2
+     subgroups of BLS12-381. This is a standard assumption in the pairing
+     setting, used in the security proof of BBS+ signatures.
 
 2. **Random Oracle Model**: The BLAKE3 hash function H is modeled as a random oracle.
+
+3. **Bilinear Pairing Security** (ACT-BLS12381-G1-BLAKE3 only): The security
+   of the pairing-based verification relies on the computational Diffie-Hellman
+   assumption holding in both G1 and G2, and the bilinear pairing being
+   non-degenerate.
 
 ## Privacy Properties
 
@@ -1402,6 +1952,26 @@ However, the protocol does NOT provide:
    within the same context (e.g., per-service or per-epoch), not per-client values.
    The ctx value persists across refunds: a token produced by a refund inherits the
    ctx of the original token.
+
+### Public Verifiability Implications
+
+In the ACT-BLS12381-G1-BLAKE3 ciphersuite, the `a_bar` value in the spend proof
+enables any holder of the public key to verify the proof. This has the following
+implications:
+
+- **Relay Safety**: Spend proofs can be forwarded to third parties for
+  verification without compromising the issuer's secret key.
+- **Audit Trail**: Third-party auditors can verify that spend proofs accepted
+  by a service were cryptographically valid.
+- **No Additional Privacy Loss**: The `a_bar` value does not reveal any
+  additional information about the token or client beyond what is already
+  in the spend proof, because it is computationally bound to the randomized
+  signature values.
+
+The security of the `a_bar` computation relies on the prover not knowing
+discrete log relations that could fool the pairing check. This is ensured
+by the BBS+ unforgeability guarantee: a valid `a_bar` can only be computed
+by someone who knows a valid BBS+ signature.
 
 ## Implementation Vulnerabilities and Mitigations
 
@@ -1536,8 +2106,8 @@ See the Randomness Generation section for detailed RNG requirements.
 ### Version Negotiation
 
 To support protocol evolution, implementations MAY include version negotiation
-in the initial handshake. All parties MUST agree on the protocol version before
-proceeding.
+in the initial handshake. All parties MUST agree on the protocol version and
+ciphersuite before proceeding.
 
 ## Quantum Resistance
 
@@ -1553,10 +2123,10 @@ This document has no IANA actions.
 
 --- back
 
-# Test Vectors {#test-vectors}
+# Test Vectors: ACT-Ristretto255-BLAKE3 {#test-vectors-ristretto}
 
-This appendix provides test vectors for implementers to verify their
-implementations. All values are encoded in hexadecimal.
+This appendix provides test vectors for the ACT-Ristretto255-BLAKE3
+ciphersuite. All values are encoded in hexadecimal.
 
 <!-- TEST_VECTORS_START -->
 The following test vector was generated deterministically using a
@@ -1735,19 +2305,226 @@ remaining_balance: 80
 ~~~
 <!-- TEST_VECTORS_END -->
 
+# Test Vectors: ACT-BLS12381-G1-BLAKE3 {#test-vectors-bls}
+
+This appendix provides test vectors for the ACT-BLS12381-G1-BLAKE3
+ciphersuite. All values are encoded in hexadecimal.
+
+<!-- BLS_TEST_VECTORS_START -->
+The following test vector was generated deterministically using a
+ChaCha20 RNG seeded with the bytes `00 01 02 ... 1e 1f` and L=8.
+The domain separator is `"ACT-public-v1:test:vectors:v0:2025-01-01"`, credit amount
+c=100, spend amount s=30, partial return t=10, and ctx=0. Values labelled `*_cbor`
+are the CBOR wire-format encodings of each protocol
+message, displayed in hexadecimal.
+
+Implementations SHOULD verify they can deserialize these CBOR
+messages and that a full protocol run with the same deterministic
+RNG produces identical output.
+
+## Parameters
+
+~~~
+domain_separator: "ACT-public-v1:test:vectors:v0:2025-01-01"
+L: 8
+c: 100
+s: 30
+t: 10
+ctx: 0000000000000000000000000000000000000000000000000000000000000000
+~~~
+
+## Key Generation
+
+~~~
+sk_cbor:
+  a2015820e7139050f82508d7ba932cfeec58b23f24d0f21c454995b9d79db78c
+  4a2f154d025860a73d2e3c757c283688a7cb7c4e79953a3588c99a47a7d9b82f
+  e8958126968d26a26312728f29ae262029fc24ede69a2b0d51ab6775c3ae9146
+  bb2bfe4824c85d94c00550be19dd4a4632533c4f9c1d6b89bc842d632690468a
+  9f5872300fd7c9
+
+pk_cbor:
+  5860a73d2e3c757c283688a7cb7c4e79953a3588c99a47a7d9b82fe895812696
+  8d26a26312728f29ae262029fc24ede69a2b0d51ab6775c3ae9146bb2bfe4824
+  c85d94c00550be19dd4a4632533c4f9c1d6b89bc842d632690468a9f5872300f
+  d7c9
+~~~
+
+## Issuance
+
+~~~
+preissuance_cbor:
+  a2015820ec19a163a8e44acc21fb4b7592cdac1fdbcdead1a8946e101a6734ac
+  2bb4974a02582045b8221338f3a591f41df327c582305c92b0a3debe4b420b37
+  f939c88820f518
+
+issuance_request_cbor:
+  a4015830929ea9decd2955d576b693db4669dd583feb5a98c7420860b9930b0e
+  277cbeb9fe9a14eab8db62f7f46eb2c66555cbc00258208dd940529808e6c10f
+  7703f69432afc98eccdbfb1575e8013f7d750e6b5b261603582006fece0263b4
+  04292fb75e405c81df4834be3a26164564ea59f2bfef5c68e82c04582049dff6
+  416a34759e3d57665f783884ccaae486f6c2c7e08ddc9dcac8e3158146
+
+issuance_response_cbor:
+  a4015830ae446fcc8c380160b92aa115b9046d12601a88849f8815d7701910af
+  ad9cd180ba6d46beb7d3e28503555869347f296a02582078b3c5981568274ebc
+  5744b64a889d5c3fd1b398f142e9e1678b0e641a64fe09035820640000000000
+  0000000000000000000000000000000000000000000000000000045820000000
+  0000000000000000000000000000000000000000000000000000000000
+
+credit_token_cbor:
+  a6015830ae446fcc8c380160b92aa115b9046d12601a88849f8815d7701910af
+  ad9cd180ba6d46beb7d3e28503555869347f296a02582078b3c5981568274ebc
+  5744b64a889d5c3fd1b398f142e9e1678b0e641a64fe0903582045b8221338f3
+  a591f41df327c582305c92b0a3debe4b420b37f939c88820f518045820ec19a1
+  63a8e44acc21fb4b7592cdac1fdbcdead1a8946e101a6734ac2bb4974a055820
+  6400000000000000000000000000000000000000000000000000000000000000
+  0658200000000000000000000000000000000000000000000000000000000000
+  000000
+~~~
+
+## Spending
+
+~~~
+nullifier:
+  45b8221338f3a591f41df327c582305c92b0a3debe4b420b37f939c88820f518
+
+context:
+  0000000000000000000000000000000000000000000000000000000000000000
+
+charge:
+  1e00000000000000000000000000000000000000000000000000000000000000
+
+spend_proof_cbor:
+  b301582045b8221338f3a591f41df327c582305c92b0a3debe4b420b37f939c8
+  8820f5180258201e000000000000000000000000000000000000000000000000
+  00000000000000035830b8396aaba4a1647be30aa8829a87546deec16b45f344
+  8fa0b9b1e7d85cb02a45fac2a03606991bd72f5170baf012ee4204583094ba10
+  d60406de84066b54fb765f980aa553474dfd1a88eca5ed351a16a4c4f259f88a
+  18a23a7bb647c4091a9e5416cc05885830986edb380f07ff4bb12a1f81537d2c
+  96def7ebc055c6099ad2cd0d8fc5243084e3ebaf9803611a04a491d280f676ea
+  3f5830847d58b1f5448ffdbe9e0282e7d062e5a1c188c5f21a6435f15eea9a9e
+  eaf0c5d6f20d8795563cf60113a9eba5982059583084d8c53abf6077b08a96a2
+  903135c2b3f8fed7d4e47f5c66e6a3062abcc25c139c1ce35389791e27538dff
+  9b02a0590d58308f3cd52e40e70135bb3ebd10e9d1163cb5044b71420b5410d1
+  e08f80aa92668f48b6d497fdfcfd8e6b2efae02f5a7a045830932d80a328fbd9
+  57687e27c5f7deb1c14ea7b0638998eaa2bb6c52b280602fed16b1fa7c38940a
+  fd93f41a96dac0daca5830b1db0418c65f3c5a67543a1c04689afcb4c25b10a8
+  7bb669c4335aa32bbd22461bd9c5d91e9aa525c2c8e8fe15b4e1fd5830ae6b74
+  60fc30b1d159710cea87e9b699e41f6d6e91f4e3019e75632d2d671d198dfcc2
+  929ead3847c2bcfe08f6f4c30758309088f2e03e84527e245c317bde51c96eed
+  0330c1398eb35d2fd9717ffb3bb52a2370555de70c13b40dd4fcc71362b02306
+  5820790172cb521373e0686afd808b03a28e4600fc88ed9cbd65c3e7e1cc4be6
+  de0f07582077dba11364efd4b5420585373d5d3ce6f32e2a27f9e49cc2089c2c
+  dad4973866085820a71c6595ef97ae52818ebf8d913d6739fc0a854799c75b51
+  15d756ec35722e6c09582064e9a6e68b686a7a8f8eeaec3cf392b45449a56e87
+  e5de75811b5b89621039520a5820ecba7e7edb973c6e5d1eb701843d9c2e7cb6
+  c1913fed9ef5da5123db8a86a41c0b582087f306aba0229794c69cea61fb6f89
+  67462d24db1922cc0966cb77f3f40e0b5d0c58208dc0d6847a7b082eb9deeaac
+  96a08ad6b19c90ec2d299dcc8b78a24f370486430d5820b6b90471329140bc17
+  af8640507f4b01b6503a558dd43d94de4737abd7bdc25e0e885820d4dc68896c
+  2ca6e1bb17cf78457731f6abcaf57140370603d1f5eeca5d5c000258207ea76e
+  e6dff08ea5c3765d108f3ee3f92a7c56d7138f818c93e6a349ef5e2960582033
+  d5fe1c392f1f175d52371527f8f3ff32666d698072726fdec39283725ec95358
+  20337dfca2be4617734b5b85d7e703b8c4e17893977c1d62798128d12f551edb
+  4f58201dcd773c15bc91ab2e355c2e7f3e42a8051d1c6efc36d61aba2f4d4f5f
+  2fb1565820550a49a554476a568fe402813150716e32f0696f5bc67505a1a91a
+  70a5fd936158208cd25f1bf8fc9208854891a2dd92ea8b8f4be2896c2d6b223d
+  edaa95ae9b0c3458200d739181c1ba901a692a0c813cef0f539a9fd5c2b95c87
+  ccf234bf7e5204e75d0f88825820f6af1fbefcbabaa6dc86a7efc92bd8a91bd8
+  5bd5e2901e3045d8f7ce75d458495820f556172aa50e5028cca8ca8d362e92ba
+  e2879426850f858945bbf804c86d2d0a8258209312b5bfd2f73800346ee51097
+  669d79bc8c0b04e0ff4efe26451be6f3b11a29582068f29e19a7bde06cab4db4
+  3bce5ce4c79e94a3536ec3577c28542caa0a53984f8258201ac717b3f3522a70
+  4749b6180c4fa7cbc970e22fc1a5331860013cd323ad55415820cbd85ff4f354
+  69beb63cfefc457ea74115c12f9e339df9762a9488ad55f4e556825820d012d5
+  de03d2e7e597f948887efffd0c42b32689d9e193947d021892957d773958207f
+  a47bd2d5f7279a66771e2bdbff6e7e22bb020a27902267c896198772a87c5482
+  58207c31c7a12c2c5c0c19c5ee94225e81248ed1d7c94cdcaf1dab105ee3d2b8
+  dd1c5820040a70fb958bae35e1faf5cf04876f09a2c91263aeb6ba4bf53feb42
+  7abb5f128258207dc2ec224d20047cea2f97175730642f53a9210a55c5ba52e4
+  6826be4675d3295820d3957b2cdb5c63f04b05c14be7e7ff995fe15c6bb4daba
+  22aab770a45b8de35a825820391c27b8d6c19e0863a83b0303d7ebfbf2d2b503
+  881b556601730ccdd3cc60645820e3e77e2f2cb578617d3023502bf68654231d
+  fecaff8e6202eacc07ad2fa2b0188258206ad71d955f2b6c66586fd65f98d355
+  193f867c006ffc0b3d61bcff04e2ef0f465820fb5704a4a172aa91ebdc1a4bea
+  478b06b3086e881998e716a5406604586880091058202e0b3d66989e72b6e9e8
+  6f3c5183efe590373f7a0b8e390d0822234a6666cd1511582016c07e92895ef1
+  0a5f11cb0ba6ff2de2534620e696b7a0b27d17bd8ccecaa56812582000000000
+  00000000000000000000000000000000000000000000000000000000135830a4
+  0f5387ee2854b0f8180e889eabb57341781ac362ec791d7a18c8816336b0471b
+  6c961b5ea9ae4307bd100d50ea0fea
+
+prerefund_cbor:
+  a40158209a05b907693a143f7202c1b45a9905e6012507dab7013ce7b29f47e3
+  fbd9733c0258202ba2b4c18641bb32cabc53dbc1bb32dd21419cb892d33deb7d
+  2c8c2819d9370303582046000000000000000000000000000000000000000000
+  0000000000000000000004582000000000000000000000000000000000000000
+  00000000000000000000000000
+~~~
+
+## Refund
+
+~~~
+refund_cbor:
+  a3015830b3d1b635966e2a55efc2166dda5ac4a4cbad09410558862972eed4f8
+  6056485cee3718452f7f27e908f7d1de5c47b233025820d0b9164f71c07c656e
+  a24791e3280055bdaf2eb803e14cb46b78610617de98550358200a0000000000
+  0000000000000000000000000000000000000000000000000000
+~~~
+
+## Refund Token
+
+~~~
+refund_token_cbor:
+  a6015830b3d1b635966e2a55efc2166dda5ac4a4cbad09410558862972eed4f8
+  6056485cee3718452f7f27e908f7d1de5c47b233025820d0b9164f71c07c656e
+  a24791e3280055bdaf2eb803e14cb46b78610617de98550358202ba2b4c18641
+  bb32cabc53dbc1bb32dd21419cb892d33deb7d2c8c2819d937030458209a05b9
+  07693a143f7202c1b45a9905e6012507dab7013ce7b29f47e3fbd9733c055820
+  5000000000000000000000000000000000000000000000000000000000000000
+  0658200000000000000000000000000000000000000000000000000000000000
+  000000
+
+refund_token_credits:
+  5000000000000000000000000000000000000000000000000000000000000000
+
+refund_token_nullifier:
+  2ba2b4c18641bb32cabc53dbc1bb32dd21419cb892d33deb7d2c8c2819d93703
+
+remaining_balance: 80
+~~~
+<!-- BLS_TEST_VECTORS_END -->
+
 # Implementation Status
 
 This section records the status of known implementations of the protocol
 defined by this specification at the time of posting of this Internet-Draft,
 and is based on a proposal described in RFC 7942.
 
-## anonymous-credit-tokens
+## anonymous-credit-tokens (ACT-Ristretto255-BLAKE3)
 
 Organization: Google
 
 Description: Reference implementation in Rust
 
 Maturity: Beta
+
+Coverage: Complete protocol implementation
+
+License: Apache 2.0
+
+Contact: sgschlesinger@gmail.com
+
+URL: https://github.com/SamuelSchlesinger/anonymous-credit-tokens
+
+## anonymous-credit-tokens-public (ACT-BLS12381-G1-BLAKE3)
+
+Organization: Google
+
+Description: Reference implementation in Rust using BLS12-381
+
+Maturity: Experimental
 
 Coverage: Complete protocol implementation
 
@@ -1765,25 +2542,35 @@ This glossary provides quick definitions of key terms used throughout this docum
 
 **Blind Signature**: A cryptographic signature where the signer signs a message without seeing its content.
 
+**Ciphersuite**: A specific instantiation of the ACT protocol with a chosen group, hash function, and verification method.
+
+**DLEQ Proof**: A Discrete Log Equality proof demonstrating that two group elements have the same discrete log relationship. Used in the Ristretto255 ciphersuite for issuance and refund verification.
+
 **Refund**: The refund issued for the remaining balance after a partial spend.
 
 **Credit**: A numerical unit of authorization that can be spent by clients.
 
-**Domain Separator**: A unique string used to ensure cryptographic isolation between different deployments.
+**Domain Separator**: A unique string used to ensure cryptographic isolation between different deployments and ciphersuites.
 
-**Element**: A point in the Ristretto255 elliptic curve group.
+**G1Element**: A point in the primary group used for token computations (Ristretto255 or BLS12-381 G1).
+
+**G2Element**: A point in BLS12-381 G2, used for the public key in the ACT-BLS12381-G1-BLAKE3 ciphersuite.
 
 **Issuer**: The entity that creates and signs credit tokens.
 
 **Nullifier**: A unique value revealed during spending that prevents double-spending of the same token.
 
+**Pairing**: A bilinear map `e: G1 x G2 -> GT` used in BLS12-381 for signature verification without the secret key.
+
 **Partial Spending**: The ability to spend less than the full value of a token and receive change.
+
+**Public Verifiability**: The property (ACT-BLS12381-G1-BLAKE3 only) that spend proofs can be verified by anyone with the issuer's public key.
 
 **Scalar**: An integer modulo the group order q, used in cryptographic operations.
 
 **Sigma Protocol**: An interactive zero-knowledge proof protocol following a commit-challenge-response pattern.
 
-**Token**: A cryptographic credential containing a BBS signature and associated data (A, e, k, r, c, ctx).
+**Token**: A cryptographic credential containing a BBS+ signature and associated data (A, e, k, r, c, ctx).
 
 **Unlinkability**: The property that transactions cannot be correlated with each other or with token issuance.
 
