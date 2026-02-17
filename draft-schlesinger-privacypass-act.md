@@ -31,13 +31,14 @@ author:
 
 normative:
   ACT: I-D.draft-schlesinger-cfrg-act
-  ARC: I-D.draft-yun-privacypass-arc
-  ARC_PP: I-D.draft-yun-cfrg-arc
+  ARC: I-D.draft-ietf-privacypass-arc-protocol
+  ARC_PP: I-D.draft-ietf-privacypass-arc-crypto
   ARCHITECTURE: RFC9576
   AUTHSCHEME: RFC9577
   ISSUANCE: RFC9578
 
 informative:
+  REVERSE-FLOW: I-D.draft-meunier-privacypass-reverse-flow
 
 --- abstract
 
@@ -620,6 +621,9 @@ struct {
 ~~~
 
 The Origin sends the refund back to the client encoded as the above `Refund` struct.
+
+In practice, it encodes `Refund` as base64url and set `PrivacyPass-Reverse` header to that value,
+as defined in {{Section 6 of REVERSE-FLOW}}.
 
 ## New Credential from Refund
 
