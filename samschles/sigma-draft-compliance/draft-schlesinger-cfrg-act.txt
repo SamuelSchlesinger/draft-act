@@ -5,9 +5,9 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                   J. Katz
 Intended status: Informational                                    Google
-Expires: 18 August 2026                                 A. Faz-Hernandez
+Expires: 22 August 2026                                 A. Faz-Hernandez
                                                         Cloudflare, Inc.
-                                                        14 February 2026
+                                                        18 February 2026
 
 
                         Anonymous Credit Tokens
@@ -69,7 +69,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 August 2026.
+   This Internet-Draft will expire on 22 August 2026.
 
 Copyright Notice
 
@@ -761,7 +761,7 @@ ProveSpend(token, s, rng):
    45. pok = prover.prove(witness, rng)
 
     // Construct output
-   46. r_star = Sum(s_com[j] * 2^j for j in [L])
+   46. r_star = sum(s_com[j] * 2^j for j in [L])
    47. proof = (k, s, ctx, A', B_bar, Com, pok)
    48. state = (kstar, r_star, m, ctx)
    49. return (proof, state)
