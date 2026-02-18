@@ -381,7 +381,7 @@ It ensures cryptographic separation between different ACT instances.
 - `L` is the bit length for representing credit values, such
 that `L <= MAX_BIT_LENGTH`, where `MAX_BIT_LENGTH` is defined per suite.
 - `H1`, `H2`, `H3`, `H4` are auxiliary group generators used for commitments.
-`H4` is the fourth generator point used for request_context binding.
+`H4` is used for binding a request context.
 The {{SetGenerators}}{:format="title"} function deterministically
 generates them through hashing.
 The discrete-logarithm relations between these generators and the main generator MUST NOT be known to any party.
