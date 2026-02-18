@@ -5,9 +5,9 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                   J. Katz
 Intended status: Informational                                    Google
-Expires: 3 May 2026                                     A. Faz-Hernandez
+Expires: 22 August 2026                                 A. Faz-Hernandez
                                                         Cloudflare, Inc.
-                                                         30 October 2025
+                                                        18 February 2026
 
 
                         Anonymous Credit Tokens
@@ -69,11 +69,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 May 2026.
+   This Internet-Draft will expire on 22 August 2026.
 
 Copyright Notice
 
-   Copyright (c) 2025 IETF Trust and the persons identified as the
+   Copyright (c) 2026 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
