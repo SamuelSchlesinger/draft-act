@@ -659,7 +659,7 @@ ProveSpend(token, s, rng):
    45. pok = prover.prove(witness, rng)
 
     // Construct output
-   46. r_star = Sum(s_com[j] * 2^j for j in [L])
+   46. r_star = sum(s_com[j] * 2^j for j in [L])
    47. proof = (k, s, ctx, A', B_bar, Com, pok)
    48. state = (kstar, r_star, m, ctx)
    49. return (proof, state)
