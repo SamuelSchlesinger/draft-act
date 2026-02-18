@@ -976,7 +976,7 @@ struct {
     opaque ctx[Ns];         /* Request context scalar, Ns bytes */
     opaque A_prime[Ne];     /* Compressed Ristretto point, Ne bytes */
     opaque B_bar[Ne];       /* Compressed Ristretto point, Ne bytes */
-    opaque Com[L][Ne];      /* L compressed Ristretto points */
+    opaque Com[L][Ne];      /* L compressed Ristretto points, L*Ne bytes */
     opaque pok<1..2^16-1>; /* NISigmaProtocol proof */
 } SpendProofMsg;
 ~~~
