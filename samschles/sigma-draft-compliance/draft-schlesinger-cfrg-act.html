@@ -1892,7 +1892,7 @@ that <code>L &lt;= MAX_BIT_LENGTH</code>, where <code>MAX_BIT_LENGTH</code> is d
 </li>
           <li class="normal" id="section-3.1-2.3">
             <p id="section-3.1-2.3.1"><code>H1</code>, <code>H2</code>, <code>H3</code>, <code>H4</code> are auxiliary group generators used for commitments.
-<code>H4</code> is the fourth generator point used for request_context binding.
+<code>H4</code> is used for binding a request context.
 The <a href="#SetGenerators" class="internal xref">SetGenerators</a> function deterministically
 generates them through hashing.
 The discrete-logarithm relations between these generators and the main generator <span class="bcp14">MUST NOT</span> be known to any party.

@@ -481,12 +481,12 @@ Table of Contents
       MAX_BIT_LENGTH, where MAX_BIT_LENGTH is defined per suite.
 
    *  H1, H2, H3, H4 are auxiliary group generators used for
-      commitments.  H4 is the fourth generator point used for
-      request_context binding.  The SetGenerators function
-      deterministically generates them through hashing.  The discrete-
-      logarithm relations between these generators and the main
-      generator MUST NOT be known to any party.  This prevents attacks
-      whereby malicious parameters could compromise security.
+      commitments.  H4 is used for binding a request context.  The
+      SetGenerators function deterministically generates them through
+      hashing.  The discrete-logarithm relations between these
+      generators and the main generator MUST NOT be known to any party.
+      This prevents attacks whereby malicious parameters could
+      compromise security.
 
    SetGenerators(G, domain_separator):
      Input:
