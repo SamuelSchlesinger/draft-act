@@ -70,7 +70,7 @@ of the protocols, and the remainder of the document specifies the protocols them
 
 To demonstrate how ACT is useful, one can use a similar example to
 the one presented in {{Section 2 of ARC_PP}}: a client that wishes to keep its IP address private while accessing a service. {{ARC_PP}} allows the origin to limit the number of requests a client can make to N. This is enforced by each origin getting its own presentation context, and limiting the number of presentations per context to N. This means that, from a single credential, a client
-can produce N presentations and access the system N times,
+can produce N presentations to access the system N times,
 unlinkably. These presentations can be generated in parallel.
 
 On the other hand, consider a credential initially holding N credits. A client redeeming
@@ -125,11 +125,11 @@ The `concat(a, b, ...)` function denotes length-prefixed concatenation,
 where each input is prefixed with a 2-byte big-endian length. This ensures
 unambiguous parsing of the concatenated result.
 
-The `HashToScalar(msg)` function hashes a byte string to a Scalar using
-the suite's extendable-output function (SHAKE128 for the ristretto255 suite):
-squeeze 64 bytes from `SHAKE128(msg)` and reduce modulo the group order `q`.
-This matches the scalar derivation used by the `SeededPRNG` construction in
-{{ACT}}.
+The `HashToScalar(msg)` function hashes a variable-length byte string `msg`
+to a Scalar using the suite's extendable-output function (SHAKE128 for the
+ristretto255 suite): squeeze 64 bytes of output from `SHAKE128(msg)` and
+reduce modulo the group order `q`. This matches the scalar derivation used
+by the `SeededPRNG` construction in {{ACT}}.
 
 Note: This document uses the term "credential" to refer to what the ACT
 specification {{ACT}} calls a "token" (the cryptographic object containing a
@@ -220,7 +220,7 @@ A client managing an ACT credential progresses through the following states:
         | ConstructRefundToken(refund)
         v
    +----------+
-   | Refunded |  (New credential with N-cost+t credits)
+   | Refunded |  (New credential with `N-c+t` credits)
    +----------+
 ~~~
 
@@ -234,8 +234,8 @@ State transitions:
   blocked waiting for a refund response.
 
 - **Refunded**: Client has received a valid refund and constructed a new credential
-  with balance `m + t`, where `m = N - cost` is the remaining balance after spending
-  and `t` is the partial return amount from the Origin (`0 <= t <= cost`). If the
+  with balance `m + t`, where `m = N - c` is the remaining balance after spending
+  `c` credits, and `t` is the partial return amount from the Origin (`0 <= t <= c`). If the
   new balance is greater than 0, the client returns to the Initial state with the
   new credential. If the balance is 0, the credential is exhausted.
 
@@ -555,7 +555,7 @@ yielding `response`. If deserialization fails, the Client aborts the protocol.
 Otherwise, the Client processes the response as follows:
 
 ~~~
-credential = VerifyIssuance(pkI, response, state)
+credential = VerifyIssuance(pkI, response, request_context, state)
 ~~~
 
 The Client then saves the credential structure, associated with the given Issuer
