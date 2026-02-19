@@ -1068,7 +1068,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger, et al.</td>
-<td class="center">Expires 22 August 2026</td>
+<td class="center">Expires 23 August 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1081,12 +1081,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-schlesinger-cfrg-act-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-02-18" class="published">18 February 2026</time>
+<time datetime="2026-02-19" class="published">19 February 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-08-22">22 August 2026</time></dd>
+<dd class="expires"><time datetime="2026-08-23">23 August 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1162,7 +1162,7 @@ in the IRTF.<a href="#section-abstract-4" class="pilcrow">¶</a></p>
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 22 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 23 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1511,15 +1511,10 @@ token is used only once, without linking it to issuance.<a href="#section-1.1-2.
 is revealed, not the total balance in the token, protecting
 clients from balance-based profiling.<a href="#section-1.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-1.1-2.5">
-            <p id="section-1.1-2.5.1"><strong>Efficiency</strong>: All operations are computationally efficient,
-suitable for high-volume web services.<a href="#section-1.1-2.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-1.1-2.6">
-            <p id="section-1.1-2.6.1"><strong>Simplicity</strong>: The protocol is straightforward to implement and
-integrate into existing systems relative to other comparable solutions.<a href="#section-1.1-2.6.1" class="pilcrow">¶</a></p>
-</li>
         </ol>
+<p id="section-1.1-3">The design of the protocol also takes efficiency and simplicity into
+consideration, making it suitable for high-volume web services and
+straightforward to implement.<a href="#section-1.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="use-cases">
@@ -1650,11 +1645,6 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
             <p id="section-2.1-2.7.1">We use additive notation for group operations, so group elements are added
 together like <code>a + b</code> and scalar multiplication of a group element by a scalar
 is written as <code>a * n</code>, with group element <code>a</code> and scalar <code>n</code>.<a href="#section-2.1-2.7.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-2.1-2.8">
-            <p id="section-2.1-2.8.1">In protocol pseudocode, <code>G</code> denotes the generator of the group (i.e.,
-<code>G.Generator()</code>) when used in arithmetic expressions. When used as a function
-parameter (e.g., <code>KeyGen(G, rng)</code>), <code>G</code> denotes the Group interface.<a href="#section-2.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-2.1-3">The protocol uses the following data types:<a href="#section-2.1-3" class="pilcrow">¶</a></p>
@@ -1895,7 +1885,11 @@ that <code>L &lt;= MAX_BIT_LENGTH</code>, where <code>MAX_BIT_LENGTH</code> is d
 <code>H4</code> is used for binding a request context.
 The <a href="#SetGenerators" class="internal xref">SetGenerators</a> function deterministically
 generates them through hashing.
-The discrete-logarithm relations between these generators and the main generator <span class="bcp14">MUST NOT</span> be known to any party.
+The discrete-logarithm relations between any pair of these generators
+and the main generator <span class="bcp14">MUST NOT</span> be known to any party.
+The <a href="#SetGenerators" class="internal xref">SetGenerators</a> function achieves this by
+deriving each generator independently via <code>HashToGroup</code> with distinct
+domain separation tags and verifying pairwise distinctness.
 This prevents attacks whereby malicious parameters could compromise security.<a href="#section-3.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -1914,9 +1908,7 @@ SetGenerators(G, domain_separator):
     1. G0 = G.Generator()
     2. H1, H2, H3, H4 = [G0]*4
     3. counter = 0
-    4. while H1 == G0 or H2 == G0 or H3 == G0 or H4 == G0 or
-            H1 == H2 or H1 == H3 or H1 == H4 or
-            H2 == H3 or H2 == H4 or H3 == H4:
+    4. while len({G0, H1, H2, H3, H4}) &lt; 5:
     5.   ctr = I2OSP(counter, 1)
     6.   H1 = G.HashToGroup("GenH1" || ctr || domain_separator)
     7.   H2 = G.HashToGroup("GenH2" || ctr || domain_separator)
@@ -2073,21 +2065,25 @@ IssueResponse(sk, request, c, ctx, rng):
 
     // Create BBS signature on (c, ctx, k, r)
     8. e &lt;- Zq
-    9. X_A = G + H1 * c + H4 * ctx + K    // K = H2 * k + H3 * r
+    9. X_A = G.Generator() + H1 * c + H4 * ctx + K    // K = H2 * k + H3 * r
    10. A = X_A * (1/(e + sk))
-   11. X_G = G * (e + sk)
+   11. X_G = G.Generator() * (e + sk)
 
-   // Generate proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G * (e+sk)
+   // Generate proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G.Generator() * (e+sk)
    12. statement = LinearRelation(group)
-   13. append_dleq(statement, A, G, X_A, X_G)
+   13. append_dleq(statement, A, G.Generator(), X_A, X_G)
    14. session_id = domain_separator + "respond" + Encode(c) + Encode(ctx)
    15. prover = NISigmaProtocol(session_id, statement)
    16. witness = [e + sk]
    17. pok = prover.prove(witness, rng)
-   18. response = (A, e, c, ctx, pok)
+   18. response = (A, e, c, pok)
    19. return response
 </pre><a href="#section-3.3.2-1" class="pilcrow">¶</a>
 </div>
+<p id="section-3.3.2-2">Note: The <code>ctx</code> parameter is not included in the response because
+both parties derive it from shared application context (e.g.,
+TokenChallenge fields). The client <span class="bcp14">MUST</span> provide <code>ctx</code> separately
+when calling <code>VerifyIssuance</code>.<a href="#section-3.3.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="client-token-verification">
@@ -2097,10 +2093,11 @@ IssueResponse(sk, request, c, ctx, rng):
           </h4>
 <div class="alignLeft art-text artwork" id="section-3.3.3-1">
 <pre>
-VerifyIssuance(pk, response, state):
+VerifyIssuance(pk, response, ctx, state):
   Input:
     - pk: Issuer's public key
     - response: Issuer's response
+    - ctx: Request context scalar
     - state: Client state from request generation
   Output:
     - token: Credit token
@@ -2108,14 +2105,14 @@ VerifyIssuance(pk, response, state):
     - InvalidIssuanceResponseProof, raised when the server proof verification fails
 
   Steps:
-    1. Parse response as (A, e, c, ctx, pok)
+    1. Parse response as (A, e, c, pok)
     2. Parse state as (k, r, K)
 
-    // Verify proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G * (e+sk)
-    3. X_A = G + H1 * c + H4 * ctx + K
-    4. X_G = G * e + pk
+    // Verify proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G.Generator() * (e+sk)
+    3. X_A = G.Generator() + H1 * c + H4 * ctx + K
+    4. X_G = G.Generator() * e + pk
     5. statement = LinearRelation(group)
-    6. append_dleq(statement, A, G, X_A, X_G)
+    6. append_dleq(statement, A, G.Generator(), X_A, X_G)
     7. session_id = domain_separator + "respond" + Encode(c) + Encode(ctx)
     8. verifier = NISigmaProtocol(session_id, statement)
     9. if not verifier.verify(pok):
@@ -2154,7 +2151,7 @@ ProveSpend(token, s, rng):
   Steps:
     // Randomize the signature
     1. r1, r2 &lt;- Zq
-    2. B = G + H1 * c + H2 * k + H3 * r + H4 * ctx
+    2. B = G.Generator() + H1 * c + H2 * k + H3 * r + H4 * ctx
     3. A' = A * (r1 * r2)
     4. B_bar = B * r1
     5. r3 = 1/r1
@@ -2171,7 +2168,7 @@ ProveSpend(token, s, rng):
 
     // Compute derived public values
    14. A_bar = B_bar * r2 - A' * e  // Equivalent to A' * sk
-   15. H1_prime = G + H2 * k + H4 * ctx
+   15. H1_prime = G.Generator() + H2 * k + H4 * ctx
    16. For j = 0 to L-1:
    17.     s2[j] = (1 - b[j]) * s_com[j]
    18. k2 = (1 - b[0]) * kstar
@@ -2195,7 +2192,7 @@ ProveSpend(token, s, rng):
    26. statement.append_equation(H1p_var,
          [(r3_var, B_bar_var), (c_var, negH1_var), (r_var, negH3_var)])
    27. statement.set_elements([(negH1_var, -H1),
-         (negH3_var, -H3), (H1p_var, G + H2 * k + H4 * ctx)])
+         (negH3_var, -H3), (H1p_var, G.Generator() + H2 * k + H4 * ctx)])
 
     // Eqs 3..2+2L: Range proof (2L equations)
    28. (b_vars, s_com_vars, s2_vars, kstar_var, k2_var) =
@@ -2304,13 +2301,13 @@ IssueRefund(sk, K', t, ctx, rng):
   Steps:
     // Create new BBS signature on remaining balance
     1. e &lt;- Zq
-    2. X_A = G + K' + H1 * t + H4 * ctx
+    2. X_A = G.Generator() + K' + H1 * t + H4 * ctx
     3. A = X_A * (1/(e + sk))
-    4. X_G = G * (e + sk)
+    4. X_G = G.Generator() * (e + sk)
 
-    // Generate proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G * (e + sk)
+    // Generate proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G.Generator() * (e + sk)
     5. statement = LinearRelation(group)
-    6. append_dleq(statement, A, G, X_A, X_G)
+    6. append_dleq(statement, A, G.Generator(), X_A, X_G)
     7. session_id = domain_separator + "refund" + Encode(e) + Encode(t) + Encode(ctx)
     8. prover = NISigmaProtocol(session_id, statement)
     9. witness = [e + sk]
@@ -2358,12 +2355,12 @@ ConstructRefundToken(pk, spend_proof, refund, state):
 
     // Reconstruct commitment
     8. K' = Sum(spend_proof.Com[j] * 2^j for j in [L])
-    9. X_A = G + K' + H1 * t + H4 * ctx
-   10. X_G = G * e + pk
+    9. X_A = G.Generator() + K' + H1 * t + H4 * ctx
+   10. X_G = G.Generator() * e + pk
 
-    // Verify proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G * (e + sk)
+    // Verify proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G.Generator() * (e + sk)
    11. statement = LinearRelation(group)
-   12. append_dleq(statement, A, G, X_A, X_G)
+   12. append_dleq(statement, A, G.Generator(), X_A, X_G)
    13. session_id = domain_separator + "refund" + Encode(e) + Encode(t) + Encode(ctx)
    14. verifier = NISigmaProtocol(session_id, statement)
    15. if not verifier.verify(pok):
@@ -2401,7 +2398,7 @@ VerifySpendProof(sk, proof):
 
     // Compute issuer's view
     4. A_bar = A' * sk
-    5. H1_prime = G + H2 * k + H4 * ctx
+    5. H1_prime = G.Generator() + H2 * k + H4 * ctx
     6. Com_total = H1 * s + Sum(Com[j] * 2^j for j in [L])
 
     // Build the same LinearRelation as ProveSpend
@@ -2592,7 +2589,6 @@ struct {
     opaque A[Ne];         /* Compressed Ristretto point, Ne bytes */
     opaque e[Ns];         /* Scalar, Ns bytes */
     opaque c[Ns];         /* Scalar, Ns bytes */
-    opaque ctx[Ns];       /* Request context scalar, Ns bytes */
     opaque pok&lt;1..2^16-1&gt;; /* NISigmaProtocol proof */
 } IssuanceResponseMsg;
 </pre><a href="#section-4.1.2-1" class="pilcrow">¶</a>
@@ -2907,23 +2903,23 @@ handles all proof generation and verification.<a href="#section-5.6.1-1" class="
             </thead>
             <tbody>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">Token size</td>
-                <td class="text-left" rowspan="1" colspan="1">192 bytes (6 × 32 bytes)</td>
+                <td class="text-left" rowspan="1" colspan="1">Token</td>
+                <td class="text-left" rowspan="1" colspan="1">Ne + 5*Ns</td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">Spend proof size</td>
-                <td class="text-left" rowspan="1" colspan="1">32 × (4L + 13) + 2 bytes</td>
+                <td class="text-left" rowspan="1" colspan="1">Spend proof</td>
+                <td class="text-left" rowspan="1" colspan="1">(L+2)*Ne + (3L+11)*Ns + 2</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">Nullifier database entry</td>
-                <td class="text-left" rowspan="1" colspan="1">32 bytes per spent token</td>
+                <td class="text-left" rowspan="1" colspan="1">Ns per spent token</td>
               </tr>
             </tbody>
           </table>
 <p id="section-5.6.1-4">Note: Token size is independent of L. The spend proof contains
-<code>k</code>, <code>s</code>, <code>ctx</code>, <code>A'</code>, <code>B_bar</code> (5 × 32 bytes), <code>Com[0..L-1]</code> (L × 32 bytes),
+<code>k</code>, <code>s</code>, <code>ctx</code> (3*Ns), <code>A'</code>, <code>B_bar</code> (2*Ne), <code>Com[0..L-1]</code> (L*Ne),
 and the compact <code>pok</code> output from <code>NISigmaProtocol</code> which encodes
-a challenge scalar and <code>3L + 7</code> response scalars,
+a challenge scalar and <code>3L + 7</code> response scalars ((3L+8)*Ns),
 prefixed by a 2-byte length field.<a href="#section-5.6.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>

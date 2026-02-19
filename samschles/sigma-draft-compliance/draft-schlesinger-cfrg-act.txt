@@ -5,9 +5,9 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                   J. Katz
 Intended status: Informational                                    Google
-Expires: 22 August 2026                                 A. Faz-Hernandez
+Expires: 23 August 2026                                 A. Faz-Hernandez
                                                         Cloudflare, Inc.
-                                                        18 February 2026
+                                                        19 February 2026
 
 
                         Anonymous Credit Tokens
@@ -69,7 +69,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 August 2026.
+   This Internet-Draft will expire on 23 August 2026.
 
 Copyright Notice
 
@@ -198,12 +198,9 @@ Table of Contents
        is revealed, not the total balance in the token, protecting
        clients from balance-based profiling.
 
-   5.  *Efficiency*: All operations are computationally efficient,
-       suitable for high-volume web services.
-
-   6.  *Simplicity*: The protocol is straightforward to implement and
-       integrate into existing systems relative to other comparable
-       solutions.
+   The design of the protocol also takes efficiency and simplicity into
+   consideration, making it suitable for high-volume web services and
+   straightforward to implement.
 
 1.2.  Use Cases
 
@@ -294,11 +291,6 @@ Table of Contents
       are added together like a + b and scalar multiplication of a group
       element by a scalar is written as a * n, with group element a and
       scalar n.
-
-   *  In protocol pseudocode, G denotes the generator of the group
-      (i.e., G.Generator()) when used in arithmetic expressions.  When
-      used as a function parameter (e.g., KeyGen(G, rng)), G denotes the
-      Group interface.
 
    The protocol uses the following data types:
 
@@ -483,10 +475,13 @@ Table of Contents
    *  H1, H2, H3, H4 are auxiliary group generators used for
       commitments.  H4 is used for binding a request context.  The
       SetGenerators function deterministically generates them through
-      hashing.  The discrete-logarithm relations between these
-      generators and the main generator MUST NOT be known to any party.
-      This prevents attacks whereby malicious parameters could
-      compromise security.
+      hashing.  The discrete-logarithm relations between any pair of
+      these generators and the main generator MUST NOT be known to any
+      party.  The SetGenerators function achieves this by deriving each
+      generator independently via HashToGroup with distinct domain
+      separation tags and verifying pairwise distinctness.  This
+      prevents attacks whereby malicious parameters could compromise
+      security.
 
    SetGenerators(G, domain_separator):
      Input:
@@ -499,9 +494,7 @@ Table of Contents
        1. G0 = G.Generator()
        2. H1, H2, H3, H4 = [G0]*4
        3. counter = 0
-       4. while H1 == G0 or H2 == G0 or H3 == G0 or H4 == G0 or
-               H1 == H2 or H1 == H3 or H1 == H4 or
-               H2 == H3 or H2 == H4 or H3 == H4:
+       4. while len({G0, H1, H2, H3, H4}) < 5:
        5.   ctr = I2OSP(counter, 1)
        6.   H1 = G.HashToGroup("GenH1" || ctr || domain_separator)
        7.   H2 = G.HashToGroup("GenH2" || ctr || domain_separator)
@@ -625,26 +618,32 @@ IssueResponse(sk, request, c, ctx, rng):
 
     // Create BBS signature on (c, ctx, k, r)
     8. e <- Zq
-    9. X_A = G + H1 * c + H4 * ctx + K    // K = H2 * k + H3 * r
+    9. X_A = G.Generator() + H1 * c + H4 * ctx + K    // K = H2 * k + H3 * r
    10. A = X_A * (1/(e + sk))
-   11. X_G = G * (e + sk)
+   11. X_G = G.Generator() * (e + sk)
 
-   // Generate proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G * (e+sk)
+   // Generate proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G.Generator() * (e+sk)
    12. statement = LinearRelation(group)
-   13. append_dleq(statement, A, G, X_A, X_G)
+   13. append_dleq(statement, A, G.Generator(), X_A, X_G)
    14. session_id = domain_separator + "respond" + Encode(c) + Encode(ctx)
    15. prover = NISigmaProtocol(session_id, statement)
    16. witness = [e + sk]
    17. pok = prover.prove(witness, rng)
-   18. response = (A, e, c, ctx, pok)
+   18. response = (A, e, c, pok)
    19. return response
+
+   Note: The ctx parameter is not included in the response because both
+   parties derive it from shared application context (e.g.,
+   TokenChallenge fields).  The client MUST provide ctx separately when
+   calling VerifyIssuance.
 
 3.3.3.  Client: Token Verification
 
-VerifyIssuance(pk, response, state):
+VerifyIssuance(pk, response, ctx, state):
   Input:
     - pk: Issuer's public key
     - response: Issuer's response
+    - ctx: Request context scalar
     - state: Client state from request generation
   Output:
     - token: Credit token
@@ -652,14 +651,14 @@ VerifyIssuance(pk, response, state):
     - InvalidIssuanceResponseProof, raised when the server proof verification fails
 
   Steps:
-    1. Parse response as (A, e, c, ctx, pok)
+    1. Parse response as (A, e, c, pok)
     2. Parse state as (k, r, K)
 
-    // Verify proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G * (e+sk)
-    3. X_A = G + H1 * c + H4 * ctx + K
-    4. X_G = G * e + pk
+    // Verify proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G.Generator() * (e+sk)
+    3. X_A = G.Generator() + H1 * c + H4 * ctx + K
+    4. X_G = G.Generator() * e + pk
     5. statement = LinearRelation(group)
-    6. append_dleq(statement, A, G, X_A, X_G)
+    6. append_dleq(statement, A, G.Generator(), X_A, X_G)
     7. session_id = domain_separator + "respond" + Encode(c) + Encode(ctx)
     8. verifier = NISigmaProtocol(session_id, statement)
     9. if not verifier.verify(pok):
@@ -686,7 +685,7 @@ ProveSpend(token, s, rng):
   Steps:
     // Randomize the signature
     1. r1, r2 <- Zq
-    2. B = G + H1 * c + H2 * k + H3 * r + H4 * ctx
+    2. B = G.Generator() + H1 * c + H2 * k + H3 * r + H4 * ctx
     3. A' = A * (r1 * r2)
     4. B_bar = B * r1
     5. r3 = 1/r1
@@ -703,7 +702,7 @@ ProveSpend(token, s, rng):
 
     // Compute derived public values
    14. A_bar = B_bar * r2 - A' * e  // Equivalent to A' * sk
-   15. H1_prime = G + H2 * k + H4 * ctx
+   15. H1_prime = G.Generator() + H2 * k + H4 * ctx
    16. For j = 0 to L-1:
    17.     s2[j] = (1 - b[j]) * s_com[j]
    18. k2 = (1 - b[0]) * kstar
@@ -727,7 +726,7 @@ ProveSpend(token, s, rng):
    26. statement.append_equation(H1p_var,
          [(r3_var, B_bar_var), (c_var, negH1_var), (r_var, negH3_var)])
    27. statement.set_elements([(negH1_var, -H1),
-         (negH3_var, -H3), (H1p_var, G + H2 * k + H4 * ctx)])
+         (negH3_var, -H3), (H1p_var, G.Generator() + H2 * k + H4 * ctx)])
 
     // Eqs 3..2+2L: Range proof (2L equations)
    28. (b_vars, s_com_vars, s2_vars, kstar_var, k2_var) =
@@ -821,13 +820,13 @@ IssueRefund(sk, K', t, ctx, rng):
   Steps:
     // Create new BBS signature on remaining balance
     1. e <- Zq
-    2. X_A = G + K' + H1 * t + H4 * ctx
+    2. X_A = G.Generator() + K' + H1 * t + H4 * ctx
     3. A = X_A * (1/(e + sk))
-    4. X_G = G * (e + sk)
+    4. X_G = G.Generator() * (e + sk)
 
-    // Generate proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G * (e + sk)
+    // Generate proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G.Generator() * (e + sk)
     5. statement = LinearRelation(group)
-    6. append_dleq(statement, A, G, X_A, X_G)
+    6. append_dleq(statement, A, G.Generator(), X_A, X_G)
     7. session_id = domain_separator + "refund" + Encode(e) + Encode(t) + Encode(ctx)
     8. prover = NISigmaProtocol(session_id, statement)
     9. witness = [e + sk]
@@ -868,12 +867,12 @@ ConstructRefundToken(pk, spend_proof, refund, state):
 
     // Reconstruct commitment
     8. K' = Sum(spend_proof.Com[j] * 2^j for j in [L])
-    9. X_A = G + K' + H1 * t + H4 * ctx
-   10. X_G = G * e + pk
+    9. X_A = G.Generator() + K' + H1 * t + H4 * ctx
+   10. X_G = G.Generator() * e + pk
 
-    // Verify proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G * (e + sk)
+    // Verify proof of knowledge of (e + sk) such that X_A = A * (e + sk) and X_G = G.Generator() * (e + sk)
    11. statement = LinearRelation(group)
-   12. append_dleq(statement, A, G, X_A, X_G)
+   12. append_dleq(statement, A, G.Generator(), X_A, X_G)
    13. session_id = domain_separator + "refund" + Encode(e) + Encode(t) + Encode(ctx)
    14. verifier = NISigmaProtocol(session_id, statement)
    15. if not verifier.verify(pok):
@@ -904,7 +903,7 @@ VerifySpendProof(sk, proof):
 
     // Compute issuer's view
     4. A_bar = A' * sk
-    5. H1_prime = G + H2 * k + H4 * ctx
+    5. H1_prime = G.Generator() + H2 * k + H4 * ctx
     6. Com_total = H1 * s + Sum(Com[j] * 2^j for j in [L])
 
     // Build the same LinearRelation as ProveSpend
@@ -1046,7 +1045,6 @@ ScalarToCredit(s):
        opaque A[Ne];         /* Compressed Ristretto point, Ne bytes */
        opaque e[Ns];         /* Scalar, Ns bytes */
        opaque c[Ns];         /* Scalar, Ns bytes */
-       opaque ctx[Ns];       /* Request context scalar, Ns bytes */
        opaque pok<1..2^16-1>; /* NISigmaProtocol proof */
    } IssuanceResponseMsg;
 
@@ -1236,23 +1234,22 @@ struct {
 
    *  *Storage*:
 
-          +==========================+==========================+
-          | Component                | Size                     |
-          +==========================+==========================+
-          | Token size               | 192 bytes (6 × 32 bytes) |
-          +--------------------------+--------------------------+
-          | Spend proof size         | 32 × (4L + 13) + 2 bytes |
-          +--------------------------+--------------------------+
-          | Nullifier database entry | 32 bytes per spent token |
-          +--------------------------+--------------------------+
+         +==========================+===========================+
+         | Component                | Size                      |
+         +==========================+===========================+
+         | Token                    | Ne + 5*Ns                 |
+         +--------------------------+---------------------------+
+         | Spend proof              | (L+2)*Ne + (3L+11)*Ns + 2 |
+         +--------------------------+---------------------------+
+         | Nullifier database entry | Ns per spent token        |
+         +--------------------------+---------------------------+
 
-                                  Table 1
+                                 Table 1
 
    Note: Token size is independent of L.  The spend proof contains k, s,
-   ctx, A', B_bar (5 × 32 bytes), Com[0..L-1] (L × 32 bytes), and the
-   compact pok output from NISigmaProtocol which encodes a challenge
-   scalar and 3L + 7 response scalars, prefixed by a 2-byte length
-   field.
+   ctx (3*Ns), A', B_bar (2*Ne), Com[0..L-1] (L*Ne), and the compact pok
+   output from NISigmaProtocol which encodes a challenge scalar and 3L +
+   7 response scalars ((3L+8)*Ns), prefixed by a 2-byte length field.
 
 6.  Suites for ACT
 

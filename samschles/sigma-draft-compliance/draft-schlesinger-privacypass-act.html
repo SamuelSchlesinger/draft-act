@@ -1050,7 +1050,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger &amp; Meunier</td>
-<td class="center">Expires 22 August 2026</td>
+<td class="center">Expires 23 August 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1063,12 +1063,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-schlesinger-privacypass-act-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-02-18" class="published">18 February 2026</time>
+<time datetime="2026-02-19" class="published">19 February 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-08-22">22 August 2026</time></dd>
+<dd class="expires"><time datetime="2026-08-23">23 August 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1123,7 +1123,7 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.<a href="#section-abs
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 22 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 23 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1292,7 +1292,7 @@ of the protocols, and the remainder of the document specifies the protocols them
       </h2>
 <p id="section-2-1">To demonstrate how ACT is useful, one can use a similar example to
 the one presented in <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-01#section-2" class="relref">Section 2</a> of [<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>: a client that wishes to keep its IP address private while accessing a service. <span>[<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span> allows the origin to limit the number of requests a client can make to N. This is enforced by each origin getting its own presentation context, and limiting the number of presentations per context to N. This means that, from a single credential, a client
-can produce N presentations and access the system N times,
+can produce N presentations to access the system N times,
 unlinkably. These presentations can be generated in parallel.<a href="#section-2-1" class="pilcrow">¶</a></p>
 <p id="section-2-2">On the other hand, consider a credential initially holding N credits. A client redeeming
 all N credits individually has to spend <code>1</code>, receive a refunded credential with N-1 credits,
@@ -1365,11 +1365,11 @@ network byte order.<a href="#section-3-4" class="pilcrow">¶</a></p>
 <p id="section-3-7">The <code>concat(a, b, ...)</code> function denotes length-prefixed concatenation,
 where each input is prefixed with a 2-byte big-endian length. This ensures
 unambiguous parsing of the concatenated result.<a href="#section-3-7" class="pilcrow">¶</a></p>
-<p id="section-3-8">The <code>HashToScalar(msg)</code> function hashes a byte string to a Scalar using
-the suite's extendable-output function (SHAKE128 for the ristretto255 suite):
-squeeze 64 bytes from <code>SHAKE128(msg)</code> and reduce modulo the group order <code>q</code>.
-This matches the scalar derivation used by the <code>SeededPRNG</code> construction in
-<span>[<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-3-8" class="pilcrow">¶</a></p>
+<p id="section-3-8">The <code>HashToScalar(msg)</code> function hashes a variable-length byte string <code>msg</code>
+to a Scalar using the suite's extendable-output function (SHAKE128 for the
+ristretto255 suite): squeeze 64 bytes of output from <code>SHAKE128(msg)</code> and
+reduce modulo the group order <code>q</code>. This matches the scalar derivation used
+by the <code>SeededPRNG</code> construction in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-3-8" class="pilcrow">¶</a></p>
 <p id="section-3-9">Note: This document uses the term "credential" to refer to what the ACT
 specification <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> calls a "token" (the cryptographic object containing a
 BBS signature and associated data). The term "Token" in this document refers
@@ -1562,8 +1562,8 @@ This enforces a strict serialization of operations per credential chain.<a href=
                 <text x="132" y="244">(New</text>
                 <text x="196" y="244">credential</text>
                 <text x="260" y="244">with</text>
-                <text x="316" y="244">N-cost+t</text>
-                <text x="388" y="244">credits)</text>
+                <text x="312" y="244">`N-c+t`</text>
+                <text x="380" y="244">credits)</text>
               </g>
             </svg><a href="#section-5.2-2.1" class="pilcrow">¶</a>
 </div>
@@ -1581,8 +1581,8 @@ blocked waiting for a refund response.<a href="#section-5.2-4.2.1" class="pilcro
 </li>
           <li class="normal" id="section-5.2-4.3">
             <p id="section-5.2-4.3.1"><strong>Refunded</strong>: Client has received a valid refund and constructed a new credential
-with balance <code>m + t</code>, where <code>m = N - cost</code> is the remaining balance after spending
-and <code>t</code> is the partial return amount from the Origin (<code>0 &lt;= t &lt;= cost</code>). If the
+with balance <code>m + t</code>, where <code>m = N - c</code> is the remaining balance after spending
+<code>c</code> credits, and <code>t</code> is the partial return amount from the Origin (<code>0 &lt;= t &lt;= c</code>). If the
 new balance is greater than 0, the client returns to the Initial state with the
 new credential. If the balance is 0, the credential is exhausted.<a href="#section-5.2-4.3.1" class="pilcrow">¶</a></p>
 </li>
@@ -1979,7 +1979,7 @@ yielding <code>response</code>. If deserialization fails, the Client aborts the 
 Otherwise, the Client processes the response as follows:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.3-2">
 <pre>
-credential = VerifyIssuance(pkI, response, state)
+credential = VerifyIssuance(pkI, response, request_context, state)
 </pre><a href="#section-8.3-2" class="pilcrow">¶</a>
 </div>
 <p id="section-8.3-3">The Client then saves the credential structure, associated with the given Issuer
