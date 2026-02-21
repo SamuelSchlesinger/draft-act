@@ -1193,7 +1193,10 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.<a href="#section-abs
             <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-configuration" class="internal xref">Configuration</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
-                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-request-context-extension" class="internal xref">Request Context Extension</a></p>
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-ciphersuites" class="internal xref">Ciphersuites</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-request-context-extension" class="internal xref">Request Context Extension</a></p>
 </li>
             </ul>
 </li>
@@ -1679,47 +1682,82 @@ skI, pkI = KeyGen()
 SHA-256 hash of the Issuer Public Key, i.e., <code>issuer_key_id = SHA-256(pkI_serialized)</code>,
 where <code>pkI_serialized</code> is the serialized version of <code>pkI</code> as described in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1" class="relref">Section 4.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6-3" class="pilcrow">¶</a></p>
 <p id="section-6-4">Protocol messages are encoded using CBOR as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4" class="relref">Section 4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6-4" class="pilcrow">¶</a></p>
-<div id="request-context-extension">
+<div id="ciphersuites">
 <section id="section-6.1">
-        <h3 id="name-request-context-extension">
-<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-request-context-extension" class="section-name selfRef">Request Context Extension</a>
+        <h3 id="name-ciphersuites">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-ciphersuites" class="section-name selfRef">Ciphersuites</a>
         </h3>
-<p id="section-6.1-1">This Privacy Pass integration binds credentials to application-specific contexts
+<p id="section-6.1-1">This document defines two token types corresponding to the two ciphersuites
+specified in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>:<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<table class="center" id="table-1">
+          <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Token Type</th>
+              <th class="text-left" rowspan="1" colspan="1">Name</th>
+              <th class="text-left" rowspan="1" colspan="1">Ciphersuite</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0xE5AD</td>
+              <td class="text-left" rowspan="1" colspan="1">ACT(Ristretto255)</td>
+              <td class="text-left" rowspan="1" colspan="1">ACT-Ristretto255-BLAKE3</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0xE5AE</td>
+              <td class="text-left" rowspan="1" colspan="1">ACT(P-256)</td>
+              <td class="text-left" rowspan="1" colspan="1">ACT-P256-BLAKE3</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-6.1-3">Both ciphersuites use SHA-256 for key identification, so Nid = 32 for both.
+The remaining size parameters (Nrequest, Nresponse, Nspend_proof, Nrefund) are
+determined by the ciphersuite's serialization format as described in
+<span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1" class="relref">Section 4.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="request-context-extension">
+<section id="section-6.2">
+        <h3 id="name-request-context-extension">
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-request-context-extension" class="section-name selfRef">Request Context Extension</a>
+        </h3>
+<p id="section-6.2-1">This Privacy Pass integration binds credentials to application-specific contexts
 using a <code>request_context</code> parameter. This approach is inspired by the Anonymous
 Rate-Limited Credentials (ARC) protocol <span>[<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>, which threads a similar
-context parameter through its cryptographic operations for domain separation.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
-<p id="section-6.1-2">The CFRG ACT specification <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> includes <code>request_context</code> (ctx) as a
-parameter in its cryptographic functions. Specifically:<a href="#section-6.1-2" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-6.1-3">
-<li id="section-6.1-3.1">
-            <p id="section-6.1-3.1.1"><strong>IssueRequest</strong>: No changes needed - the client generates a blinded commitment
-without knowledge of the final context binding.<a href="#section-6.1-3.1.1" class="pilcrow">¶</a></p>
+context parameter through its cryptographic operations for domain separation.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.2-2">The CFRG ACT specification <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> includes <code>request_context</code> (ctx) as a
+parameter in its cryptographic functions. Specifically:<a href="#section-6.2-2" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-6.2-3">
+<li id="section-6.2-3.1">
+            <p id="section-6.2-3.1.1"><strong>IssueRequest</strong>: No changes needed - the client generates a blinded commitment
+without knowledge of the final context binding.<a href="#section-6.2-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-6.1-3.2">
-            <p id="section-6.1-3.2.1"><strong>IssueResponse</strong>: Takes <code>request_context</code> as an input parameter alongside the
+          <li id="section-6.2-3.2">
+            <p id="section-6.2-3.2.1"><strong>IssueResponse</strong>: Takes <code>request_context</code> as an input parameter alongside the
 credit amount <code>c</code>. The issuer determines the appropriate context based on its
 policy (e.g., derived from TokenChallenge fields) and binds the credential to
 this context via an additional generator H4. The context scalar is included in
-the BBS signature as <code>H4 * ctx</code>.<a href="#section-6.1-3.2.1" class="pilcrow">¶</a></p>
+the BBS signature as <code>H4 * ctx</code>.<a href="#section-6.2-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-6.1-3.3">
-            <p id="section-6.1-3.3.1"><strong>VerifyAndRefund</strong>: The <code>request_context</code> is included in the spend proof and
+          <li id="section-6.2-3.3">
+            <p id="section-6.2-3.3.1"><strong>VerifyAndRefund</strong>: The <code>request_context</code> is included in the spend proof and
 used to verify that the proof is bound to the correct application context. The
 issuer reconstructs the context from the TokenChallenge and uses it during
-verification and refund issuance.<a href="#section-6.1-3.3.1" class="pilcrow">¶</a></p>
+verification and refund issuance.<a href="#section-6.2-3.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-6.1-3.4">
-            <p id="section-6.1-3.4.1"><strong>Credential Structure</strong>: The Anonymous Credit Token includes the context-bound
-component within the BBS signature via the H4 generator.<a href="#section-6.1-3.4.1" class="pilcrow">¶</a></p>
+          <li id="section-6.2-3.4">
+            <p id="section-6.2-3.4.1"><strong>Credential Structure</strong>: The Anonymous Credit Token includes the context-bound
+component within the BBS signature via the H4 generator.<a href="#section-6.2-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-6.1-4">The key insight is that <code>request_context</code> is determined by the issuer (like the
+<p id="section-6.2-4">The key insight is that <code>request_context</code> is determined by the issuer (like the
 credit amount), not by the client. The issuer sets the context during IssueResponse
 based on the TokenChallenge requirements, and both parties reconstruct it from
-TokenChallenge fields during spending.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
-<p id="section-6.1-5">For reference on how request context threading works in practice, see
+TokenChallenge fields during spending.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.2-5">For reference on how request context threading works in practice, see
 <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-01#section-3" class="relref">Section 3</a> of [<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>, which demonstrates the pattern of binding credentials
-to application-specific contexts through cryptographic commitments.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
+to application-specific contexts through cryptographic commitments.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1735,7 +1773,7 @@ structure is as follows:<a href="#section-7-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-7-2">
 <pre>
 struct {
-    uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
+    uint16_t token_type; /* 0xE5AD or 0xE5AE */
     opaque issuer_name&lt;1..2^16-1&gt;;
     opaque redemption_context&lt;0..32&gt;;
     opaque origin_info&lt;0..2^16-1&gt;;
@@ -1743,7 +1781,7 @@ struct {
 } TokenChallenge;
 </pre><a href="#section-7-2" class="pilcrow">¶</a>
 </div>
-<p id="section-7-3">Note: The token type value 0xE5AD is provisional pending IANA assignment.<a href="#section-7-3" class="pilcrow">¶</a></p>
+<p id="section-7-3">Note: The token type values 0xE5AD and 0xE5AE are provisional pending IANA assignment.<a href="#section-7-3" class="pilcrow">¶</a></p>
 <p id="section-7-4">With the exception of <code>credential_context</code>, all fields are exactly as specified
 in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.1.1" class="relref">Section 2.1.1</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span>. The <code>credential_context</code> field is defined as
 follows:<a href="#section-7-4" class="pilcrow">¶</a></p>
@@ -1826,7 +1864,7 @@ function from <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> as follows
 <div class="alignLeft art-text artwork" id="section-8.1-4">
 <pre>
 struct {
-  uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
+  uint16_t token_type; /* 0xE5AD or 0xE5AE */
   uint8_t truncated_issuer_key_id;
   uint8_t encoded_request[Nrequest];
 } TokenRequest;
@@ -1835,7 +1873,8 @@ struct {
 <p id="section-8.1-5">The structure fields are defined as follows:<a href="#section-8.1-5" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.1-6.1">
-            <p id="section-8.1-6.1.1">"token_type" is a 2-octet integer.<a href="#section-8.1-6.1.1" class="pilcrow">¶</a></p>
+            <p id="section-8.1-6.1.1">"token_type" is a 2-octet integer, set to 0xE5AD for ACT(Ristretto255) or
+0xE5AE for ACT(P-256).<a href="#section-8.1-6.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-6.2">
             <p id="section-8.1-6.2.1">"truncated_issuer_key_id" is the least significant byte of the <code>issuer_key_id</code>
@@ -1874,7 +1913,7 @@ Content-Length: &lt;Length of TokenRequest&gt;
 <p id="section-8.2-1">Upon receipt of the request, the Issuer validates the following conditions:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.2-2.1">
-            <p id="section-8.2-2.1.1">The TokenRequest contains a supported token_type equal to value 0xE5AD.<a href="#section-8.2-2.1.1" class="pilcrow">¶</a></p>
+            <p id="section-8.2-2.1.1">The TokenRequest contains a supported token_type equal to 0xE5AD or 0xE5AE.<a href="#section-8.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.2-2.2">
             <p id="section-8.2-2.2.1">The TokenRequest.truncated_token_key_id corresponds to the truncated key ID
@@ -1986,7 +2025,7 @@ assumptions of ACT are violated by presenting the same nullifier twice.<a href="
 <div class="alignLeft art-text artwork" id="section-9.1-5">
 <pre>
 struct {
-    uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
+    uint16_t token_type; /* 0xE5AD or 0xE5AE */
     uint8_t challenge_digest[32];
     uint8_t issuer_key_id[Nid];
     uint8_t encoded_spend_proof[Nspend_proof];
@@ -1996,7 +2035,8 @@ struct {
 <p id="section-9.1-6">The structure fields are defined as follows:<a href="#section-9.1-6" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-9.1-7.1">
-            <p id="section-9.1-7.1.1">"token_type" is a 2-octet integer, in network byte order, equal to 0xE5AD.<a href="#section-9.1-7.1.1" class="pilcrow">¶</a></p>
+            <p id="section-9.1-7.1.1">"token_type" is a 2-octet integer, in network byte order, set to 0xE5AD
+for ACT(Ristretto255) or 0xE5AE for ACT(P-256).<a href="#section-9.1-7.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.1-7.2">
             <p id="section-9.1-7.2.1">"challenge_digest" is a 32-octet value containing the hash of the original TokenChallenge, SHA-256(TokenChallenge).<a href="#section-9.1-7.2.1" class="pilcrow">¶</a></p>
@@ -2224,6 +2264,42 @@ following entries.<a href="#section-11-1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-11-2.12">
           <p id="section-11-2.12.1">Notes: None<a href="#section-11-2.12.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.13">
+          <p id="section-11-2.13.1">Value: 0xE5AE<a href="#section-11-2.13.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.14">
+          <p id="section-11-2.14.1">Name: ACT (P-256)<a href="#section-11-2.14.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.15">
+          <p id="section-11-2.15.1">Token Structure: As defined in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2" class="relref">Section 2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span><a href="#section-11-2.15.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.16">
+          <p id="section-11-2.16.1">Token Key Encoding: Serialized as described in <a href="#setup" class="auto internal xref">Section 6</a><a href="#section-11-2.16.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.17">
+          <p id="section-11-2.17.1">TokenChallenge Structure: As defined in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.1" class="relref">Section 2.1</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span><a href="#section-11-2.17.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.18">
+          <p id="section-11-2.18.1">Public Verifiability: N<a href="#section-11-2.18.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.19">
+          <p id="section-11-2.19.1">Public Metadata: N<a href="#section-11-2.19.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.20">
+          <p id="section-11-2.20.1">Private Metadata: N<a href="#section-11-2.20.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.21">
+          <p id="section-11-2.21.1">Nk: 0 (not applicable)<a href="#section-11-2.21.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.22">
+          <p id="section-11-2.22.1">Nid: 32<a href="#section-11-2.22.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.23">
+          <p id="section-11-2.23.1">Reference: This document<a href="#section-11-2.23.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.24">
+          <p id="section-11-2.24.1">Notes: None<a href="#section-11-2.24.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
