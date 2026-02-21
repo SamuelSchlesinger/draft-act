@@ -171,12 +171,6 @@ Table of Contents
      A.6.  Refund
      A.7.  Refund Token
      A.8.  ACT-P256-BLAKE3 Test Vectors
-     A.9.  Parameters
-     A.10. Key Generation
-     A.11. Issuance
-     A.12. Spending
-     A.13. Refund
-     A.14. Refund Token
    Appendix B.  Implementation Status
      B.1.  anonymous-credit-tokens
    Appendix C.  Terminology Glossary
@@ -387,8 +381,8 @@ Table of Contents
    |Generator|Standard P-256 generator                                          |
    |G        |                                                                  |
    +---------+------------------------------------------------------------------+
-   |Hash-to- |HashToP256 (scalar reduction + generator multiplication)          |
-   |group    |                                                                  |
+   |Hash-to- |HashToP256 (hash_to_curve from [RFC9380] with suite P256_XMD:SHA- |
+   |group    |256_SSWU_RO_)                                                     |
    +---------+------------------------------------------------------------------+
    |Protocol |"p256 anonymous-credits v1.0"                                     |
    |version  |                                                                  |
@@ -478,13 +472,15 @@ Parameters:
        2. hasher.update(LengthPrefixed(domain_separator))
        3. hasher.update(LengthPrefixed(seed))
        4. hasher.update(LengthPrefixed(counter.to_le_bytes(4)))
-       5. uniform_bytes = hasher.finalize_xof(32)
-       6. s = from_big_endian_bytes(uniform_bytes) mod q
-       7. P = G * s
+       5. msg = hasher.finalize(32)
+       6. DST = "ACT-P256-BLAKE3_H2C_" || domain_separator
+       7. P = hash_to_curve(msg, DST)
        8. return P
 
-   Note: For P-256, 32 bytes of XOF output provides negligible bias
-   (less than 2^-128) when reduced modulo the ~2^256 group order.
+   The hash_to_curve function is defined in [RFC9380] using the suite
+   P256_XMD:SHA-256_SSWU_RO_, which provides a uniformly random mapping
+   from arbitrary byte strings to P-256 points with no known discrete
+   log relationship to the generator or any other point.
 
    The domain_separator MUST be unique for each deployment to ensure
    cryptographic isolation between different services.  The domain
@@ -528,10 +524,11 @@ domain_separator = "ACT-v1:" || organization || ":" || service || ":" || deploym
    mapping from uniformly random byte strings to valid Ristretto255
    points.
 
-   For ACT-P256-BLAKE3, the hash-to-group function uses scalar reduction
-   followed by generator multiplication.  This is secure because the
-   resulting point distribution is statistically close to uniform over
-   the group.
+   For ACT-P256-BLAKE3, the hash-to-group function uses hash_to_curve
+   from [RFC9380] with suite P256_XMD:SHA-256_SSWU_RO_. This maps inputs
+   to P-256 points such that the discrete log with respect to any known
+   point is infeasible to compute, which is essential for the security
+   of the protocol.
 
 3.2.  Key Generation
 
@@ -2164,169 +2161,9 @@ A.7.  Refund Token
 
 A.8.  ACT-P256-BLAKE3 Test Vectors
 
-   The following test vector was generated deterministically using a
-   ChaCha20 RNG seeded with the bytes 00 01 02 ... 1e 1f and L=8.  The
-   domain separator is "ACT-v1:test:vectors:v0:2025-01-01", credit
-   amount c=100, spend amount s=30, partial return t=10, and ctx=0.
-   Values labelled *_cbor are the CBOR wire-format encodings (Section 4)
-   of each protocol message, displayed in hexadecimal.
-
-   Implementations SHOULD verify they can deserialize these CBOR
-   messages and that a full protocol run with the same deterministic RNG
-   produces identical output.
-
-A.9.  Parameters
-
-   domain_separator: "ACT-v1:test:vectors:v0:2025-01-01"
-   L: 8
-   c: 100
-   s: 30
-   t: 10
-   ctx: 0000000000000000000000000000000000000000000000000000000000000000
-
-A.10.  Key Generation
-
-   sk_cbor:
-     a201582039fd2b7dd9c5196a8dbd0377b8dc4a498a35d86fbcde6accb2cc7d4c
-     d8ea249202582102ceff7e162d6baee1abd2f72b83fdaa96df661e4375d87561
-     c8e41936310f3dc4
-
-   pk_cbor:
-     582102ceff7e162d6baee1abd2f72b83fdaa96df661e4375d87561c8e4193631
-     0f3dc4
-
-A.11.  Issuance
-
-   preissuance_cbor:
-     a20158202b23cce7a26023ab3f0eef693ac87f64258235eab1f7a32dc22762a0
-     485b410c02582018b84231ade6a6d113615c61af434e27f8b1f3f5e1ad5b5cec
-     f8fc122a35755c
-
-   issuance_request_cbor:
-     a401582102358340eb58cb3b04194f5e23b83e52ded58642bdd0100ee15436ab
-     541fa759380258205abde2472a976beab6bfed5391320391b27a6d3e0e27d8da
-     ba5d889744da7978035820803699ba1e0d6e45b96e7055fadb7ea35230e2756a
-     6bd20761b6d6de79746bc1045820c313acd3c3b92e1b82db8d4cf81d35e88147
-     b5708520a7c9dc1abd753375b4fd
-
-   issuance_response_cbor:
-     a6015821031844d93ffac500532e1a1e0c58ac60f7e9a62efc48a1e54d5391fe
-     620425e4cc02582084a8021b8a5c0b2494cd3c8d5b13507ec7e7a0784df4a3e2
-     ea8162d261c59d23035820ae9c68c1e0ef77d43f05363862b133e9e19d3e33ef
-     aff74dbcbb847e6ff0798404582048bb20fc0025236d60b3ce05f9ef183ab5ff
-     919ad487a66329fbf89fc2798939055820000000000000000000000000000000
-     0000000000000000000000000000000064065820000000000000000000000000
-     0000000000000000000000000000000000000000
-
-   credit_token_cbor:
-     a6015821031844d93ffac500532e1a1e0c58ac60f7e9a62efc48a1e54d5391fe
-     620425e4cc02582084a8021b8a5c0b2494cd3c8d5b13507ec7e7a0784df4a3e2
-     ea8162d261c59d2303582018b84231ade6a6d113615c61af434e27f8b1f3f5e1
-     ad5b5cecf8fc122a35755c0458202b23cce7a26023ab3f0eef693ac87f642582
-     35eab1f7a32dc22762a0485b410c055820000000000000000000000000000000
-     0000000000000000000000000000000064065820000000000000000000000000
-     0000000000000000000000000000000000000000
-
-A.12.  Spending
-
-   nullifier:
-     18b84231ade6a6d113615c61af434e27f8b1f3f5e1ad5b5cecf8fc122a35755c
-
-   context:
-     0000000000000000000000000000000000000000000000000000000000000000
-
-   charge:
-     000000000000000000000000000000000000000000000000000000000000001e
-
-   spend_proof_cbor:
-     b201582018b84231ade6a6d113615c61af434e27f8b1f3f5e1ad5b5cecf8fc12
-     2a35755c02582000000000000000000000000000000000000000000000000000
-     0000000000001e035821027f7b287b0596827ed15233fe7eebde70203c2a9cb4
-     e95d9df4275223f1cd38f704582102ff193690e1383a109ddc0cc7e2779ba7d6
-     8cceca05a58d33e51f493c8ea023f90588582103c9f801fac5f9322e5201eb11
-     64af6d3465086a2a71e4fc3846c612a1efdd6cd2582103c97c553fd03cd4e25c
-     c182c93445c9844f4c31516efeb9728a63c5633d75d205582103fd9b1e3f9a21
-     0d944940102ca89109f381e721c9be6f26b9f03c1dfbf09dea7d582103f40c70
-     b7090ea29e4e0f60d71c5e904bcb259718d2b689005cfd812aede1e3a0582102
-     7ee378f75bda9c22c26a90c7b02728aed85a380bef2bf61cb8239c40aebbbeaf
-     582102d9c87217d2861afcd64e059a40e1c9f978d236b881ea82ed813016aa03
-     cd78a6582103274e1d1c77c853eaa4bc3142b4548c18f2ea597fa803177d2b14
-     8541b89f67a75821039fcf8e9ff9629b0e97c6dad939ef8511e8895982095aa1
-     cd130570260f946423065820a59029ad3ebcb5b102a54edccd1113c871538110
-     e70fdc2eaf81c4518551ee090758208b90854c5b523b0570c7ed241edbea738b
-     fa6b3ed8088fb5bd76d4111e0332b008582064d847cec8cfdbd0ca915bdb43a3
-     255d7560c7b5e9a060aab2d2660e441b99280958208919406d99a15b2f3632aa
-     b30185b9caa1aec1d94dbb9b644478c3d3cfa568900a582035dd0b422bc0075b
-     f2508616409e4995131ad4e9c10515f559602178ea68ae210b5820fd3c6d5c74
-     be7882da2ea3868e6235fd4cc729ee96693a955faef310bd819c220c58203a35
-     be24f1e9fcc736f37446c992305169ed44a244047028976d312014ce46030d58
-     206a9192e22167b171783edc442d1debea35c8c62cd27be25ccdd0cb887fc41b
-     530e8858206f75eddbe879e025f7947480fe74c087119021265d02cc9c7129e1
-     ed01b986105820ceca4aa2ff6d7aae8d4a8e9ad50786663932729106f437bfb4
-     f735df0b52b40a58204fa9a0fbc0552298605991cea5c0600a388e83f6d065e2
-     aae3666aa6e87d69e6582088f9208c8963bef8c8f9e708ec5c2853ba0aa700b3
-     4c787f5f14547aa79ab1125820fce7591b1655bf87dea9d2275df6166465ab4f
-     4f608bef944a1911dfcc69704358200447145f159c7360f0d6c2e07b62f1149c
-     30af49b4da1a51f8d659bcfde6532e58209ca80e6252fae8f0bf5bbbf33157a0
-     fda42ed9f25cc3fe099a2b1fbd793e1c345820bf1dea7ff1e7ef28623d97aed5
-     0f602044fb14e217f455464a1e34a35fa28e450f888258206633bd5f3bc3e36a
-     4478ffc44908e40896600601a771c9bd649fd87918118389582021dfcb29a804
-     6791dca97da2e977616065171fdca134c9e02e67fe356c70da208258207d7a20
-     ccff17e7873f7f3465f6c8c70abc53d97ff7dac95f56a19a103edcd9a2582055
-     86bf9fffd12a4fb460d27da82fa5634008857125ea3b57b6bd3df5be1af1b282
-     5820d45cab4cd1d9924b4bbfbaf09c34769621184923e61d8384a064d607beaa
-     72b458208c9007089c63b6da696874b5921b449cdabad5fa6c02bb52fbdf23f6
-     8ad3031f8258209a711f5fbfbf95a6797f0fb3a39639ba911f31c500aa1e6856
-     b474490ace8542582005d644e79d25d9b4b913ad9a64826a5dd60edfa8bbf1c7
-     604c77c81b8d42853582582032e5cdf6b1eba913b48729b9ff763cb24ac2bd5c
-     a2b933aae20ffbcbac1c61cc5820183588ca784a4e5606a2627b641ca044376b
-     dfb7f2b3e3c8f5bc5dc1c6ff0305825820cb1793e3734fe20c4591942e804cad
-     1828388c56087515027612874c6b28e75e5820bb6e37774d548b6d6a714bd84b
-     fdfbc94074836079640e86d6998877c9716a59825820d44d65d01b23b9c3789e
-     75b5b5a34751f269d2d81d80bc7d33d2e41a71b242415820e9cd1663b32ad7e3
-     ce9e15877c0ae4f227d1007c9b1191c5cba63d1fd24679cb825820bd1507cfb8
-     86b58a19e51a39eb6ad5726350b335e1a0d1e4f61f9aff92acb73e5820627d76
-     64c5fd194f8f1b38539167d77bcc036beed2f47005e69a940ccf52b239105820
-     17587f83019424a00e41e603749042df83e9a03e55d9f3f7121993795b7b083b
-     115820ffd21e5992960d6f726ce89d350be9a042df7a644c1c85ce2c11df4bf9
-     6625f81258200000000000000000000000000000000000000000000000000000
-     000000000000
-
-   prerefund_cbor:
-     a4015820a7173d05ed1dcb97392f4e8da31fbf2fae2856706441f486418dffd1
-     7794fefd025820185838beabf85b1605467c46149350e877815eefc73f7d9b3d
-     94b198d7fef9c903582000000000000000000000000000000000000000000000
-     0000000000000000004604582000000000000000000000000000000000000000
-     00000000000000000000000000
-
-A.13.  Refund
-
-   refund_cbor:
-     a501582102c184cdca231ce8e9ac3097f1d144b2750167967a20781158d4d28d
-     fe658cb381025820608f22735090d5bc4c5008960d409643e95e2fbbac5573d3
-     8961045c80dc83fb035820e4a691aadf08b37e4f23786bc23119d47456fc80ce
-     754caca9ae96960341fc4d04582025fd1cf8008bc06d3598355a754abf0d680d
-     f295ddf46232a812e427fe0f7462055820000000000000000000000000000000
-     000000000000000000000000000000000a
-
-A.14.  Refund Token
-
-   refund_token_cbor:
-     a601582102c184cdca231ce8e9ac3097f1d144b2750167967a20781158d4d28d
-     fe658cb381025820608f22735090d5bc4c5008960d409643e95e2fbbac5573d3
-     8961045c80dc83fb035820185838beabf85b1605467c46149350e877815eefc7
-     3f7d9b3d94b198d7fef9c9045820a7173d05ed1dcb97392f4e8da31fbf2fae28
-     56706441f486418dffd17794fefd055820000000000000000000000000000000
-     0000000000000000000000000000000050065820000000000000000000000000
-     0000000000000000000000000000000000000000
-
-   refund_token_credits:
-     0000000000000000000000000000000000000000000000000000000000000050
-
-   refund_token_nullifier:
-     185838beabf85b1605467c46149350e877815eefc73f7d9b3d94b198d7fef9c9
-
-   remaining_balance: 80
+   TODO: Regenerate test vectors using the updated HashToP256 function
+   based on hash_to_curve from [RFC9380] with suite P256_XMD:SHA-
+   256_SSWU_RO_.
 
 Appendix B.  Implementation Status
 
