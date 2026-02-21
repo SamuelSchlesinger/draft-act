@@ -309,6 +309,21 @@ where `pkI_serialized` is the serialized version of `pkI` as described in {{Sect
 
 Protocol messages are encoded using CBOR as specified in {{Section 4 of ACT}}.
 
+## Ciphersuites
+
+This document defines two token types corresponding to the two ciphersuites
+specified in {{ACT}}:
+
+| Token Type | Name | Ciphersuite |
+|------------|------|-------------|
+| 0xE5AD | ACT(Ristretto255) | ACT-Ristretto255-BLAKE3 |
+| 0xE5AE | ACT(P-256) | ACT-P256-BLAKE3 |
+
+Both ciphersuites use SHA-256 for key identification, so Nid = 32 for both.
+The remaining size parameters (Nrequest, Nresponse, Nspend_proof, Nrefund) are
+determined by the ciphersuite's serialization format as described in
+{{Section 4.1 of ACT}}.
+
 ## Request Context Extension {#request-context-extension}
 
 This Privacy Pass integration binds credentials to application-specific contexts
@@ -353,7 +368,7 @@ structure is as follows:
 
 ~~~
 struct {
-    uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
+    uint16_t token_type; /* 0xE5AD or 0xE5AE */
     opaque issuer_name<1..2^16-1>;
     opaque redemption_context<0..32>;
     opaque origin_info<0..2^16-1>;
@@ -361,7 +376,7 @@ struct {
 } TokenChallenge;
 ~~~
 
-Note: The token type value 0xE5AD is provisional pending IANA assignment.
+Note: The token type values 0xE5AD and 0xE5AE are provisional pending IANA assignment.
 
 With the exception of `credential_context`, all fields are exactly as specified
 in {{Section 2.1.1 of AUTHSCHEME}}. The `credential_context` field is defined as
@@ -432,7 +447,7 @@ The Client then creates a TokenRequest structure as follows:
 
 ~~~
 struct {
-  uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
+  uint16_t token_type; /* 0xE5AD or 0xE5AE */
   uint8_t truncated_issuer_key_id;
   uint8_t encoded_request[Nrequest];
 } TokenRequest;
@@ -440,7 +455,8 @@ struct {
 
 The structure fields are defined as follows:
 
-- "token_type" is a 2-octet integer.
+- "token_type" is a 2-octet integer, set to 0xE5AD for ACT(Ristretto255) or
+  0xE5AE for ACT(P-256).
 
 - "truncated_issuer_key_id" is the least significant byte of the `issuer_key_id`
   ({{setup}}) in network byte order (in other words, the last 8
@@ -470,7 +486,7 @@ Content-Length: <Length of TokenRequest>
 
 Upon receipt of the request, the Issuer validates the following conditions:
 
-- The TokenRequest contains a supported token_type equal to value 0xE5AD.
+- The TokenRequest contains a supported token_type equal to 0xE5AD or 0xE5AE.
 - The TokenRequest.truncated_token_key_id corresponds to the truncated key ID
   of an Issuer Public Key, with corresponding secret key `skI`, owned by
   the Issuer.
@@ -564,7 +580,7 @@ The resulting Token value is then constructed as follows:
 
 ~~~
 struct {
-    uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
+    uint16_t token_type; /* 0xE5AD or 0xE5AE */
     uint8_t challenge_digest[32];
     uint8_t issuer_key_id[Nid];
     uint8_t encoded_spend_proof[Nspend_proof];
@@ -573,7 +589,8 @@ struct {
 
 The structure fields are defined as follows:
 
-- "token_type" is a 2-octet integer, in network byte order, equal to 0xE5AD.
+- "token_type" is a 2-octet integer, in network byte order, set to 0xE5AD
+  for ACT(Ristretto255) or 0xE5AE for ACT(P-256).
 
 - "challenge_digest" is a 32-octet value containing the hash of the original TokenChallenge, SHA-256(TokenChallenge).
 
@@ -738,6 +755,19 @@ following entries.
 
 * Value: 0xE5AD
 * Name: ACT (Ristretto255)
+* Token Structure: As defined in {{Section 2.2 of AUTHSCHEME}}
+* Token Key Encoding: Serialized as described in {{setup}}
+* TokenChallenge Structure: As defined in {{Section 2.1 of AUTHSCHEME}}
+* Public Verifiability: N
+* Public Metadata: N
+* Private Metadata: N
+* Nk: 0 (not applicable)
+* Nid: 32
+* Reference: This document
+* Notes: None
+
+* Value: 0xE5AE
+* Name: ACT (P-256)
 * Token Structure: As defined in {{Section 2.2 of AUTHSCHEME}}
 * Token Key Encoding: Serialized as described in {{setup}}
 * TokenChallenge Structure: As defined in {{Section 2.1 of AUTHSCHEME}}
