@@ -41,6 +41,10 @@ normative:
     title: "SEC 1: Elliptic Curve Cryptography"
     target: https://www.secg.org/sec1-v2.pdf
     date: 2009-05-21
+  SEC2:
+    title: "SEC 2: Recommended Elliptic Curve Domain Parameters"
+    target: https://www.secg.org/sec2-v2.pdf
+    date: 2010-01-27
 
 informative:
   RFC9474:
@@ -236,7 +240,7 @@ The protocol uses the following data types:
 
 ## Ciphersuites
 
-This document defines two ciphersuites. All parties in a protocol session MUST
+This document defines five ciphersuites. All parties in a protocol session MUST
 agree on the same ciphersuite. Implementations MUST NOT mix parameters from
 different ciphersuites.
 
@@ -263,6 +267,42 @@ different ciphersuites.
 | Generator G | Standard P-256 generator |
 | Hash-to-group | HashToP256 (hash_to_curve from {{RFC9380}} with suite P256_XMD:SHA-256_SSWU_RO_) |
 | Protocol version | `"p256 anonymous-credits v1.0"` |
+
+### ACT-secp256k1-BLAKE3
+
+| Parameter | Value |
+|-----------|-------|
+| Group | secp256k1 {{SEC2}} |
+| Element encoding | 33 bytes, SEC1 compressed point (0x02/0x03 prefix + 32 bytes) {{SEC1}} |
+| Scalar encoding | 32 bytes, big-endian |
+| Group order q | 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141 |
+| Generator G | Standard secp256k1 generator |
+| Hash-to-group | HashToSecp256k1 (hash_to_curve from {{RFC9380}} with suite secp256k1_XMD:SHA-256_SSWU_RO_) |
+| Protocol version | `"secp256k1 anonymous-credits v1.0"` |
+
+### ACT-P384-BLAKE3
+
+| Parameter | Value |
+|-----------|-------|
+| Group | P-384 (secp384r1) {{RFC6090}} |
+| Element encoding | 49 bytes, SEC1 compressed point (0x02/0x03 prefix + 48 bytes) {{SEC1}} |
+| Scalar encoding | 48 bytes, big-endian |
+| Group order q | 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC7634D81F4372DDF581A0DB248B0A77AECEC196ACCC52973 |
+| Generator G | Standard P-384 generator |
+| Hash-to-group | HashToP384 (hash_to_curve from {{RFC9380}} with suite P384_XMD:SHA-384_SSWU_RO_) |
+| Protocol version | `"p384 anonymous-credits v1.0"` |
+
+### ACT-P521-BLAKE3
+
+| Parameter | Value |
+|-----------|-------|
+| Group | P-521 (secp521r1) {{RFC6090}} |
+| Element encoding | 67 bytes, SEC1 compressed point (0x02/0x03 prefix + 66 bytes) {{SEC1}} |
+| Scalar encoding | 66 bytes, big-endian |
+| Group order q | 0x01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA51868783BF2F966B7FCC0148F709A5D03BB5C9B8899C47AEBB6FB71E91386409 |
+| Generator G | Standard P-521 generator |
+| Hash-to-group | HashToP521 (hash_to_curve from {{RFC9380}} with suite P521_XMD:SHA-512_SSWU_RO_) |
+| Protocol version | `"p521 anonymous-credits v1.0"` |
 
 ## Cryptographic Parameters
 
@@ -353,10 +393,77 @@ HashToP256(seed, counter):
     8. return P
 ~~~
 
-The hash_to_curve function is defined in {{RFC9380}} using the suite
-P256_XMD:SHA-256_SSWU_RO_, which provides a uniformly random mapping
-from arbitrary byte strings to P-256 points with no known discrete
-log relationship to the generator or any other point.
+**ACT-secp256k1-BLAKE3:**
+
+~~~
+HashToSecp256k1(seed, counter):
+  Input:
+    - seed: 32-byte seed value
+    - counter: Integer counter for domain separation
+  Output:
+    - P: A valid secp256k1 point
+
+  Steps:
+    1. hasher = BLAKE3.new()
+    2. hasher.update(LengthPrefixed(domain_separator))
+    3. hasher.update(LengthPrefixed(seed))
+    4. hasher.update(LengthPrefixed(counter.to_le_bytes(4)))
+    5. msg = hasher.finalize(32)
+    6. DST = "ACT-secp256k1-BLAKE3_H2C_" || domain_separator
+    7. P = hash_to_curve(msg, DST)
+    8. return P
+~~~
+
+**ACT-P384-BLAKE3:**
+
+~~~
+HashToP384(seed, counter):
+  Input:
+    - seed: 32-byte seed value
+    - counter: Integer counter for domain separation
+  Output:
+    - P: A valid P-384 point
+
+  Steps:
+    1. hasher = BLAKE3.new()
+    2. hasher.update(LengthPrefixed(domain_separator))
+    3. hasher.update(LengthPrefixed(seed))
+    4. hasher.update(LengthPrefixed(counter.to_le_bytes(4)))
+    5. msg = hasher.finalize(32)
+    6. DST = "ACT-P384-BLAKE3_H2C_" || domain_separator
+    7. P = hash_to_curve(msg, DST)
+    8. return P
+~~~
+
+The hash_to_curve function for ACT-P256-BLAKE3 is defined in {{RFC9380}}
+using the suite P256_XMD:SHA-256_SSWU_RO_. For ACT-secp256k1-BLAKE3 it
+uses suite secp256k1_XMD:SHA-256_SSWU_RO_ ({{RFC9380}} Section 8.7),
+for ACT-P384-BLAKE3 it uses suite P384_XMD:SHA-384_SSWU_RO_ ({{RFC9380}}
+Section 8.3), and for ACT-P521-BLAKE3 it uses suite
+P521_XMD:SHA-512_SSWU_RO_ ({{RFC9380}} Section 8.4). Each provides a
+uniformly random mapping from arbitrary byte strings to curve points with
+no known discrete log relationship to the generator or any other point.
+
+**ACT-P521-BLAKE3:**
+
+~~~
+HashToP521(seed, counter):
+  Input:
+    - seed: 32-byte seed value
+    - counter: Integer counter for domain separation
+  Output:
+    - P: A valid P-521 point
+
+  Steps:
+    1. hasher = BLAKE3.new()
+    2. hasher.update(LengthPrefixed(domain_separator))
+    3. hasher.update(LengthPrefixed(seed))
+    4. hasher.update(LengthPrefixed(counter.to_le_bytes(4)))
+    5. msg = hasher.finalize(32)
+    6. DST = "ACT-P521-BLAKE3_H2C_" || domain_separator
+    7. P = hash_to_curve(msg, DST)
+    8. return P
+~~~
 
 The domain_separator MUST be unique for each deployment to ensure
 cryptographic isolation between different services. The domain separator SHOULD
@@ -394,11 +501,12 @@ For ACT-Ristretto255-BLAKE3, the OneWayMap function is defined in {{RFC9496}}
 Section 4.3.4, which provides a cryptographically secure mapping from
 uniformly random byte strings to valid Ristretto255 points.
 
-For ACT-P256-BLAKE3, the hash-to-group function uses hash_to_curve from
-{{RFC9380}} with suite P256_XMD:SHA-256_SSWU_RO_. This maps inputs to
-P-256 points such that the discrete log with respect to any known point
-is infeasible to compute, which is essential for the security of the
-protocol.
+For ACT-P256-BLAKE3, ACT-secp256k1-BLAKE3, ACT-P384-BLAKE3, and
+ACT-P521-BLAKE3, the hash-to-group function uses hash_to_curve from
+{{RFC9380}} with the appropriate curve-specific suite. This maps inputs
+to curve points such that the discrete log with respect to any known
+point is infeasible to compute, which is essential for the security of
+the protocol.
 
 ## Key Generation
 
@@ -937,6 +1045,15 @@ ACT-Ristretto255-BLAKE3:
 
 ACT-P256-BLAKE3:
   PROTOCOL_VERSION = "p256 anonymous-credits v1.0"
+
+ACT-secp256k1-BLAKE3:
+  PROTOCOL_VERSION = "secp256k1 anonymous-credits v1.0"
+
+ACT-P384-BLAKE3:
+  PROTOCOL_VERSION = "p384 anonymous-credits v1.0"
+
+ACT-P521-BLAKE3:
+  PROTOCOL_VERSION = "p521 anonymous-credits v1.0"
 ~~~
 
 The version string MUST be used consistently across all implementations of a
@@ -989,13 +1106,34 @@ GetChallenge(transcript):
     3. return challenge
 
   ACT-P256-BLAKE3:
-    1. hash = transcript.hasher.output(32)  // 32 bytes of output
-    2. challenge = from_big_endian_bytes(hash) mod q
+    1. hash = transcript.hasher.output(48)  // 48 bytes of output
+    2. challenge = FromOkm(hash)  // RFC 9380 Section 5.2
+    3. return challenge
+
+  ACT-secp256k1-BLAKE3:
+    1. hash = transcript.hasher.output(48)  // 48 bytes of output
+    2. challenge = FromOkm(hash)  // RFC 9380 Section 5.2
+    3. return challenge
+
+  ACT-P384-BLAKE3:
+    1. hash = transcript.hasher.output(72)  // 72 bytes of output
+    2. challenge = FromOkm(hash)  // RFC 9380 Section 5.2
+    3. return challenge
+
+  ACT-P521-BLAKE3:
+    1. hash = transcript.hasher.output(98)  // 98 bytes of output
+    2. challenge = FromOkm(hash)  // RFC 9380 Section 5.2
     3. return challenge
 ~~~
 
-Note: For ACT-P256-BLAKE3, 32 bytes of XOF output provides negligible bias
-(less than 2^-128) when reduced modulo the ~2^256 group order.
+Note: For all short-Weierstrass ciphersuites, the challenge is derived via
+the FromOkm algorithm ({{RFC9380}} Section 5.2), which reduces a
+uniformly random byte string modulo the group order with negligible bias.
+The output lengths follow the formula L = ceil((ceil(log2(q)) + k) / 8)
+from {{RFC9380}} Section 5.2, with k = 128 as the security parameter:
+48 bytes for ACT-P256-BLAKE3 and ACT-secp256k1-BLAKE3 (~256-bit orders),
+72 bytes for ACT-P384-BLAKE3 (~384-bit order), and 98 bytes for
+ACT-P521-BLAKE3 (~521-bit order).
 
 This approach ensures:
 
@@ -1026,6 +1164,24 @@ Encode(value):
     2.     return SEC1_compressed(value)  // 33 bytes, 0x02/0x03 + 32 bytes
     3. If value is a Scalar:
     4.     return value.to_bytes_be()  // 32 bytes, big-endian
+
+  ACT-secp256k1-BLAKE3:
+    1. If value is an Element:
+    2.     return SEC1_compressed(value)  // 33 bytes, 0x02/0x03 + 32 bytes
+    3. If value is a Scalar:
+    4.     return value.to_bytes_be()  // 32 bytes, big-endian
+
+  ACT-P384-BLAKE3:
+    1. If value is an Element:
+    2.     return SEC1_compressed(value)  // 49 bytes, 0x02/0x03 + 48 bytes
+    3. If value is a Scalar:
+    4.     return value.to_bytes_be()  // 48 bytes, big-endian
+
+  ACT-P521-BLAKE3:
+    1. If value is an Element:
+    2.     return SEC1_compressed(value)  // 67 bytes, 0x02/0x03 + 66 bytes
+    3. If value is a Scalar:
+    4.     return value.to_bytes_be()  // 66 bytes, big-endian
 ~~~
 
 The following function provides consistent length-prefixing for hash inputs:
@@ -1073,6 +1229,33 @@ BitDecompose(s):
     5.     bit = (bytes[byte_index] >> bit_position) & 1
     6.     bits[i] = Scalar(bit)
     7. return bits
+
+  ACT-secp256k1-BLAKE3:
+    1. bytes = s.to_bytes_be()  // 32 bytes, big-endian
+    2. For i = 0 to L-1:
+    3.     byte_index = 31 - (i / 8)
+    4.     bit_position = i % 8
+    5.     bit = (bytes[byte_index] >> bit_position) & 1
+    6.     bits[i] = Scalar(bit)
+    7. return bits
+
+  ACT-P384-BLAKE3:
+    1. bytes = s.to_bytes_be()  // 48 bytes, big-endian
+    2. For i = 0 to L-1:
+    3.     byte_index = 47 - (i / 8)
+    4.     bit_position = i % 8
+    5.     bit = (bytes[byte_index] >> bit_position) & 1
+    6.     bits[i] = Scalar(bit)
+    7. return bits
+
+  ACT-P521-BLAKE3:
+    1. bytes = s.to_bytes_be()  // 66 bytes, big-endian
+    2. For i = 0 to L-1:
+    3.     byte_index = 65 - (i / 8)
+    4.     bit_position = i % 8
+    5.     bit = (bytes[byte_index] >> bit_position) & 1
+    6.     bits[i] = Scalar(bit)
+    7. return bits
 ~~~
 
 Note: Both variants produce bits in LSB-first order (i.e., `bits[0]` is the
@@ -1106,7 +1289,7 @@ ScalarToCredit(s):
 
   Steps:
     1. amount = s as integer  // Interpret scalar bytes as integer
-       // (little-endian for Ristretto255, big-endian for P-256)
+       // (little-endian for Ristretto255, big-endian for P-256/secp256k1/P-384/P-521)
     2. if amount >= 2^L:
     3.     return ScalarOutOfRangeError
     4. return amount
@@ -1118,16 +1301,20 @@ ScalarToCredit(s):
 
 All protocol messages SHOULD be encoded using deterministic CBOR (RFC 8949) for
 interoperability. Decoders MUST reject messages containing unknown CBOR map
-keys. The following sections define the structure of each message type.
+keys. The following sections define the structure of each message type. Field
+sizes are ciphersuite-dependent: Ns denotes the scalar size (32 bytes for
+Ristretto255/P-256/secp256k1, 48 bytes for P-384, 66 bytes for P-521) and
+Np denotes the compressed point size (32 bytes for Ristretto255, 33 bytes for
+P-256/secp256k1, 49 bytes for P-384, 67 bytes for P-521).
 
 ### Issuance Request Message
 
 ~~~
 IssuanceRequestMsg = {
-    1: bstr,  ; K (compressed point, 32 bytes for Ristretto255 / 33 bytes for P-256)
-    2: bstr,  ; gamma (scalar, 32 bytes)
-    3: bstr,  ; k_bar (scalar, 32 bytes)
-    4: bstr   ; r_bar (scalar, 32 bytes)
+    1: bstr,  ; K (compressed point, Np bytes)
+    2: bstr,  ; gamma (scalar, Ns bytes)
+    3: bstr,  ; k_bar (scalar, Ns bytes)
+    4: bstr   ; r_bar (scalar, Ns bytes)
 }
 ~~~
 
@@ -1135,12 +1322,12 @@ IssuanceRequestMsg = {
 
 ~~~
 IssuanceResponseMsg = {
-    1: bstr,  ; A (compressed point, 32 bytes for Ristretto255 / 33 bytes for P-256)
-    2: bstr,  ; e (scalar, 32 bytes)
-    3: bstr,  ; gamma_resp (scalar, 32 bytes)
-    4: bstr,  ; z (scalar, 32 bytes)
-    5: bstr,  ; c (scalar, 32 bytes)
-    6: bstr   ; ctx (scalar, 32 bytes)
+    1: bstr,  ; A (compressed point, Np bytes)
+    2: bstr,  ; e (scalar, Ns bytes)
+    3: bstr,  ; gamma_resp (scalar, Ns bytes)
+    4: bstr,  ; z (scalar, Ns bytes)
+    5: bstr,  ; c (scalar, Ns bytes)
+    6: bstr   ; ctx (scalar, Ns bytes)
 }
 ~~~
 
@@ -1148,24 +1335,24 @@ IssuanceResponseMsg = {
 
 ~~~
 SpendProofMsg = {
-    1: bstr,           ; k (nullifier, 32 bytes)
-    2: bstr,           ; s (spend amount, 32 bytes)
-    3: bstr,           ; A' (compressed point, 32/33 bytes)
-    4: bstr,           ; B_bar (compressed point, 32/33 bytes)
-    5: [* bstr],       ; Com array (L compressed points, 32/33 bytes each)
-    6: bstr,           ; gamma (scalar, 32 bytes)
-    7: bstr,           ; e_bar (scalar, 32 bytes)
-    8: bstr,           ; r2_bar (scalar, 32 bytes)
-    9: bstr,           ; r3_bar (scalar, 32 bytes)
-    10: bstr,          ; c_bar (scalar, 32 bytes)
-    11: bstr,          ; r_bar (scalar, 32 bytes)
-    12: bstr,          ; w00 (scalar, 32 bytes)
-    13: bstr,          ; w01 (scalar, 32 bytes)
-    14: [* bstr],      ; gamma0 array (L scalars)
-    15: [* [bstr, bstr]], ; z array (L pairs of scalars)
-    16: bstr,          ; k_bar (scalar, 32 bytes)
-    17: bstr,          ; s_bar (scalar, 32 bytes)
-    18: bstr           ; ctx (scalar, 32 bytes)
+    1: bstr,           ; k (nullifier, Ns bytes)
+    2: bstr,           ; s (spend amount, Ns bytes)
+    3: bstr,           ; A' (compressed point, Np bytes)
+    4: bstr,           ; B_bar (compressed point, Np bytes)
+    5: [* bstr],       ; Com array (L compressed points, Np bytes each)
+    6: bstr,           ; gamma (scalar, Ns bytes)
+    7: bstr,           ; e_bar (scalar, Ns bytes)
+    8: bstr,           ; r2_bar (scalar, Ns bytes)
+    9: bstr,           ; r3_bar (scalar, Ns bytes)
+    10: bstr,          ; c_bar (scalar, Ns bytes)
+    11: bstr,          ; r_bar (scalar, Ns bytes)
+    12: bstr,          ; w00 (scalar, Ns bytes)
+    13: bstr,          ; w01 (scalar, Ns bytes)
+    14: [* bstr],      ; gamma0 array (L scalars, Ns bytes each)
+    15: [* [bstr, bstr]], ; z array (L pairs of scalars, Ns bytes each)
+    16: bstr,          ; k_bar (scalar, Ns bytes)
+    17: bstr,          ; s_bar (scalar, Ns bytes)
+    18: bstr           ; ctx (scalar, Ns bytes)
 }
 ~~~
 
@@ -1173,11 +1360,11 @@ SpendProofMsg = {
 
 ~~~
 RefundMsg = {
-    1: bstr,  ; A* (compressed point, 32 bytes for Ristretto255 / 33 bytes for P-256)
-    2: bstr,  ; e* (scalar, 32 bytes)
-    3: bstr,  ; gamma (scalar, 32 bytes)
-    4: bstr,  ; z (scalar, 32 bytes)
-    5: bstr   ; t (partial return, scalar, 32 bytes)
+    1: bstr,  ; A* (compressed point, Np bytes)
+    2: bstr,  ; e* (scalar, Ns bytes)
+    3: bstr,  ; gamma (scalar, Ns bytes)
+    4: bstr,  ; z (scalar, Ns bytes)
+    5: bstr   ; t (partial return, scalar, Ns bytes)
 }
 ~~~
 
@@ -1203,15 +1390,15 @@ interoperability.
 ### Public Key
 
 ~~~
-PublicKey = bstr  ; W (compressed Ristretto point, 32 bytes)
+PublicKey = bstr  ; W (compressed point, Np bytes)
 ~~~
 
 ### Private Key
 
 ~~~
 PrivateKey = {
-    1: bstr,  ; x (secret scalar, 32 bytes)
-    2: bstr   ; W (public key point, 32 bytes)
+    1: bstr,  ; x (secret scalar, Ns bytes)
+    2: bstr   ; W (public key point, Np bytes)
 }
 ~~~
 
@@ -1231,8 +1418,8 @@ and before receiving the issuance response.
 
 ~~~
 PreIssuance = {
-    1: bstr,  ; r (blinding factor, scalar, 32 bytes)
-    2: bstr   ; k (nullifier, scalar, 32 bytes)
+    1: bstr,  ; r (blinding factor, scalar, Ns bytes)
+    2: bstr   ; k (nullifier, scalar, Ns bytes)
 }
 ~~~
 
@@ -1242,12 +1429,12 @@ The client MUST persist the credit token after issuance or refund.
 
 ~~~
 CreditToken = {
-    1: bstr,  ; A (BBS signature point, compressed Ristretto, 32 bytes)
-    2: bstr,  ; e (signature scalar, 32 bytes)
-    3: bstr,  ; k (nullifier, scalar, 32 bytes)
-    4: bstr,  ; r (blinding factor, scalar, 32 bytes)
-    5: bstr,  ; c (credit amount, scalar, 32 bytes)
-    6: bstr   ; ctx (request context, scalar, 32 bytes)
+    1: bstr,  ; A (BBS signature point, Np bytes)
+    2: bstr,  ; e (signature scalar, Ns bytes)
+    3: bstr,  ; k (nullifier, scalar, Ns bytes)
+    4: bstr,  ; r (blinding factor, scalar, Ns bytes)
+    5: bstr,  ; c (credit amount, scalar, Ns bytes)
+    6: bstr   ; ctx (request context, scalar, Ns bytes)
 }
 ~~~
 
@@ -1258,10 +1445,10 @@ before receiving the refund response.
 
 ~~~
 PreRefund = {
-    1: bstr,  ; r (blinding factor, scalar, 32 bytes)
-    2: bstr,  ; k (nullifier, scalar, 32 bytes)
-    3: bstr,  ; m (remaining balance, scalar, 32 bytes)
-    4: bstr   ; ctx (request context, scalar, 32 bytes)
+    1: bstr,  ; r (blinding factor, scalar, Ns bytes)
+    2: bstr,  ; k (nullifier, scalar, Ns bytes)
+    3: bstr,  ; m (remaining balance, scalar, Ns bytes)
+    4: bstr   ; ctx (request context, scalar, Ns bytes)
 }
 ~~~
 
@@ -1378,6 +1565,24 @@ All group elements received from external sources MUST be validated:
 2. **Non-Identity**: Verify the point is not the identity element (point at infinity)
 3. **Subgroup Check**: P-256 has cofactor 1, so all curve points are in the prime-order subgroup
 
+**ACT-secp256k1-BLAKE3:**
+
+1. **Deserialization**: Verify the SEC1 compressed encoding is valid and the point lies on the secp256k1 curve
+2. **Non-Identity**: Verify the point is not the identity element (point at infinity)
+3. **Subgroup Check**: secp256k1 has cofactor 1, so all curve points are in the prime-order subgroup
+
+**ACT-P384-BLAKE3:**
+
+1. **Deserialization**: Verify the SEC1 compressed encoding is valid and the point lies on the P-384 curve
+2. **Non-Identity**: Verify the point is not the identity element (point at infinity)
+3. **Subgroup Check**: P-384 has cofactor 1, so all curve points are in the prime-order subgroup
+
+**ACT-P521-BLAKE3:**
+
+1. **Deserialization**: Verify the SEC1 compressed encoding is valid and the point lies on the P-521 curve
+2. **Non-Identity**: Verify the point is not the identity element (point at infinity)
+3. **Subgroup Check**: P-521 has cofactor 1, so all curve points are in the prime-order subgroup
+
 Example validation:
 
 ~~~
@@ -1386,7 +1591,7 @@ ValidatePoint(P):
   2.     return INVALID
   3. If P == Identity:
   4.     return INVALID
-  5. // Both Ristretto255 and P-256 guarantee prime-order subgroup membership
+  5. // All five ciphersuites guarantee prime-order subgroup membership
   6. return VALID
 ~~~
 
@@ -1469,8 +1674,33 @@ Note: L is the configurable bit length for credit values.
 | Spend proof size | 32 × (14 + 4L) + (2 + L) bytes |
 | Nullifier database entry | 32 bytes per spent token |
 
-Note: P-256 compressed points are 33 bytes (vs 32 for Ristretto255). Token
-size is independent of L for both ciphersuites.
+- **Storage** (ACT-secp256k1-BLAKE3):
+
+| Component | Size |
+|-----------|------|
+| Token size | 193 bytes (1 × 33 bytes + 5 × 32 bytes) |
+| Spend proof size | 32 × (14 + 4L) + (2 + L) bytes |
+| Nullifier database entry | 32 bytes per spent token |
+
+- **Storage** (ACT-P384-BLAKE3):
+
+| Component | Size |
+|-----------|------|
+| Token size | 289 bytes (1 × 49 bytes + 5 × 48 bytes) |
+| Spend proof size | 48 × (14 + 4L) + (2 + L) bytes |
+| Nullifier database entry | 48 bytes per spent token |
+
+- **Storage** (ACT-P521-BLAKE3):
+
+| Component | Size |
+|-----------|------|
+| Token size | 397 bytes (1 × 67 bytes + 5 × 66 bytes) |
+| Spend proof size | 66 × (14 + 4L) + (2 + L) bytes |
+| Nullifier database entry | 66 bytes per spent token |
+
+Note: Compressed point sizes vary by ciphersuite: 32 bytes for Ristretto255,
+33 bytes for P-256 and secp256k1, 49 bytes for P-384, and 67 bytes for P-521.
+Token size is independent of L for all ciphersuites.
 
 # Security Considerations
 
@@ -1495,7 +1725,7 @@ The protocol provides the following security guarantees:
 
 Security relies on:
 
-1. **The q-SDH Assumption** in the ciphersuite's group (Ristretto255 or P-256). We refer to {{TZ23}} for the formal definition.
+1. **The q-SDH Assumption** in the ciphersuite's group (Ristretto255, P-256, secp256k1, P-384, or P-521). We refer to {{TZ23}} for the formal definition.
 
 2. **Random Oracle Model**: The BLAKE3 hash function H is modeled as a random oracle.
 
@@ -1856,9 +2086,851 @@ remaining_balance: 80
 ## ACT-P256-BLAKE3 Test Vectors
 
 <!-- P256_TEST_VECTORS_START -->
-TODO: Regenerate test vectors using the updated HashToP256 function
-based on hash_to_curve from {{RFC9380}} with suite P256_XMD:SHA-256_SSWU_RO_.
+The following test vector was generated deterministically using a
+ChaCha20 RNG seeded with the bytes `00 01 02 ... 1e 1f` and L=8.
+The domain separator is `"ACT-v1:test:vectors:v0:2025-01-01"`, credit amount
+c=100, spend amount s=30, partial return t=10, and ctx=0. Values labelled `*_cbor`
+are the CBOR wire-format encodings (Section 4) of each protocol
+message, displayed in hexadecimal.
+
+Implementations SHOULD verify they can deserialize these CBOR
+messages and that a full protocol run with the same deterministic
+RNG produces identical output.
+
+## Parameters
+
+~~~
+domain_separator: "ACT-v1:test:vectors:v0:2025-01-01"
+L: 8
+c: 100
+s: 30
+t: 10
+ctx: 0000000000000000000000000000000000000000000000000000000000000000
+~~~
+
+## Key Generation
+
+~~~
+sk_cbor:
+  a201582039fd2b7dd9c5196a8dbd0377b8dc4a498a35d86fbcde6accb2cc7d4c
+  d8ea249202582102ceff7e162d6baee1abd2f72b83fdaa96df661e4375d87561
+  c8e41936310f3dc4
+
+pk_cbor:
+  582102ceff7e162d6baee1abd2f72b83fdaa96df661e4375d87561c8e4193631
+  0f3dc4
+~~~
+
+## Issuance
+
+~~~
+preissuance_cbor:
+  a20158202b23cce7a26023ab3f0eef693ac87f64258235eab1f7a32dc22762a0
+  485b410c02582018b84231ade6a6d113615c61af434e27f8b1f3f5e1ad5b5cec
+  f8fc122a35755c
+
+issuance_request_cbor:
+  a4015821026e58ff0193bcbeca44fac89c2bfa10460fd6244ea2ebed87d8880f
+  d400416a9b02582026e96d7da34b92ee4563f7ea7ccbb0eaf4e5dbd3c23b7b6b
+  b342c64f782f357a035820e207ce3fa31ef309a6d2fd9f550cad22bfba0edd54
+  33c1d4b3423ff56f4f3e4b045820777eac48c4f4f140ca186e08e2e61c50f4dc
+  ca318146aa6057c8e68b31bca474
+
+issuance_response_cbor:
+  a6015821028f470643404f28577a22be26b6b6fe2c860434633c860c68767b45
+  e575696c2902582084a8021b8a5c0b2494cd3c8d5b13507ec7e7a0784df4a3e2
+  ea8162d261c59d230358204dd5f53c42fed5eaf04e61888f0479dd4c4365b37b
+  7546ed78502bb63c02006504582071a31e0a8009b0959f3cc2ee3acf9c1b66ae
+  e2e9bdc81d223a4d577baef63a9d055820000000000000000000000000000000
+  0000000000000000000000000000000064065820000000000000000000000000
+  0000000000000000000000000000000000000000
+
+credit_token_cbor:
+  a6015821028f470643404f28577a22be26b6b6fe2c860434633c860c68767b45
+  e575696c2902582084a8021b8a5c0b2494cd3c8d5b13507ec7e7a0784df4a3e2
+  ea8162d261c59d2303582018b84231ade6a6d113615c61af434e27f8b1f3f5e1
+  ad5b5cecf8fc122a35755c0458202b23cce7a26023ab3f0eef693ac87f642582
+  35eab1f7a32dc22762a0485b410c055820000000000000000000000000000000
+  0000000000000000000000000000000064065820000000000000000000000000
+  0000000000000000000000000000000000000000
+~~~
+
+## Spending
+
+~~~
+nullifier:
+  18b84231ade6a6d113615c61af434e27f8b1f3f5e1ad5b5cecf8fc122a35755c
+
+context:
+  0000000000000000000000000000000000000000000000000000000000000000
+
+charge:
+  000000000000000000000000000000000000000000000000000000000000001e
+
+spend_proof_cbor:
+  b201582018b84231ade6a6d113615c61af434e27f8b1f3f5e1ad5b5cecf8fc12
+  2a35755c02582000000000000000000000000000000000000000000000000000
+  0000000000001e03582102738d8ae82048de8955c263e9c00a29567632258628
+  54765a0d793afc4b2cf48104582103fb5ad1b75fe460acb1cb9cf2a24f8ada51
+  42a25539a0452e3c2d48406b8ea6ae0588582102997f6ec67ba7398e93281412
+  a94ddeef0e5d31bf9a756b202029e60b257d5793582103f4c046d8a7550387c0
+  2f7cc1ebc91e41920ff3968435c20f5aebe7f3d2317a47582102bd494d458626
+  e83c365a1c915f4d0c6cade3ce49e0ad76f3ed40b45c6717f30a582103cd8a75
+  fe55aa93ac4fbb45eebfca905710e9cce3291a1803e9de7ac24f66a5a8582103
+  4bc72ce6cfa743e9cc1f1dc52788be9dd19b87ecd92e35afd2771e7a62c1359c
+  58210343d68b8ea1b98af1f8ce8fa76dbcf45bad67a2b28b5cc77abeda39cbf4
+  578c5d582103245de90001244716e982800a1ed4e41546b6061c2eb0511289c3
+  1edd059e169758210200357e013b2a536a8bf3574e723867198809c24909a434
+  2c96bc58c20717b51c065820e782d1b6ba455e6df553894ec9011b04139287e9
+  2fb2ca7f0787f0ab7e616bcb075820278205b5400795d405b97db55f95257351
+  c2aa8b8939166494ceea243b22742d085820a23592671701f2b9d351e31e07ae
+  cb8f83d650e2e5fd07521335241d1ea8d01509582078214773099b07b8a29157
+  c2906948a107be7b36631a993fdfa448d772df30ca0a582073136773ea5e1da7
+  2641b18fd6db7642e1f19e1059c61813b7d56621426d58930b5820f569c7c3ba
+  efcb183750165fb7987ea951564ab8f671fa993f295a51ce15cfd30c58206070
+  7bd2aae531a2e537ef84f1f25d02ffedcab45dbd5cf5ad9db47ffb29f5400d58
+  206a9192e22167b171783edc442d1debea35c8c62cd27be25ccdd0cb887fc41b
+  530e885820b16895e5640288e2ea42aef2fa64c7c2b3cf27fea5a5baecc9300e
+  46fac903d25820ceca4aa2ff6d7aae8d4a8e9ad50786663932729106f437bfb4
+  f735df0b52b40a58204fa9a0fbc0552298605991cea5c0600a388e83f6d065e2
+  aae3666aa6e87d69e65820caebc89604ec67b5bba8217ae84c2f8f5c49add8fb
+  ef66cfb71a80d4a0aa2ed458203eda012591de6843d1580c9959e61da04b035b
+  7a02173f5fae657376c915c8b458204639bc6891251c1de384fd527752f8503e
+  6fb621fd7d08a250dc8616f6f5d0f058209ca80e6252fae8f0bf5bbbf33157a0
+  fda42ed9f25cc3fe099a2b1fbd793e1c3458200110928a6d7097e454ebd220d0
+  ff675c2a53210cb97fa511ae6a963a5c4ee6b60f88825820c893c88a8e86c344
+  c8230311a465ee7d945d390d163e357dd6b327f8646e6d90582021dfcb29a804
+  6791dca97da2e977616065171fdca134c9e02e67fe356c70da208258207d7a20
+  ccff17e7873f7f3465f6c8c70abc53d97ff7dac95f56a19a103edcd9a2582022
+  02fdc0009d495b813706da05bf1c60d33eac88f474aece195a8ff1e98c07da82
+  5820d45cab4cd1d9924b4bbfbaf09c34769621184923e61d8384a064d607beaa
+  72b45820916ec0a1b8faf9965c435847d1dc94babb0a3d0d0b61f2f54c06fadb
+  ce4e1ebf8258209c9cf1dbf1959abf9015d1c7ca8548a4b6d2a0273de30807cb
+  e4cb3143aebd6b582005d644e79d25d9b4b913ad9a64826a5dd60edfa8bbf1c7
+  604c77c81b8d4285358258203cf43a3a128f254e0a8e70d2605fdc741be98ada
+  ed93e24dac0d32a1676776435820183588ca784a4e5606a2627b641ca044376b
+  dfb7f2b3e3c8f5bc5dc1c6ff03058258205a94acd42769d36c2d5d8ebaeccf98
+  c007a517ff1aad003cc133ce86d6da8eb85820bb6e37774d548b6d6a714bd84b
+  fdfbc94074836079640e86d6998877c9716a59825820d44d65d01b23b9c3789e
+  75b5b5a34751f269d2d81d80bc7d33d2e41a71b2424158203afcba9e60ad6d51
+  89ee582a8b560ac448da1625ddf79437a7df8896a3adc611825820b03cc81b71
+  8f0c1a5242dc3988434f0300c0fdfee993fe65e58d7d0f7a3553e25820627d76
+  64c5fd194f8f1b38539167d77bcc036beed2f47005e69a940ccf52b239105820
+  3d933d30ba8f597bbc8661419cf06f9119ea26506f92e0c4284a16d941d6b778
+  115820905736a05a44f2866cca5f33600347b88d62d79385d1351d117b05e7d7
+  0131361258200000000000000000000000000000000000000000000000000000
+  000000000000
+
+prerefund_cbor:
+  a4015820a7173d05ed1dcb97392f4e8da31fbf2fae2856706441f486418dffd1
+  7794fefd025820185838beabf85b1605467c46149350e877815eefc73f7d9b3d
+  94b198d7fef9c903582000000000000000000000000000000000000000000000
+  0000000000000000004604582000000000000000000000000000000000000000
+  00000000000000000000000000
+~~~
+
+## Refund
+
+~~~
+refund_cbor:
+  a5015821020e4bae5552fa1869c6f4ce8b1a02af205b497d1d67047175fd4514
+  95adfe21de025820608f22735090d5bc4c5008960d409643e95e2fbbac5573d3
+  8961045c80dc83fb0358207f00027065f6f2677dfcb88364c08424ed8e4ef968
+  f4963b90a72a7044f02c0a0458200c3fc80af252eae45b0b3e2d3863d53cf149
+  efb29a2db79b060d98126f6e3fb1055820000000000000000000000000000000
+  000000000000000000000000000000000a
+~~~
+
+## Refund Token
+
+~~~
+refund_token_cbor:
+  a6015821020e4bae5552fa1869c6f4ce8b1a02af205b497d1d67047175fd4514
+  95adfe21de025820608f22735090d5bc4c5008960d409643e95e2fbbac5573d3
+  8961045c80dc83fb035820185838beabf85b1605467c46149350e877815eefc7
+  3f7d9b3d94b198d7fef9c9045820a7173d05ed1dcb97392f4e8da31fbf2fae28
+  56706441f486418dffd17794fefd055820000000000000000000000000000000
+  0000000000000000000000000000000050065820000000000000000000000000
+  0000000000000000000000000000000000000000
+
+refund_token_credits:
+  0000000000000000000000000000000000000000000000000000000000000050
+
+refund_token_nullifier:
+  185838beabf85b1605467c46149350e877815eefc73f7d9b3d94b198d7fef9c9
+
+remaining_balance: 80
+~~~
 <!-- P256_TEST_VECTORS_END -->
+
+## ACT-secp256k1-BLAKE3 Test Vectors
+
+<!-- SECP256K1_TEST_VECTORS_START -->
+The following test vector was generated deterministically using a
+ChaCha20 RNG seeded with the bytes `00 01 02 ... 1e 1f` and L=8.
+The domain separator is `"ACT-v1:test:vectors:v0:2025-01-01"`, credit amount
+c=100, spend amount s=30, partial return t=10, and ctx=0. Values labelled `*_cbor`
+are the CBOR wire-format encodings (Section 4) of each protocol
+message, displayed in hexadecimal.
+
+Implementations SHOULD verify they can deserialize these CBOR
+messages and that a full protocol run with the same deterministic
+RNG produces identical output.
+
+## Parameters
+
+~~~
+domain_separator: "ACT-v1:test:vectors:v0:2025-01-01"
+L: 8
+c: 100
+s: 30
+t: 10
+ctx: 0000000000000000000000000000000000000000000000000000000000000000
+~~~
+
+## Key Generation
+
+~~~
+sk_cbor:
+  a201582039fd2b7dd9c5196a8dbd0377b8dc4a498a35d86fbcde6accb2cc7d4c
+  d8ea24920258210301302fa089e8355da29cc6d17fd7f19de9312ce145a457bf
+  399d9bced806be42
+
+pk_cbor:
+  58210301302fa089e8355da29cc6d17fd7f19de9312ce145a457bf399d9bced8
+  06be42
+~~~
+
+## Issuance
+
+~~~
+preissuance_cbor:
+  a20158202b23cce7a26023ab3f0eef693ac87f64258235eab1f7a32dc22762a0
+  485b410c02582018b84231ade6a6d113615c61af434e27f8b1f3f5e1ad5b5cec
+  f8fc122a35755c
+
+issuance_request_cbor:
+  a40158210233591f3a5c791a422b27b5e795e3abe33438b75a12c91ee9a7b4fe
+  13a7bd4c2502582033029bfd21f72d9595951761e00c6c8a9f42be24c8636707
+  a721a98adf8061010358204affafb35e774352c143d2633e874d2a727a7de1fb
+  9c3a0a81442210ae837ad204582039b2879940dd4dd323009991c88328119d92
+  52300958942bffa025321c35368d
+
+issuance_response_cbor:
+  a60158210353ad23d990da86086e7174de8872e211c4074dfb3806c694d02e34
+  1f30e1018902582084a8021b8a5c0b2494cd3c8d5b13507ec7e7a0784df4a3e2
+  ea8162d261c59d230358209b1fcf4a2abd433def37ab844120bb18dad7958784
+  b1c097aa4b654baca7ae630458201cb4188584a7961b64e867824abd2e4e6b1b
+  4450eb64dc159bfc12be5ed46add055820000000000000000000000000000000
+  0000000000000000000000000000000064065820000000000000000000000000
+  0000000000000000000000000000000000000000
+
+credit_token_cbor:
+  a60158210353ad23d990da86086e7174de8872e211c4074dfb3806c694d02e34
+  1f30e1018902582084a8021b8a5c0b2494cd3c8d5b13507ec7e7a0784df4a3e2
+  ea8162d261c59d2303582018b84231ade6a6d113615c61af434e27f8b1f3f5e1
+  ad5b5cecf8fc122a35755c0458202b23cce7a26023ab3f0eef693ac87f642582
+  35eab1f7a32dc22762a0485b410c055820000000000000000000000000000000
+  0000000000000000000000000000000064065820000000000000000000000000
+  0000000000000000000000000000000000000000
+~~~
+
+## Spending
+
+~~~
+nullifier:
+  18b84231ade6a6d113615c61af434e27f8b1f3f5e1ad5b5cecf8fc122a35755c
+
+context:
+  0000000000000000000000000000000000000000000000000000000000000000
+
+charge:
+  000000000000000000000000000000000000000000000000000000000000001e
+
+spend_proof_cbor:
+  b201582018b84231ade6a6d113615c61af434e27f8b1f3f5e1ad5b5cecf8fc12
+  2a35755c02582000000000000000000000000000000000000000000000000000
+  0000000000001e035821027017582a4451a02f86235a18382fb18882eab36d6a
+  a6d88af4e70551abde0de8045821034f0e16a404e3397e2e8fd051dcc90dfc68
+  fb542af63fa628fde531c51a6350b60588582103a87031706ff4a8eaa3b847e3
+  37ecfdc4a1d466d0b1825a1ef1f2b5058cb3b2c858210285eae1a685949147f3
+  f360ca096eb6b946045fb1318f26c8d41fd3dfe0961be858210360620f2a0217
+  25bf8f2d6053216451ad738735bb8e58ebee34b6365d88550188582102e8fe1c
+  16109af904956a43744de751a48b7f5babf223a7d9d4d806875cec2eda582103
+  5d70250f1ba3974daaa56ee0a54ae53756a2990602b76dc7b33313701c23308a
+  5821033bd90dfe3a0a9ad44bc093e5476457b207a16ba2aa12212e469c009bad
+  b44864582103fb80424145bfee4510b0daa66c9a3610d6f8a77f9460808aba6a
+  35a2e2dc788258210354e7cdc20d6ce47e7a0cd9604c14ad27c11f4e2ce4d00a
+  f5ab840de359266fd6065820b1148d93a9bc491b8e16aa2e0550dca20bc3442b
+  bdf0274c4df23c6410dba2740758206f045da12aae89c0d0fb75ea926ffd017b
+  61752999ca0beaabbcd87d2e3165b40858201665e39e44f79fb8736b0f7aa51e
+  93b0b18f198af4773d947240c02f3ffa580a095820606415390f9c72225f500d
+  112c46461983b6ef5581c51eb2a281018ae95362960a5820b62605805fea717d
+  7a08da5c47b3d44dd6d57d314a134d413ab2056f6e74769a0b5820608191b7e5
+  dc82e184164d90df231a3110687ef2ef53d122faefecb73949a96a0c58206df6
+  42d946a55f875b9f0860a06e4108131372e7ce52a218ae56e7b573ab83440d58
+  206a9192e22167b171783edc442d1debea35c8c62cd27be25ccdd0cb887fc41b
+  530e8858207afa51c2537973908305cfd236b48960abffe44133e317ba0f9a59
+  ff8d433a7b5820ceca4aa2ff6d7aae8d4a8e9ad50786663932729106f437bfb4
+  f735df0b52b40a58204fa9a0fbc0552298605991cea5c0600a388e83f6d065e2
+  aae3666aa6e87d69e65820947d8472f4635263546b425a249bf12d547a6a1b8a
+  2cc39cfd84cc8d3324657d5820086bbd02815552f16a1b2d789635df3e433417
+  bc90549c2cf4cfbf2f5b8fff5d58200fcb7845809c06cb7c481e31b3a2b9ee36
+  a072648bba656f9746d1cf8970079958209ca80e6252fae8f0bf5bbbf33157a0
+  fda42ed9f25cc3fe099a2b1fbd793e1c345820caa24e675ce78291edaef3000d
+  4f28f8dd32ba35f705a21ab4a7407fbeff5ea00f8882582003abed40e708604f
+  04669dbbdbda04f007daec46aabbcd1e27371b357e64e50c582021dfcb29a804
+  6791dca97da2e977616065171fdca134c9e02e67fe356c70da208258207d7a20
+  ccff17e7873f7f3465f6c8c70abc53d97ff7dac95f56a19a103edcd9a2582054
+  bbfbd16238d2888005f0ff4b41f2ca2dcfabbbee9cdcd66a9f0a3ef534d6cd82
+  5820d45cab4cd1d9924b4bbfbaf09c34769621184923e61d8384a064d607beaa
+  72b4582006c5453ed8dfd826021c4b84cd53180203a4b3b5eee1f0c371d6aa87
+  fe786631825820d1ccc19d18e0e53e87e00e3576a07408ffbead81c83130fcdf
+  893189c465c6e1582005d644e79d25d9b4b913ad9a64826a5dd60edfa8bbf1c7
+  604c77c81b8d428535825820d66ff214e18271898115abbe62af0470c20a3d7e
+  60142b4f28c7ce41178d08595820183588ca784a4e5606a2627b641ca044376b
+  dfb7f2b3e3c8f5bc5dc1c6ff0305825820a9aa1b4a62b657c10374aa35b1d301
+  ac3153025c130e8968de1b67e9e81a92ae5820bb6e37774d548b6d6a714bd84b
+  fdfbc94074836079640e86d6998877c9716a59825820d44d65d01b23b9c3789e
+  75b5b5a34751f269d2d81d80bc7d33d2e41a71b24241582074d75e48f7fc13e3
+  1e3f116c4806121bb93ad7a7c027ffccad2da8e55edfe0f4825820ef1e3b797e
+  5dbdeeb57ed5847abb260f890ce5bd8320d3ee9da54405bfddd1a15820627d76
+  64c5fd194f8f1b38539167d77bcc036beed2f47005e69a940ccf52b239105820
+  dbd24ffdcb566c16dd8cf66e6882f941830f9b3c10ad4debec0ae2d10bc3e03c
+  115820b49c3b0eaac33ef2b56e7b8e34a900bbc983d4c390f469b88bc67b21d2
+  32c7cd1258200000000000000000000000000000000000000000000000000000
+  000000000000
+
+prerefund_cbor:
+  a4015820a7173cbaed1dcbe2392f4e8da31fbf7b54990fbafde673f8765ab3b0
+  68bbcfad025820185838beabf85b1605467c46149350e877815eefc73f7d9b3d
+  94b198d7fef9c903582000000000000000000000000000000000000000000000
+  0000000000000000004604582000000000000000000000000000000000000000
+  00000000000000000000000000
+~~~
+
+## Refund
+
+~~~
+refund_cbor:
+  a501582103132603f95005e506212da5c8bec0ed1b18f0aea1752e529db15fc8
+  d21dc78eda025820608f22735090d5bc4c5008960d409643e95e2fbbac5573d3
+  8961045c80dc83fb0358204e85fe14a0be99fe2b99867002f83c72cdd2c55786
+  9ca112ad97beb72d989d3b0458206eb0f315bcf6e17702a8bca3c584c3bfe413
+  0554c55220b6989bad80823b4173055820000000000000000000000000000000
+  000000000000000000000000000000000a
+~~~
+
+## Refund Token
+
+~~~
+refund_token_cbor:
+  a601582103132603f95005e506212da5c8bec0ed1b18f0aea1752e529db15fc8
+  d21dc78eda025820608f22735090d5bc4c5008960d409643e95e2fbbac5573d3
+  8961045c80dc83fb035820185838beabf85b1605467c46149350e877815eefc7
+  3f7d9b3d94b198d7fef9c9045820a7173cbaed1dcbe2392f4e8da31fbf7b5499
+  0fbafde673f8765ab3b068bbcfad055820000000000000000000000000000000
+  0000000000000000000000000000000050065820000000000000000000000000
+  0000000000000000000000000000000000000000
+
+refund_token_credits:
+  0000000000000000000000000000000000000000000000000000000000000050
+
+refund_token_nullifier:
+  185838beabf85b1605467c46149350e877815eefc73f7d9b3d94b198d7fef9c9
+
+remaining_balance: 80
+~~~
+<!-- SECP256K1_TEST_VECTORS_END -->
+
+## ACT-P384-BLAKE3 Test Vectors
+
+<!-- P384_TEST_VECTORS_START -->
+<!-- TODO: Regenerate P-384 test vectors after GetChallenge change (48 -> 72 bytes, FromOkm) -->
+The following test vector was generated deterministically using a
+ChaCha20 RNG seeded with the bytes `00 01 02 ... 1e 1f` and L=8.
+The domain separator is `"ACT-v1:test:vectors:v0:2025-01-01"`, credit amount
+c=100, spend amount s=30, partial return t=10, and ctx=0. Values labelled `*_cbor`
+are the CBOR wire-format encodings (Section 4) of each protocol
+message, displayed in hexadecimal.
+
+Implementations SHOULD verify they can deserialize these CBOR
+messages and that a full protocol run with the same deterministic
+RNG produces identical output.
+
+## Parameters
+
+~~~
+domain_separator: "ACT-v1:test:vectors:v0:2025-01-01"
+L: 8
+c: 100
+s: 30
+t: 10
+ctx: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+~~~
+
+## Key Generation
+
+~~~
+sk_cbor:
+  a201583039fd2b7dd9c5196a8dbd0377b8dc4a498a35d86fbcde6accb2cc7d4c
+  d8ea24922b23cce7a26023ab3f0eef693ac87f640258310263d8397072540c4f
+  654ea4ce5975630c7067b519107a81c7030e349c8b331517be27199568faed4b
+  9f16671b6cb99835
+
+pk_cbor:
+  58310263d8397072540c4f654ea4ce5975630c7067b519107a81c7030e349c8b
+  331517be27199568faed4b9f16671b6cb99835
+~~~
+
+## Issuance
+
+~~~
+preissuance_cbor:
+  a2015830258235eab1f7a32dc22762a0485b410c18b84231ade6a6d113615c61
+  af434e27f8b1f3f5e1ad5b5cecf8fc122a35755c0258307208086dd1ee3c5d9d
+  815824640e003c9ba0f65ede5d59ce0d2a4a7f31955acd42f22ddca74a92d56c
+  a78aef298e723b
+
+issuance_request_cbor:
+  a4015831026e0bd2b2a4d6a164bf836f49424b0dfac89575c5154bae176e5f8b
+  ddba16f0021e26a169c853e22238e9d1296bc625190258302d3c84cb6e0f3fe2
+  b0b87ec0e2491a328944414900b99a518af3213d595cbbbd670dd0823f517e6e
+  613c99603c4f3b2e035830132a4806e68565aeb42c9b59572241683a9b8fbd22
+  35dafa6fa95ced89d010eb4a5e5cabc7542188a05905a7bbe965a704583053ec
+  79ed161eedd799c97ad3ebc32ef361fca6ccbdaf658d060ad0daf6239bf2164c
+  e5ed71d0ab0f8be5c9ec6fcc1932
+
+issuance_response_cbor:
+  a6015831030e2419259bc1f3244fddc601e0c3e731d7f891b589a0a2def9b606
+  38de861ead79c88ec43856ad48d49cf3cb5ad4f3ce0258304acbf8ff1fd1a7c8
+  06d81ca8e4ae3b2cffdba11827588c438f5434eac956be8f95a043ad04cdfd0a
+  97d7fa49d40d099e0358300d698f82d6213f340569b128b039169a458b2e3ac7
+  a4ea0ad7b486acf10511e49a8b4bbeb1f925ec050e45b7bf5455c50458306bf2
+  bcbd13bcc57d5a90d90eee7d7cfd7b7db17d205ad8ba01ef0cd03f9b35747ac4
+  307becd54ea8bf76e0671168be28055830000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  6406583000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000
+
+credit_token_cbor:
+  a6015831030e2419259bc1f3244fddc601e0c3e731d7f891b589a0a2def9b606
+  38de861ead79c88ec43856ad48d49cf3cb5ad4f3ce0258304acbf8ff1fd1a7c8
+  06d81ca8e4ae3b2cffdba11827588c438f5434eac956be8f95a043ad04cdfd0a
+  97d7fa49d40d099e0358307208086dd1ee3c5d9d815824640e003c9ba0f65ede
+  5d59ce0d2a4a7f31955acd42f22ddca74a92d56ca78aef298e723b0458302582
+  35eab1f7a32dc22762a0485b410c18b84231ade6a6d113615c61af434e27f8b1
+  f3f5e1ad5b5cecf8fc122a35755c055830000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  6406583000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000
+~~~
+
+## Spending
+
+~~~
+nullifier:
+  7208086dd1ee3c5d9d815824640e003c9ba0f65ede5d59ce0d2a4a7f31955acd42f22ddca74a92d56ca78aef298e723b
+
+context:
+  000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+charge:
+  00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001e
+
+spend_proof_cbor:
+  b20158307208086dd1ee3c5d9d815824640e003c9ba0f65ede5d59ce0d2a4a7f
+  31955acd42f22ddca74a92d56ca78aef298e723b025830000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0000000000001e035831036296e1aed312204c396288d2f99f7bbc6a4717ef1e
+  c5b97b4be73322c75f9aab70539cbcab21f124e2b3d5d1a5f9c31404583103e5
+  364a37d75aaa65b02f3e11f9e427df29ac0344b9b52401141efcacba6266af1d
+  d6a4e1a7498ceeeaf7bd7a15e71a2005885831038278a69e56cc22343ebf02d3
+  ed9335e39ba9796cc1764c6a247399d54c5790bc055694b53481beb92f20c138
+  1d31278c583103bfb1d3b5777f7745a64eb594e061ea1fe191e7635fd9582bb1
+  ca177192ab43552ee03a63d8bb39103385ab469de21fd8583103eb0798861c9b
+  488a7922747c22d7a237a1265ce17e7e01a6d34f2ced91e0d8d321c2497d5c8b
+  5966c813737df094fc04583102d2fd906a5aba6789a67224c37447b0711d2e4c
+  65bf74adb351ccf9780312ae292e5e283d6629e6f7db6cd79f41c6e4cb583102
+  ace9728aa318f26dbfe0b8ee909d3fc653a30d48f383a64dd934bd0a3b9f60d1
+  7e9b020db9b141b780cfc79e01713ba9583102dd2ea82fc4c2c3e203841f3761
+  1656e1ccd1b7f6e5df4ed790c067854b73f99f556cd3ec35a256b2b79b5f18db
+  4dbcd2583102daa44b9179c2cff850625f8249e536bbbaa3e8d8d2381dccc612
+  0e06f16847291199a6b1ef837650fdb6d003cfae920b5831034a7e5472342c50
+  8a334e283cd7db6378fb266b01037209bef85481f57fdafd8432280b78526dbf
+  02d69f9e7e6a7b0f31065830ca245c0cb7f0d50793ae46858cb54cae17fdb4be
+  3b10d72ced8d5fc2b1455e4bc33e0b8799b1186ca25f900f4ca4d415075830bb
+  8c5425ee95e27df43c547b35de8931a9543a21f451bcc0de48eca71881a01d2b
+  0b4aef3bd231e265e8a348b688464e085830d59b91b74844e863da1410bd2de2
+  f292de78dc817a3ecdf86b14f658ddadcfb6fa3752499bf5995ac4909960463a
+  988c095830e20002e746595396534fa5416578d7fc363d30214f5ebf3337f2a2
+  69d88e8caa4f1d28a7e7738ad6cb1319358421332b0a583024235687e9ed6fd0
+  659ec5f0e363b52db93d9e6f99644d77c1b1ff533281a33c634f17fc2c95a21a
+  ed1c43941873ec120b5830f3874851d0445f7aa47a409e596f8346bb6d0c92c8
+  47ba8eec6b0cf9fdb5c337b9ad260534e49d976dfd29cedadc774c0c58302952
+  d5c01365484d1626bab540d20cfa6eb1d3ee26ecd418dc0c446e9e773fa5270e
+  ea990c45dc931c151d17524db5d60d58300b48a8c0cb0ae7abeffc0590d41306
+  efae441736ed447b25cb4545737b3b2500a00961ad005939216625863b9053a7
+  740e88583067a6e5a7f1f3bbb804930e31fb4d75324bfa48cf681c672706f2cb
+  b5e1f2ac122201ca9379b070fa189b2d63d11d3a6a5830cc23010d4abf0a047a
+  fed5404716edc61e3096f7979b18ce28703f44a58bb3acbb7d34963797654502
+  d2fa065a6d41b85830608f22735090d5bc4c5008960d409643e95e2fbbac5573
+  d38961045c80dc83fb8328e6c432e205bb41d3dd422d5f264f5830d50f66a5d9
+  a561eae48d42377afdbc9ab1042008c09a246251d496378155b272bb201010d6
+  145580c59907c3497467bb5830606b1fca6df80d77982e0bec1f304cf610b1eb
+  133c3417320502ab83e9d59349472bd521e4f39c135d3e0455fc737dfa5830cd
+  ebede63d926e4888f2fe2978a9278e3918f5ca9681b58d1de0c30dfa8c80654e
+  3d5cead158e3658d42052ff1a4f2055830a4697a8d626a333693e5b318baf83d
+  4e4c91c300271e53f819b02d2a3dae07319a61da49f48e65f6b4ab2bdb59677b
+  395830f35cb9c94e7745e962fc265fcfb7656e76f4003579453a05d9d08c4fca
+  23e9a2cd74dca025bf65c3873e57e195c985e70f8882583098c06f10a0f9b815
+  d695184e1087f3f95f72a54141a999af8323c54e3b79c3e16622622b0ca9b66f
+  13cb3a4ce76e60445830a4144478d893392a42c79609ff78ecd4c8ddcd9a265d
+  62302c1d5fc5ad298e450085e8368c1654aaa6981a57b1fadb538258303d4980
+  07b3ae70f022bee08accdb2122382d0876e0917392b843c4b31fd64373ff1df8
+  6b6ddc8e08f8619bdc2028ba61583097a8a0dac39c05169512c952e4cb6a952e
+  d984815c1a30b8815bd3c2eb2e84bf396b0733d52d304244100e0bfce1ef8a82
+  58302aaf5eca3cbe45770cb6a7458a6fd047eec0e4dfa6720114e1fea30f7002
+  5dfe04e6a8815a6ec715d75fe23cbc7dd27b5830dad42482f9e4cb76595e147b
+  fa6f5ed544d8cfeff910abcd51745984204506ef33d670218b2da091b6990340
+  ee38d79c825830c09c2722980742fa37ffe0db01bbd899bf4ebbc780f8faaf75
+  f94801d233d494ac9017bb5caf0c416c5f3c663d46de085830ead4b239547b0a
+  2214f49e19643d4da7c0d7993d18f4aac7f14486db5480a924fb2b8c3d3e2eff
+  bd50d8e661f2a11b308258304ff94c53c6cb498a41c4e1b9c78fbca9255bec19
+  6ef199d6fd6752f78a29a2d730694c36358aff0dc7cf87828839ff5b5830eeae
+  fe61aedec9d1b54453bcc37198bdd442690814c688f44b84674f729828a55cc1
+  07dcda3bdb1589226fb506af2db4825830a42328da89b011b676c069aed12a73
+  d75cba5f7481335b6107c485d754d5d5aa586c1484b031b1305199309828e9ff
+  f35830361e223c8309364fd60e8340138a38632de3eb7850ab7c644308338df5
+  9564dd519a30176f266a532c53c4da81a89352825830697a98d2cbc64f2860bb
+  7d5cf6e72bd155bd92eea8167a80683d8e6fa048f9ef8e05c16050d13ec8532d
+  89ee05054b605830677c61a58acd9e315ba3722350bd724932c61847ccdb8322
+  6e10589759241ac7c49c47a21f5d98d27baa89b7625cdafc825830cdd81431bd
+  07cc4de719b9f4bd20f2031fa055ee98452998ad4bb27fd61ba31996c4f49949
+  d0cb974d4e9e27b32af4c658300414f19c59adf415baefe2f58b6e305e38d549
+  c10c4bdf8d90934c3a69d8a5a06c1cfc7bf8bdee06bce4756ef324af81105830
+  af79e0809ca7b51bb0eb256fc1c400f87e247ac8c555cc105a3a3ad37672dab2
+  7c94c9b196dea4a483a5090f9d54736811583095b56334c3f8f70b26f95cacbb
+  0190bb761329e0da640b9624b0fd5a54c924e867922381f617613c8a15221943
+  90e9331258300000000000000000000000000000000000000000000000000000
+  00000000000000000000000000000000000000000000
+
+prerefund_cbor:
+  a4015830d56c1ee7f0ca1e3e8e08b0150ca2693117ec9fa46561a2d63cbdfff5
+  d30aa3ab8adb5542d6dc452630f224e8619dec13025830426faedde352ae3915
+  c9a9d4a4c0573f956e6018d65ee23197594b12437425fa40ca8cc5ac1254adef
+  8d17424395631903583000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000046045830000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  00000000000000000000000000
+~~~
+
+## Refund
+
+~~~
+refund_cbor:
+  a5015831030c7354b41acf1c0a1a2a48b8abf831218dae6f99012605c7646d41
+  e67a7a3b87628a89ed92313ec9b0f3a224f979cccd02583044cc72ceb77e4824
+  ef568678064c3a183b8621284405a706e789a6e7a22d64207e69fb0b8515ce8a
+  b878ca7a07ebab00035830d4e940dac00416e16f93083282ae202657b4536d43
+  3011231905d3ca7d7446669c2fbb36fa110401a830c0c73ba5e371045830fe0c
+  c01b5dffd0e46902d0c2246e313ba04032de4ee9098070b727c0b93d345868a6
+  58aaa21070659dc7c139ca1b20d0055830000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0a
+~~~
+
+## Refund Token
+
+~~~
+refund_token_cbor:
+  a6015831030c7354b41acf1c0a1a2a48b8abf831218dae6f99012605c7646d41
+  e67a7a3b87628a89ed92313ec9b0f3a224f979cccd02583044cc72ceb77e4824
+  ef568678064c3a183b8621284405a706e789a6e7a22d64207e69fb0b8515ce8a
+  b878ca7a07ebab00035830426faedde352ae3915c9a9d4a4c0573f956e6018d6
+  5ee23197594b12437425fa40ca8cc5ac1254adef8d174243956319045830d56c
+  1ee7f0ca1e3e8e08b0150ca2693117ec9fa46561a2d63cbdfff5d30aa3ab8adb
+  5542d6dc452630f224e8619dec13055830000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  5006583000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000
+
+refund_token_credits:
+  000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000050
+
+refund_token_nullifier:
+  426faedde352ae3915c9a9d4a4c0573f956e6018d65ee23197594b12437425fa40ca8cc5ac1254adef8d174243956319
+
+remaining_balance: 80
+~~~
+<!-- P384_TEST_VECTORS_END -->
+
+## ACT-P521-BLAKE3 Test Vectors
+
+<!-- P521_TEST_VECTORS_START -->
+<!-- TODO: Regenerate P-521 test vectors after HashToGroup change (try-and-increment -> RFC 9380 P521_XMD:SHA-512_SSWU_RO_) and GetChallenge change (72 -> 98 bytes, FromOkm) -->
+The following test vector was generated deterministically using a
+ChaCha20 RNG seeded with the bytes `00 01 02 ... 1e 1f` and L=8.
+The domain separator is `"ACT-v1:test:vectors:v0:2025-01-01"`, credit amount
+c=100, spend amount s=30, partial return t=10, and ctx=0. Values labelled `*_cbor`
+are the CBOR wire-format encodings (Section 4) of each protocol
+message, displayed in hexadecimal.
+
+Implementations SHOULD verify they can deserialize these CBOR
+messages and that a full protocol run with the same deterministic
+RNG produces identical output.
+
+## Parameters
+
+~~~
+domain_separator: "ACT-v1:test:vectors:v0:2025-01-01"
+L: 8
+c: 100
+s: 30
+t: 10
+ctx: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+~~~
+
+## Key Generation
+
+~~~
+sk_cbor:
+  a201584201befaead7d149884a0b3f7e38cff16702d3668b7e9fa1556d545ad8
+  a06339c94e42d0802a4aa38a0327e8f401f047c799f9084e99f6af19385c65b4
+  453f0121dcb0025843030142f404e66e481d1ecbb4de97fc07cb2898474c979b
+  dec8858de8ceb4eb625107af489e37c8e9cb6809b62fea5332937966e1e25acc
+  7e493f33e45d3d6b681aa0a4
+
+pk_cbor:
+  5843030142f404e66e481d1ecbb4de97fc07cb2898474c979bdec8858de8ceb4
+  eb625107af489e37c8e9cb6809b62fea5332937966e1e25acc7e493f33e45d3d
+  6b681aa0a4
+~~~
+
+## Issuance
+
+~~~
+preissuance_cbor:
+  a201584200cd3d331035754fcd8e7b105925786510efb8bc1302a8f2dc08ac91
+  c64d20738b3d31b30d77f921617430c70ff94d761880b95ca944610f83aceaa1
+  10f630c3685502584201de9af6a86567a837119225e4983962a9b61ae65faa00
+  9f596b09d9605816535474c51c196779fa2f8cd1f69e887bd51b9baaf4f96a40
+  cbe7513dc7286f34da7847
+
+issuance_request_cbor:
+  a401584303004fd6a3a76f3161ee62c0b9ea36ec5bd97805e769bbe6b685d30e
+  13d1e633e9a535e3154c50de8251c407035de3b8adecfa28ea301728841772d7
+  f73b13bedcd9b702584200eea95e822e1b73d45698a6eb890e322ae957cc3550
+  e2768b2fb83ebec4e516a2193b9ef476dd44daa547acdb8cab5d9e6983b38e39
+  57760bbf39d3d53461a47e5f035842008c2d7c5a63191a39d26ccaec0d146246
+  7fefd2941eecf731dcaeee840a9b80b511c78981e6904c050eca384cfa2cc677
+  bae61c1b87dc4e6eb2a9ca6eb900e1ce0604584200c96c2e464353fa16fc6405
+  11e914d334f57991194342c773d93e5313ba3a32acc5e24e0ff999c18198ff65
+  17fcf787941b835a0c8bb8fbcae8c4deab95b64a061b
+
+issuance_response_cbor:
+  a60158430201b96b6ff99d60bf22a48cd4123fb2d4302b3e216097968f02a3c2
+  c99a88da093488c2a5bfc8196376d33addd217fc5c3fdcf67e2256bc58e77cf9
+  4343a15f41a2f10258420150f60a980d35d7e9b45078236789ba8ff32550304b
+  c04e33df13e407c3114b20f3f1b8ea6c623e600b336d17f556fdb9c9a2f828f5
+  77352961dd665abaae26354703584201ea3dcfbf786a4da425d2ca30039f259c
+  68a65778f27b417a891a34c00e73c14d1669f032dcd0e4c64918513cd2c760ee
+  fd16aaa45e902d52b8f9234033d5e1c2aa045842004935ede2cf9a82ccc03b16
+  9354f0ae79d29153b0aa52917df652d7cad318c979ba0fbcc099793bd3407540
+  f10064dce119b0bccd63a9973d2efa684abae0c7adf005584200000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000640658420000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+
+credit_token_cbor:
+  a60158430201b96b6ff99d60bf22a48cd4123fb2d4302b3e216097968f02a3c2
+  c99a88da093488c2a5bfc8196376d33addd217fc5c3fdcf67e2256bc58e77cf9
+  4343a15f41a2f10258420150f60a980d35d7e9b45078236789ba8ff32550304b
+  c04e33df13e407c3114b20f3f1b8ea6c623e600b336d17f556fdb9c9a2f828f5
+  77352961dd665abaae26354703584201de9af6a86567a837119225e4983962a9
+  b61ae65faa009f596b09d9605816535474c51c196779fa2f8cd1f69e887bd51b
+  9baaf4f96a40cbe7513dc7286f34da784704584200cd3d331035754fcd8e7b10
+  5925786510efb8bc1302a8f2dc08ac91c64d20738b3d31b30d77f921617430c7
+  0ff94d761880b95ca944610f83aceaa110f630c3685505584200000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000640658420000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+~~~
+
+## Spending
+
+~~~
+nullifier:
+  01de9af6a86567a837119225e4983962a9b61ae65faa009f596b09d9605816535474c51c196779fa2f8cd1f69e887bd51b9baaf4f96a40cbe7513dc7286f34da7847
+
+context:
+  000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+charge:
+  00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001e
+
+spend_proof_cbor:
+  b201584201de9af6a86567a837119225e4983962a9b61ae65faa009f596b09d9
+  605816535474c51c196779fa2f8cd1f69e887bd51b9baaf4f96a40cbe7513dc7
+  286f34da78470258420000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  000000000000000000001e035843020053707515fffcdffc0b3d02ec8e7c02bf
+  dfd1eaf37764ca012d85a1eb89d59ab8dabc1bfa833bb4e7b281fa8fb6311258
+  4d649c053c02920c147e1100ad1973dea504584303004be0c8cc7c400ea001b6
+  718eab62b3fa183072437341b9ae85dca8316a6dc537e93078aacd19a7045c9c
+  c7ed144b208fd13a26ff25d4249299f52d7318f89e3314058858430200b48941
+  fece71f576307c4bd0cf3f48524ff91595fd459e310e8f1ae9cf03830a2f0ed9
+  4a70c0284df37a040be137d2be32975eeea8844701b4156569fc1af28d8f5843
+  02010c0c83ff9a09aa48897a7e820147cba0d51f2fb0d4c182e4de5d945b5d8b
+  9037abc2608b74e841f29ca428640942d34b68cea7b30f10129db1c9e003fdcf
+  54d41e58430200cc30503199070a95dba1b552745438cb99015291d6c4f5cd44
+  d16cba95c2836dfcd49a4e0cd50228da9af9c61de3da4731aa0f079d70873d8d
+  535388fb2d7adc3958430200abb18bb5bb4ef2e502cf3062d0b7eb79e9c76d95
+  f16a5479b6d9e3bd3ec4765054b5fc7b06f05156496bd6d5a64ba8bfd11c2113
+  4a2620f8ad8feabaafe0151c60584303009f577700d5ff0346fcd8c4309d8b39
+  d2d6add09b18c8ec8b962fe414ac18fb627a1a2cbee299cf3c1d2eb7d1dd5292
+  c7a9f1934a20b0ea678191a3e171a96d7e6d584302006e31568c82c7f03c18b7
+  b64d957e1387bf2fdf26951eb1b065f004ded110eb65da7d93a99cf2b191b1d0
+  2ecf10857c554693403372d1176a0b3864969ce1b7c533584302008924fe53e4
+  224e1d8a7b900c52c6eb2b337c30af5bbfe0f79e513ae778470da26fd88d1ec1
+  7f6f4dd978334ee3a99b9b35e4d49aa53f817ca23727c141961a300b58430301
+  57111e48baef0392de730bc5a6236f8cc799224ee5a3a75f070d43c6b12b31bf
+  a21a790dacd977e991123043591db4c4f61b469a12d76f58c2d20a1f2c3378a4
+  1d065842002a5c8ff65707ce35c137e619147400f1996b0bccb764047e315deb
+  768f2bbb465e583ecc1c1b5c818db1eea7b2666155319eca951e096c8aa1b43d
+  c3749f91e1e307584200cb2080f378a7a4898ade3f36abea2f3aa5e53a2a03f1
+  d8a6495d1500fed4cee0f3baf4d5a5164e5e01a679977d15c04237c1a1aebf9d
+  4c1393838c0f36547e55c308584200913900c6f4e1b0770b8ab9d5bd13e258dc
+  2a3dcd2e83f2de0af6b8cdc3b376200e5e2d0001fe09661fc7358c724a07cd09
+  143336651c6a3f62e7344039c47f088c09584200b8c13919201bea194ec7095e
+  e28a1851831198598034a4cafc7820e60721f2bb32473e8d4dffd2452b99db40
+  41ed860c1bf6078bbe98a66b8946371ed67941d6b00a584200e296b96b3e2c74
+  3ba4585782faa5f3ca163c318068d2604fa583aeeafae5d829bc32245bcf2e8d
+  fbb49a4bfcc9f8d5b38dcb947cbc083db7053f021059db7acf030b5842008608
+  30d73cbff953828f334f2bf9c54575b2ee93d1b0a6e7929f7d066667866f6b70
+  cfbffd2e5b5935e3b9dfdd1406c87b7c5f26827a66859d93ba695736c53d2a0c
+  584201ea59451d0ecaeba2a6cf8ad38ae889ea877cdcec0e5c6c8faa6b22c823
+  5b58b48775c90b3d2d49b13e41fac983fa997ea95ab56d7fc90dbeee776464bb
+  3ee8bf040d584200332687fe0f448f005589e0072b4a910e81fb5a80baf6d8b9
+  2384a3400d1db56528bfb84e5dbfc8e1315d82f7240eec08d8ad13c361b1ae19
+  2cf1559d7042e07ccc0e885842019d604b8995f04640c61ca5cfe362605838e7
+  ff88bd0b81e2a9901c2ca3590b761a56e3746239926a99541d039792eeb40a55
+  426730a2ef78dba0fa3b6bdb62f6e3584201b556ba9acb1021a6b6f6f35bc502
+  03cab9b27f20a4ca8caaf655ca17eaf91049a82139d506ec044e85cc78f09ef5
+  4ab3758b02578070527befbd4dbf03e22214285842019d57f6d23450219bf6a5
+  1c6480adf62bf2cc9129a09fc764383a04e0edfe69b814a947f7ca2b337d79cb
+  39011f7960ea3cae7d6fe75d3400e863cc12886233fa98584201396b2f890d9e
+  db142d3f86a7ec924ed6c0faab0ca50e094e59423ed6265615d001fdc98162e2
+  a0d80d54d4dff058d13b83ac92e0fc125ba5d92fc6e743d3f518d3584201b89a
+  447bbffeb0e1e2c43cb63bccb56c6cf5ffe1ae87196a453a6a8bc33a54b45bd4
+  ec8266a964864f7b1f72a8e59057e43517ca94df61569a6b7b2586d5ce322958
+  4201f71614d289273beabe9699f52196ba2ac3ce0ab81cb86d2d734530ace8eb
+  e6751a880279e7075b28b7391081fad1556a945d70770c464e3396691086f7b6
+  8b0690584201d370bd0faea3faa51d29ce50ec8734580f400a3bc877df21b2f0
+  3f35c0dcfeea1b471da83d94c81e62acfaf1155ef22c64d1807ea317e068aec3
+  075c81dd8e94c3584201bb77277a6d9015bcaae3deb9e6d40dac5b901530c460
+  fb4f7064f679bfc8c04e8058b8f5f66f219bcd963eef72c666333648a4a51bf8
+  dcc56f44445bb495ff5ca80f888258420092089ce03ed1fcd0b7b2c776d9a50a
+  37fb99abc32438e58e613d2938083b12f511cbbb216ac30b6e7b6786787d4199
+  662d6a6d65f47dc80ba2a70853154d1f6c3b584200e8afe0efe99f08f6580cb1
+  e67807ecb57281bfcf0a53240859c95e1dc09c7cc2df155fff84ba110056bdf7
+  74006fca32fad8da9d1b79017dda2a7c325eebb24da8825842007af29d6c8f68
+  dce0d30e47d9447ddafc6f00793136262d55568137b8caabd507653cbfc9cfdb
+  7fc33380bc4a4367f3b5e974cf66a531f2d21cb8dbb1b42004bbb4584200af09
+  7e339c1aabda95100b2aa0880701c7fdf2e33f21fa1783136ea71eb211eca71a
+  56dcb518ed678554fc590343673bb5195a3bbe3b4d97747628e72e10ac387d82
+  584200436e9460eb1672ddd522d3751c97a03c94086dfa428e20d5aa973c5bad
+  49dd36542108192b506352063cc36f3b8e696b6a03b789aac5f0cc6050bd60a6
+  04382fdb584200dc9a50fa94703c5933113847df3b49bd0a21ffaea106cf3f6c
+  1292afaea533db8fa3f5d3382d445b67aee6ecd22e90dc5f4920596759bc3785
+  e68535f77a9de3d1825842009d8e1661f381d5b514feeb997926d7616fc0cdd3
+  66d7b2837c1e822584f6df30a918ab1cfb7d8cdf010cd3425161c014fed6dd91
+  2b5a69919036b8219bfaa5979058420016a9f19190f7f59190c90833762c0707
+  39b71493b8b91e690b1366398ff5f1cb65ee210fb9564aad01387f48e4ca8cbf
+  a28ee9d65735d2361c5b7493b34102c69382584200ea45b304d5b4f5f3efa72b
+  a61b1892cfb890c6a88e331a0211c1e0d0786c4dcfc0badc8e96f9c049829514
+  79fe269640d5f61dbee8ed93027875821da80582baa1584200637b18682031f5
+  e1c5aac8c0034a950529b0374e02f48a85721f4a1df3a08f38fa0cb898383d92
+  fb0ab99350de725a2920efb5646886110f9cd0c5a42ce54394cb82584201f688
+  0ef4a36fc30c8c3cc578bf02dccc3beade6ce6cf5e261971e2f3395c3cec4355
+  3d7fb0fd9f43404e19a2c97ea705f80ed0fd4b262ad950ded94d059bba8e8d58
+  4200a0db7cc1853c4130044d7dd3214b23bbd194fee3a0ccd8d261ac3cdd61e0
+  4a9562a1b31a8955a4842d340227786c90c46859938f0f6b3c581ec9b99cbced
+  7a66e2825842007fe62fe3da03b0a078e957997ae06fddda7c1dd9452ea8ef3c
+  49672c673f1698097dab24532d1c9edb5cbf182c8b7f31dfe0398b4e6b6f17a9
+  1925b608f62d4d745842000b56b0fefb170ad67e0dd6564ec72ac5d3878f45e6
+  a93b6e31fd3c859913cac09fb966c9075ac3ca2cb4892f6b5836806735a2473f
+  309e4601780ed27f8dcce0418258420103357844e7f8ad181bd75938470fe550
+  59741acafba13f8357849962b02a2805b0a8f4e5774901f44759f1ff1dc68bc7
+  723632dcfa791c3aa35df893987a9f4ff5584200ca56271a0aa5ffdbd60cdc06
+  00589d9ca82b98250fdcf1bffb0e7b750374f04f7236de6103088fa853e32ec5
+  90e3b5ea11290eae2de64c9fde2d95d055a236e96f1058420176e30efb343570
+  c991a78ced01221c116fae644bfa176db9cfaa6f0085b02fe42537d652aa7e3f
+  8ce25203c0892e44a2b55029dfaeaaad533d0bc9ccaf64a3a8b4115842017e7c
+  8ca5e035e0200564676d4c0b7a849a57d90bb0b8f2c09ac28992138fa4bf95ba
+  8db24a2ff2f38e733d396dc1a9a36ee34333abf0994df20343de32505d156a12
+  5842000000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  00000000
+
+prerefund_cbor:
+  a4015842005a1158f8cab152e1dc4ec0a3dbccb973f4b36184b0986e241e84f8
+  3806cd77d64dc6552ca88e6c58f824144405cea9ffa332fced6ed16a8ba90899
+  b86e550b03f102584200b5c5ff5d82cd8f2a78e8c6ab81c32c3899727eb25cf7
+  ef9d8d5a82ab6352e5657539d30b31c78285fac8f26e4c7e3a23ad89e2b2ce80
+  910632e36544cb58092e1b035842000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000004604584200000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  000000000000000000000000000000000000000000
+~~~
+
+## Refund
+
+~~~
+refund_cbor:
+  a50158430301eba8c3085e8eb8c098b70bf1d9523053ef51a3055771cac0973a
+  b0d9c43473c3f1c83af7c36a1568d1661908ab09c288fb05eb9709dbcebdb29b
+  80f24bf58f112902584201e8c72e3cd4c95faecf4cef3b1a34b16a55cda50a16
+  a0d4fc279a93837db43abf12f2632ea30d37a2d2e75aa3f7d72d66fb0b27f3d5
+  d2a52a6d1153ada3cb133fcf0358420190544daa5cb07e639b49e1ed539301ba
+  d49bfb82a5a64ce428738162563a9d66ecd9bf104d6d15cfc7bd00486c9d29ea
+  082a0f1134bdef220f4a1914a29c0ac069045842004836712b332dd9cc51cce7
+  c42d1452d891460e1f1cc08476a331a1c48b7d900a09c88b8e09961911e07be9
+  a784805753a86be27063e312b0e16141896761074c0105584200000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  00000000000000000000000000000000000000000000000000000a
+~~~
+
+## Refund Token
+
+~~~
+refund_token_cbor:
+  a60158430301eba8c3085e8eb8c098b70bf1d9523053ef51a3055771cac0973a
+  b0d9c43473c3f1c83af7c36a1568d1661908ab09c288fb05eb9709dbcebdb29b
+  80f24bf58f112902584201e8c72e3cd4c95faecf4cef3b1a34b16a55cda50a16
+  a0d4fc279a93837db43abf12f2632ea30d37a2d2e75aa3f7d72d66fb0b27f3d5
+  d2a52a6d1153ada3cb133fcf03584200b5c5ff5d82cd8f2a78e8c6ab81c32c38
+  99727eb25cf7ef9d8d5a82ab6352e5657539d30b31c78285fac8f26e4c7e3a23
+  ad89e2b2ce80910632e36544cb58092e1b045842005a1158f8cab152e1dc4ec0
+  a3dbccb973f4b36184b0986e241e84f83806cd77d64dc6552ca88e6c58f82414
+  4405cea9ffa332fced6ed16a8ba90899b86e550b03f105584200000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000500658420000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+
+refund_token_credits:
+  000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000050
+
+refund_token_nullifier:
+  00b5c5ff5d82cd8f2a78e8c6ab81c32c3899727eb25cf7ef9d8d5a82ab6352e5657539d30b31c78285fac8f26e4c7e3a23ad89e2b2ce80910632e36544cb58092e1b
+
+remaining_balance: 80
+~~~
+<!-- P521_TEST_VECTORS_END -->
 
 # Implementation Status
 
@@ -1896,7 +2968,7 @@ This glossary provides quick definitions of key terms used throughout this docum
 
 **Domain Separator**: A unique string used to ensure cryptographic isolation between different deployments.
 
-**Element**: A point in the ciphersuite's prime-order elliptic curve group (Ristretto255 or P-256).
+**Element**: A point in the ciphersuite's prime-order elliptic curve group (Ristretto255, P-256, secp256k1, P-384, or P-521).
 
 **Issuer**: The entity that creates and signs credit tokens.
 
