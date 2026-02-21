@@ -28,6 +28,7 @@ author:
 
 normative:
   RFC2119:
+  RFC6090:
   RFC8174:
   RFC8949:
   RFC9380:
@@ -36,6 +37,10 @@ normative:
     title: "BLAKE3: One Function, Fast Everywhere"
     target: https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf
     date: 2020-01-09
+  SEC1:
+    title: "SEC 1: Elliptic Curve Cryptography"
+    target: https://www.secg.org/sec1-v2.pdf
+    date: 2009-05-21
 
 informative:
   RFC9474:
@@ -226,18 +231,46 @@ This document uses the following notation:
 The protocol uses the following data types:
 
 - **Scalar**: An integer modulo the group order q
-- **Element**: An element of the Ristretto255 group
+- **Element**: An element of the ciphersuite's prime-order group
 - **ByteString**: A sequence of bytes
+
+## Ciphersuites
+
+This document defines two ciphersuites. All parties in a protocol session MUST
+agree on the same ciphersuite. Implementations MUST NOT mix parameters from
+different ciphersuites.
+
+### ACT-Ristretto255-BLAKE3
+
+| Parameter | Value |
+|-----------|-------|
+| Group | Ristretto255 {{RFC9496}} |
+| Element encoding | 32 bytes, compressed Ristretto point |
+| Scalar encoding | 32 bytes, little-endian |
+| Group order q | 2^252 + 27742317777372353535851937790883648493 |
+| Generator G | Standard Ristretto255 generator |
+| Hash-to-group | HashToRistretto255 (OneWayMap from {{RFC9496}} Section 4.3.4) |
+| Protocol version | `"curve25519-ristretto anonymous-credits v1.0"` |
+
+### ACT-P256-BLAKE3
+
+| Parameter | Value |
+|-----------|-------|
+| Group | P-256 (secp256r1) {{RFC6090}} |
+| Element encoding | 33 bytes, SEC1 compressed point (0x02/0x03 prefix + 32 bytes) {{SEC1}} |
+| Scalar encoding | 32 bytes, big-endian |
+| Group order q | 0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551 |
+| Generator G | Standard P-256 generator |
+| Hash-to-group | HashToP256 (scalar reduction + generator multiplication) |
+| Protocol version | `"p256 anonymous-credits v1.0"` |
 
 ## Cryptographic Parameters
 
-The protocol uses the Ristretto group {{RFC9496}}, which provides a prime-order
-group abstraction over Curve25519. It would be easy to adapt this approach to
-using any other prime order group based on the contents of this document. The
-key parameters are:
+The protocol is defined generically over a prime-order group. The ciphersuite
+determines the concrete group and encoding. The key parameters are:
 
-- **q**: The prime order of the group (2^252 + 27742317777372353535851937790883648493)
-- **G**: The standard generator of the Ristretto group
+- **q**: The prime order of the group (ciphersuite-dependent, see above)
+- **G**: The standard generator of the group (ciphersuite-dependent)
 - **L**: The bit length for credit values
 
 # Protocol Specification
@@ -248,7 +281,7 @@ The protocol requires the following system parameters:
 
 ~~~
 Parameters:
-  - G: Generator of the Ristretto group
+  - G: Generator of the ciphersuite's group
   - H1, H2, H3, H4: Additional generators for commitments
   - L: Bit length for credit values (configurable, must satisfy 1 <= L <= 128)
 ~~~
@@ -270,12 +303,18 @@ GenerateParameters(domain_separator):
   Steps:
     1. seed = BLAKE3(LengthPrefixed(domain_separator))
     2. counter = 0
-    3. H1 = HashToRistretto255(seed, counter++)
-    4. H2 = HashToRistretto255(seed, counter++)
-    5. H3 = HashToRistretto255(seed, counter++)
-    6. H4 = HashToRistretto255(seed, counter++)
+    3. H1 = HashToGroup(seed, counter++)
+    4. H2 = HashToGroup(seed, counter++)
+    5. H3 = HashToGroup(seed, counter++)
+    6. H4 = HashToGroup(seed, counter++)
     7. return (H1, H2, H3, H4)
+~~~
 
+The HashToGroup function is ciphersuite-dependent:
+
+**ACT-Ristretto255-BLAKE3:**
+
+~~~
 HashToRistretto255(seed, counter):
   Input:
     - seed: 32-byte seed value
@@ -292,6 +331,30 @@ HashToRistretto255(seed, counter):
     6. P = OneWayMap(uniform_bytes)
     7. return P
 ~~~
+
+**ACT-P256-BLAKE3:**
+
+~~~
+HashToP256(seed, counter):
+  Input:
+    - seed: 32-byte seed value
+    - counter: Integer counter for domain separation
+  Output:
+    - P: A valid P-256 point
+
+  Steps:
+    1. hasher = BLAKE3.new()
+    2. hasher.update(LengthPrefixed(domain_separator))
+    3. hasher.update(LengthPrefixed(seed))
+    4. hasher.update(LengthPrefixed(counter.to_le_bytes(4)))
+    5. uniform_bytes = hasher.finalize_xof(32)
+    6. s = from_big_endian_bytes(uniform_bytes) mod q
+    7. P = G * s
+    8. return P
+~~~
+
+Note: For P-256, 32 bytes of XOF output provides negligible bias
+(less than 2^-128) when reduced modulo the ~2^256 group order.
 
 The domain_separator MUST be unique for each deployment to ensure
 cryptographic isolation between different services. The domain separator SHOULD
@@ -325,9 +388,13 @@ parameter collision and MUST NOT be used. When parameters need to be updated
 (e.g., for security reasons or protocol upgrades), a new version date MUST be
 used, creating entirely new parameters.
 
-The OneWayMap function is defined in {{RFC9496}} Section 4.3.4, which provides a
-cryptographically secure mapping from uniformly random byte strings to valid
-Ristretto255 points.
+For ACT-Ristretto255-BLAKE3, the OneWayMap function is defined in {{RFC9496}}
+Section 4.3.4, which provides a cryptographically secure mapping from
+uniformly random byte strings to valid Ristretto255 points.
+
+For ACT-P256-BLAKE3, the hash-to-group function uses scalar reduction followed
+by generator multiplication. This is secure because the resulting point
+distribution is statistically close to uniform over the group.
 
 ## Key Generation
 
@@ -858,16 +925,20 @@ VerifySpendProof(sk, proof):
 
 ### Protocol Version
 
-The protocol version string for domain separation is:
+The protocol version string for domain separation is ciphersuite-dependent:
 
 ~~~
-PROTOCOL_VERSION = "curve25519-ristretto anonymous-credits v1.0"
+ACT-Ristretto255-BLAKE3:
+  PROTOCOL_VERSION = "curve25519-ristretto anonymous-credits v1.0"
+
+ACT-P256-BLAKE3:
+  PROTOCOL_VERSION = "p256 anonymous-credits v1.0"
 ~~~
 
-This version string MUST be used consistently across all implementations for
-interoperability. The curve specification is included to prevent cross-curve
-attacks and ensure implementations using different curves cannot accidentally
-interact.
+The version string MUST be used consistently across all implementations of a
+given ciphersuite for interoperability. The curve specification is included to
+prevent cross-curve attacks and ensure implementations using different curves
+cannot accidentally interact.
 
 ### Hash Function and Fiat-Shamir Transform
 
@@ -908,11 +979,19 @@ GetChallenge(transcript):
   Output:
     - challenge: Scalar challenge value
 
-  Steps:
+  ACT-Ristretto255-BLAKE3:
     1. hash = transcript.hasher.output(64)  // 64 bytes of output
     2. challenge = from_little_endian_bytes(hash) mod q
     3. return challenge
+
+  ACT-P256-BLAKE3:
+    1. hash = transcript.hasher.output(32)  // 32 bytes of output
+    2. challenge = from_big_endian_bytes(hash) mod q
+    3. return challenge
 ~~~
+
+Note: For ACT-P256-BLAKE3, 32 bytes of XOF output provides negligible bias
+(less than 2^-128) when reduced modulo the ~2^256 group order.
 
 This approach ensures:
 
@@ -923,7 +1002,7 @@ This approach ensures:
 
 ### Encoding Functions
 
-Elements and scalars are encoded as follows:
+Elements and scalars are encoded according to the ciphersuite:
 
 ~~~
 Encode(value):
@@ -932,11 +1011,17 @@ Encode(value):
   Output:
     - encoding: ByteString
 
-  Steps:
+  ACT-Ristretto255-BLAKE3:
     1. If value is an Element:
     2.     return value.compress()  // 32 bytes, compressed Ristretto point
     3. If value is a Scalar:
     4.     return value.to_bytes_le()  // 32 bytes, little-endian
+
+  ACT-P256-BLAKE3:
+    1. If value is an Element:
+    2.     return SEC1_compressed(value)  // 33 bytes, 0x02/0x03 + 32 bytes
+    3. If value is a Scalar:
+    4.     return value.to_bytes_be()  // 32 bytes, big-endian
 ~~~
 
 The following function provides consistent length-prefixing for hash inputs:
@@ -967,7 +1052,7 @@ BitDecompose(s):
   Output:
     - bits: Array of L scalars (each 0 or 1)
 
-  Steps:
+  ACT-Ristretto255-BLAKE3:
     1. bytes = s.to_bytes_le()  // 32 bytes, little-endian
     2. For i = 0 to L-1:
     3.     byte_index = i / 8
@@ -975,9 +1060,18 @@ BitDecompose(s):
     5.     bit = (bytes[byte_index] >> bit_position) & 1
     6.     bits[i] = Scalar(bit)
     7. return bits
+
+  ACT-P256-BLAKE3:
+    1. bytes = s.to_bytes_be()  // 32 bytes, big-endian
+    2. For i = 0 to L-1:
+    3.     byte_index = 31 - (i / 8)
+    4.     bit_position = i % 8
+    5.     bit = (bytes[byte_index] >> bit_position) & 1
+    6.     bits[i] = Scalar(bit)
+    7. return bits
 ~~~
 
-Note: This algorithm produces bits in LSB-first order (i.e., `bits[0]` is the
+Note: Both variants produce bits in LSB-first order (i.e., `bits[0]` is the
 least significant bit). See Section 3.1 for constraints on L.
 
 ### Scalar Conversion
@@ -1007,7 +1101,8 @@ ScalarToCredit(s):
     - ScalarOutOfRangeError: raised when the scalar value is >= 2^L
 
   Steps:
-    1. amount = s as integer  // Interpret little-endian scalar bytes as integer
+    1. amount = s as integer  // Interpret scalar bytes as integer
+       // (little-endian for Ristretto255, big-endian for P-256)
     2. if amount >= 2^L:
     3.     return ScalarOutOfRangeError
     4. return amount
@@ -1025,7 +1120,7 @@ keys. The following sections define the structure of each message type.
 
 ~~~
 IssuanceRequestMsg = {
-    1: bstr,  ; K (compressed Ristretto point, 32 bytes)
+    1: bstr,  ; K (compressed point, 32 bytes for Ristretto255 / 33 bytes for P-256)
     2: bstr,  ; gamma (scalar, 32 bytes)
     3: bstr,  ; k_bar (scalar, 32 bytes)
     4: bstr   ; r_bar (scalar, 32 bytes)
@@ -1036,7 +1131,7 @@ IssuanceRequestMsg = {
 
 ~~~
 IssuanceResponseMsg = {
-    1: bstr,  ; A (compressed Ristretto point, 32 bytes)
+    1: bstr,  ; A (compressed point, 32 bytes for Ristretto255 / 33 bytes for P-256)
     2: bstr,  ; e (scalar, 32 bytes)
     3: bstr,  ; gamma_resp (scalar, 32 bytes)
     4: bstr,  ; z (scalar, 32 bytes)
@@ -1051,9 +1146,9 @@ IssuanceResponseMsg = {
 SpendProofMsg = {
     1: bstr,           ; k (nullifier, 32 bytes)
     2: bstr,           ; s (spend amount, 32 bytes)
-    3: bstr,           ; A' (compressed point, 32 bytes)
-    4: bstr,           ; B_bar (compressed point, 32 bytes)
-    5: [* bstr],       ; Com array (L compressed points)
+    3: bstr,           ; A' (compressed point, 32/33 bytes)
+    4: bstr,           ; B_bar (compressed point, 32/33 bytes)
+    5: [* bstr],       ; Com array (L compressed points, 32/33 bytes each)
     6: bstr,           ; gamma (scalar, 32 bytes)
     7: bstr,           ; e_bar (scalar, 32 bytes)
     8: bstr,           ; r2_bar (scalar, 32 bytes)
@@ -1074,7 +1169,7 @@ SpendProofMsg = {
 
 ~~~
 RefundMsg = {
-    1: bstr,  ; A* (compressed Ristretto point, 32 bytes)
+    1: bstr,  ; A* (compressed point, 32 bytes for Ristretto255 / 33 bytes for P-256)
     2: bstr,  ; e* (scalar, 32 bytes)
     3: bstr,  ; gamma (scalar, 32 bytes)
     4: bstr,  ; z (scalar, 32 bytes)
@@ -1265,11 +1360,19 @@ WARNING: Leakage of even a few bits of a nonce can allow complete recovery of th
 
 ## Point Validation
 
-All Ristretto points received from external sources MUST be validated:
+All group elements received from external sources MUST be validated:
+
+**ACT-Ristretto255-BLAKE3:**
 
 1. **Deserialization**: Verify the point deserializes to a valid Ristretto point
 2. **Non-Identity**: Verify the point is not the identity element
 3. **Subgroup Check**: Ristretto guarantees prime-order subgroup membership
+
+**ACT-P256-BLAKE3:**
+
+1. **Deserialization**: Verify the SEC1 compressed encoding is valid and the point lies on the P-256 curve
+2. **Non-Identity**: Verify the point is not the identity element (point at infinity)
+3. **Subgroup Check**: P-256 has cofactor 1, so all curve points are in the prime-order subgroup
 
 Example validation:
 
@@ -1279,7 +1382,7 @@ ValidatePoint(P):
   2.     return INVALID
   3. If P == Identity:
   4.     return INVALID
-  5. // Ristretto ensures prime-order subgroup membership
+  5. // Both Ristretto255 and P-256 guarantee prime-order subgroup membership
   6. return VALID
 ~~~
 
@@ -1324,7 +1427,7 @@ The protocol has the following computational complexity:
 
 **Notation for Operations:**
 
-- **Group Operations**: Point additions in the Ristretto255 group (e.g., P + Q)
+- **Group Operations**: Point additions in the ciphersuite's group (e.g., P + Q)
 - **Group Exponentiations**: Scalar multiplication of group elements (e.g., P * s)
 - **Scalar Additions/Multiplications**: Arithmetic operations modulo the group order q
 
@@ -1346,7 +1449,7 @@ The protocol has the following computational complexity:
 
 Note: L is the configurable bit length for credit values.
 
-- **Storage**:
+- **Storage** (ACT-Ristretto255-BLAKE3):
 
 | Component | Size |
 |-----------|------|
@@ -1354,7 +1457,16 @@ Note: L is the configurable bit length for credit values.
 | Spend proof size | 32 × (14 + 4L) bytes |
 | Nullifier database entry | 32 bytes per spent token |
 
-Note: Token size is independent of L.
+- **Storage** (ACT-P256-BLAKE3):
+
+| Component | Size |
+|-----------|------|
+| Token size | 193 bytes (1 × 33 bytes + 5 × 32 bytes) |
+| Spend proof size | 32 × (14 + 4L) + (2 + L) bytes |
+| Nullifier database entry | 32 bytes per spent token |
+
+Note: P-256 compressed points are 33 bytes (vs 32 for Ristretto255). Token
+size is independent of L for both ciphersuites.
 
 # Security Considerations
 
@@ -1379,7 +1491,7 @@ The protocol provides the following security guarantees:
 
 Security relies on:
 
-1. **The q-SDH Assumption** in the Ristretto255 group. We refer to {{TZ23}} for the formal definition.
+1. **The q-SDH Assumption** in the ciphersuite's group (Ristretto255 or P-256). We refer to {{TZ23}} for the formal definition.
 
 2. **Random Oracle Model**: The BLAKE3 hash function H is modeled as a random oracle.
 
@@ -1558,6 +1670,8 @@ This document has no IANA actions.
 This appendix provides test vectors for implementers to verify their
 implementations. All values are encoded in hexadecimal.
 
+## ACT-Ristretto255-BLAKE3 Test Vectors
+
 <!-- TEST_VECTORS_START -->
 The following test vector was generated deterministically using a
 ChaCha20 RNG seeded with the bytes `00 01 02 ... 1e 1f` and L=8.
@@ -1735,6 +1849,13 @@ remaining_balance: 80
 ~~~
 <!-- TEST_VECTORS_END -->
 
+## ACT-P256-BLAKE3 Test Vectors
+
+<!-- P256_TEST_VECTORS_START -->
+TODO: Generate with `UPDATE_TEST_VECTORS=1 cargo test --test generate_test_vectors`
+from the P-256 implementation.
+<!-- P256_TEST_VECTORS_END -->
+
 # Implementation Status
 
 This section records the status of known implementations of the protocol
@@ -1771,7 +1892,7 @@ This glossary provides quick definitions of key terms used throughout this docum
 
 **Domain Separator**: A unique string used to ensure cryptographic isolation between different deployments.
 
-**Element**: A point in the Ristretto255 elliptic curve group.
+**Element**: A point in the ciphersuite's prime-order elliptic curve group (Ristretto255 or P-256).
 
 **Issuer**: The entity that creates and signs credit tokens.
 
