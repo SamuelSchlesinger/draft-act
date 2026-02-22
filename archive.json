@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-11-02T00:05:51.686739+00:00",
+  "timestamp": "2026-02-22T00:12:32.848798+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -2170,6 +2170,496 @@
           ]
         }
       ]
+    },
+    {
+      "number": 20,
+      "id": "PR_kwDOPc24Mc7DuTu7",
+      "title": "Sigma+F/S Compliance",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/pull/20",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-02-14T04:16:33Z",
+      "updatedAt": "2026-02-19T01:30:51Z",
+      "baseRepository": "SamuelSchlesinger/draft-act",
+      "baseRefName": "main",
+      "baseRefOid": "1a2947cf82811aee9467de083e6002f90ea19f44",
+      "headRepository": "SamuelSchlesinger/draft-act",
+      "headRefName": "samschles/sigma-draft-compliance",
+      "headRefOid": "9d696b1a51472d70b59dca112644ee19371e61f3",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "This should wait on resolution of the performance differences of the compliant implementation. If we can get 10x better performance by optimizing the hell out of arithmetic, I am tempted to leave the explicit arithmetic in the spec so that is simpler for implementers. I might honestly want to go in a totally different direction entirely of writing out the specific (not totally obvious, in some cases) optimizations in the draft that enable you to make this 10x more performant than the naive implementation.",
+          "createdAt": "2026-02-16T10:30:39Z",
+          "updatedAt": "2026-02-16T10:30:39Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOPc24Mc7j1-CY",
+          "commit": {
+            "abbreviatedOid": "1e99900"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2026-02-18T22:38:47Z",
+          "updatedAt": "2026-02-18T23:24:40Z",
+          "comments": [
+            {
+              "originalPosition": 55,
+              "body": "These two properties are not unique core properties of the ACT system. \nFor example, partial spending is particular of ACT, while efficiency applies to others systems.\n\nWhat if we rephrase it to say that the design of the protocol takes efficiency and simplicity in consideration.",
+              "createdAt": "2026-02-18T22:38:48Z",
+              "updatedAt": "2026-02-18T23:24:40Z"
+            },
+            {
+              "originalPosition": 235,
+              "body": "do we need to specify that the generators must be different?",
+              "createdAt": "2026-02-18T22:41:15Z",
+              "updatedAt": "2026-02-18T23:24:40Z"
+            },
+            {
+              "originalPosition": 236,
+              "body": "```suggestion\n`H4` is used for binding a request context.\n```",
+              "createdAt": "2026-02-18T22:41:46Z",
+              "updatedAt": "2026-02-18T23:24:40Z"
+            },
+            {
+              "originalPosition": 257,
+              "body": "we can do a single comparison as before. \nor using a set that works as an accumulator too. ",
+              "createdAt": "2026-02-18T22:43:43Z",
+              "updatedAt": "2026-02-18T23:24:40Z"
+            },
+            {
+              "originalPosition": 332,
+              "body": "The comment needs to be updated too?",
+              "createdAt": "2026-02-18T22:46:32Z",
+              "updatedAt": "2026-02-18T23:24:40Z"
+            },
+            {
+              "originalPosition": 345,
+              "body": "not sure whether the context has to travel on the response. \nI think the context known by both parties out of band.",
+              "createdAt": "2026-02-18T22:48:10Z",
+              "updatedAt": "2026-02-18T23:24:40Z"
+            },
+            {
+              "originalPosition": 608,
+              "body": "```suggestion\n   46. r_star = sum(s_com[j] * 2^j for j in [L])\n```",
+              "createdAt": "2026-02-18T22:50:50Z",
+              "updatedAt": "2026-02-18T23:24:40Z"
+            },
+            {
+              "originalPosition": 1091,
+              "body": "```suggestion\n    opaque Com[L][Ne];      /* L compressed Ristretto points, L*Ne bytes */\n```",
+              "createdAt": "2026-02-18T23:03:20Z",
+              "updatedAt": "2026-02-18T23:24:40Z"
+            },
+            {
+              "originalPosition": 1271,
+              "body": "we can summarize all quantities using `Ne` and `Ns` as basic units.\nFor the ciphersuite, we can add an extra column with the concrete numbers.",
+              "createdAt": "2026-02-18T23:06:45Z",
+              "updatedAt": "2026-02-18T23:24:40Z"
+            },
+            {
+              "originalPosition": 6,
+              "body": "```suggestion\ncan produce N presentations to access the system N times,\n```",
+              "createdAt": "2026-02-18T23:11:39Z",
+              "updatedAt": "2026-02-18T23:24:40Z"
+            },
+            {
+              "originalPosition": 47,
+              "body": "you mean that `msg` is always 64 bytes?",
+              "createdAt": "2026-02-18T23:13:57Z",
+              "updatedAt": "2026-02-18T23:24:41Z"
+            },
+            {
+              "originalPosition": 66,
+              "body": "is this a equation? \nwhat is `t`?  we can replace `cost` with `c`.\n\n```suggestion\n   | Refunded |  (New credential with `N-cost+t` credits)\n```",
+              "createdAt": "2026-02-18T23:16:17Z",
+              "updatedAt": "2026-02-18T23:24:41Z"
+            },
+            {
+              "originalPosition": 102,
+              "body": "Let's stick to G for group, and G.Generator() for the generator to avoid confusions.",
+              "createdAt": "2026-02-18T23:24:27Z",
+              "updatedAt": "2026-02-18T23:24:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7j2nju",
+          "commit": {
+            "abbreviatedOid": "1e99900"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-18T23:40:34Z",
+          "updatedAt": "2026-02-18T23:40:34Z",
+          "comments": [
+            {
+              "originalPosition": 235,
+              "body": "Yeah, I think we need to be clear that we must not know any DLOG relations between them too.",
+              "createdAt": "2026-02-18T23:40:34Z",
+              "updatedAt": "2026-02-18T23:40:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7j2ntb",
+          "commit": {
+            "abbreviatedOid": "1e99900"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-18T23:40:51Z",
+          "updatedAt": "2026-02-18T23:40:52Z",
+          "comments": [
+            {
+              "originalPosition": 236,
+              "body": "Thank you! Yeah, looks like I didn't properly integrate this everywhere.",
+              "createdAt": "2026-02-18T23:40:52Z",
+              "updatedAt": "2026-02-18T23:40:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7j2o5Z",
+          "commit": {
+            "abbreviatedOid": "1e99900"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-18T23:43:03Z",
+          "updatedAt": "2026-02-18T23:43:03Z",
+          "comments": [
+            {
+              "originalPosition": 257,
+              "body": "The set accumulator is cute, I think we should do that.",
+              "createdAt": "2026-02-18T23:43:03Z",
+              "updatedAt": "2026-02-18T23:43:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7j2o8_",
+          "commit": {
+            "abbreviatedOid": "1e99900"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-18T23:43:09Z",
+          "updatedAt": "2026-02-18T23:43:09Z",
+          "comments": [
+            {
+              "originalPosition": 332,
+              "body": "Yes, thank you.",
+              "createdAt": "2026-02-18T23:43:09Z",
+              "updatedAt": "2026-02-18T23:43:09Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7j2pZE",
+          "commit": {
+            "abbreviatedOid": "1e99900"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-18T23:43:56Z",
+          "updatedAt": "2026-02-18T23:43:56Z",
+          "comments": [
+            {
+              "originalPosition": 345,
+              "body": "That is a very good point, it traveling with it is probably a potential source for errors.",
+              "createdAt": "2026-02-18T23:43:56Z",
+              "updatedAt": "2026-02-18T23:43:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7j2qlW",
+          "commit": {
+            "abbreviatedOid": "1e99900"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-18T23:46:05Z",
+          "updatedAt": "2026-02-18T23:46:06Z",
+          "comments": [
+            {
+              "originalPosition": 102,
+              "body": "Fair.",
+              "createdAt": "2026-02-18T23:46:05Z",
+              "updatedAt": "2026-02-18T23:46:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7j2sSl",
+          "commit": {
+            "abbreviatedOid": "1e99900"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-18T23:48:24Z",
+          "updatedAt": "2026-02-18T23:48:24Z",
+          "comments": [
+            {
+              "originalPosition": 66,
+              "body": "I didn't properly add it as an argument, but `t` is meant to be the amount which is refunded back to the user on top of what they proved they could spend.",
+              "createdAt": "2026-02-18T23:48:24Z",
+              "updatedAt": "2026-02-18T23:48:24Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7j24Ft",
+          "commit": {
+            "abbreviatedOid": "1e99900"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-19T00:07:08Z",
+          "updatedAt": "2026-02-19T00:07:08Z",
+          "comments": [
+            {
+              "originalPosition": 47,
+              "body": "No, msg is variable length and the squeezed output is 64 bytes.",
+              "createdAt": "2026-02-19T00:07:08Z",
+              "updatedAt": "2026-02-19T00:07:08Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7j3U3a",
+          "commit": {
+            "abbreviatedOid": "1e99900"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-19T00:48:11Z",
+          "updatedAt": "2026-02-19T00:48:12Z",
+          "comments": [
+            {
+              "originalPosition": 66,
+              "body": "Actually I guess I did, re-read it.",
+              "createdAt": "2026-02-19T00:48:12Z",
+              "updatedAt": "2026-02-19T00:48:12Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7j3sQ2",
+          "commit": {
+            "abbreviatedOid": "9d696b1"
+          },
+          "author": "armfazh",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-02-19T01:30:51Z",
+          "updatedAt": "2026-02-19T01:30:51Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 21,
+      "id": "PR_kwDOPc24Mc7EaLDO",
+      "title": "Update refund transport to use PrivacyPass-Reverse header",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/pull/21",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "enhancement"
+      ],
+      "body": "The current draft specifies that there should be a refund, but not a transport mechanism.\r\n\r\nThis sets the transport to `PrivacyPass-Reverse` as defined in reverse privacy pass draft. Up for change in the name or encoding",
+      "createdAt": "2026-02-17T16:54:50Z",
+      "updatedAt": "2026-02-18T16:36:38Z",
+      "baseRepository": "SamuelSchlesinger/draft-act",
+      "baseRefName": "main",
+      "baseRefOid": "1a2947cf82811aee9467de083e6002f90ea19f44",
+      "headRepository": "thibmeu/draft-act",
+      "headRefName": "define-transport-for-refund-request",
+      "headRefOid": "97f214c530a46a62d7f1627dbb2f87e0dbb40c5c",
+      "closedAt": "2026-02-18T10:29:28Z",
+      "mergedAt": "2026-02-18T10:29:28Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "c14b122bea24817fff154497dfc5995067bd50ed"
+      },
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "Hey Thibault, I didn't realize this didn't target the v0 branch where I cut -01 from.",
+          "createdAt": "2026-02-18T13:37:08Z",
+          "updatedAt": "2026-02-18T13:37:08Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@SamuelSchlesinger should it? not sure there are urgency to cut a version. i agree there seems to be some divergence",
+          "createdAt": "2026-02-18T13:59:32Z",
+          "updatedAt": "2026-02-18T13:59:32Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "body": "Let's leave it in main for now, I agree.",
+          "createdAt": "2026-02-18T16:36:38Z",
+          "updatedAt": "2026-02-18T16:36:38Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOPc24Mc7jZhP2",
+          "commit": {
+            "abbreviatedOid": "97f214c"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-17T16:55:15Z",
+          "updatedAt": "2026-02-17T16:55:16Z",
+          "comments": [
+            {
+              "originalPosition": 7,
+              "body": "these drafts have been adopted by the group, so update their handles",
+              "createdAt": "2026-02-17T16:55:16Z",
+              "updatedAt": "2026-02-17T16:55:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7jmnLB",
+          "commit": {
+            "abbreviatedOid": "97f214c"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "OWNER",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-02-18T08:51:32Z",
+          "updatedAt": "2026-02-18T08:51:32Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 22,
+      "id": "PR_kwDOPc24Mc7FWVvX",
+      "title": "Add ACT-P256-BLAKE3 ciphersuite",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/pull/22",
+      "state": "MERGED",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "## Summary\n\n- Add ACT-P256-BLAKE3 ciphersuite alongside the existing ACT-Ristretto255-BLAKE3\n- Introduce ciphersuite abstraction parametrizing protocol version, hash-to-group, GetChallenge, encoding functions, binary decomposition, wire format sizes, and point validation\n- Add P-256 test vectors to Appendix A\n\n## Context\n\nCompanion to [anonymous-credit-tokens#12](https://github.com/SamuelSchlesinger/anonymous-credit-tokens/pull/12) which adds the dual-ciphersuite Rust implementation.",
+      "createdAt": "2026-02-21T15:34:49Z",
+      "updatedAt": "2026-02-21T15:44:52Z",
+      "baseRepository": "SamuelSchlesinger/draft-act",
+      "baseRefName": "v0",
+      "baseRefOid": "36e9cec83d735aee120cb89c525809e3f5a85129",
+      "headRepository": "SamuelSchlesinger/draft-act",
+      "headRefName": "samschles/p256",
+      "headRefOid": "e7122642253dc093c3e182f532b648d52b2c7104",
+      "closedAt": "2026-02-21T15:44:52Z",
+      "mergedAt": "2026-02-21T15:44:52Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "4169ee6e74e5c30ea17580c06a112243e8e050cd"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 23,
+      "id": "PR_kwDOPc24Mc7FWdgw",
+      "title": "Add P-256 token type (0xE5AE) to Privacy Pass ACT integration",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/pull/23",
+      "state": "MERGED",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "## Summary\n\n- Add `Ciphersuites` subsection defining both token types (0xE5AD for Ristretto255, 0xE5AE for P-256) in a table\n- Update `TokenChallenge`, `TokenRequest`, and `Token` structs to accept either token type\n- Update Issuer validation to accept both 0xE5AD and 0xE5AE\n- Add P-256 IANA registry entry alongside the existing Ristretto255 entry\n\n## Test plan\n\n- [x] `make` builds successfully with no errors\n- [x] All `0xE5AD` references verified \u2014 each now appears alongside `0xE5AE` or in the Ristretto255-specific IANA entry\n- [x] IANA section has exactly two registry entries",
+      "createdAt": "2026-02-21T16:02:06Z",
+      "updatedAt": "2026-02-21T16:02:48Z",
+      "baseRepository": "SamuelSchlesinger/draft-act",
+      "baseRefName": "v0",
+      "baseRefOid": "4169ee6e74e5c30ea17580c06a112243e8e050cd",
+      "headRepository": "SamuelSchlesinger/draft-act",
+      "headRefName": "add-p256-privacypass",
+      "headRefOid": "ba9338c6e9baa782310ff9bfae6d87c69e6a34ed",
+      "closedAt": "2026-02-21T16:02:47Z",
+      "mergedAt": "2026-02-21T16:02:47Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "9c0421804e29e6c1986f78d8708c2b2eab70250d"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 24,
+      "id": "PR_kwDOPc24Mc7FZHk-",
+      "title": "Fix new ciphersuite security issues; add to Privacy Pass draft",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/pull/24",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "## Summary\n\n- **P-521 HashToGroup (CRITICAL)**: Replaced non-standard try-and-increment with RFC 9380's `P521_XMD:SHA-512_SSWU_RO_` suite \u2014 the draft incorrectly claimed RFC 9380 doesn't cover P-521 (it does, Section 8.4)\n- **P-384/P-521 GetChallenge (HIGH)**: Changed to `FromOkm` with proper output lengths (72/98 bytes) per RFC 9380 Section 5.2, instead of insufficient raw mod reduction\n- **CBOR/serialization comments**: Replaced hardcoded \"32 bytes\" with ciphersuite-generic `Ns`/`Np` notation\n- **Privacy Pass integration**: Added ACT(secp256k1) `0xE5AF`, ACT(P-384) `0xE5B0`, ACT(P-521) `0xE5B1` token types across all locations\n- **Test vectors**: Regenerated P-384 and P-521 vectors to match updated algorithms\n\n## Test plan\n\n- [x] Regenerate P-384 test vectors (GetChallenge changed from 48\u219272 bytes, raw mod\u2192FromOkm)\n- [x] Regenerate P-521 test vectors (HashToGroup changed to RFC 9380 suite, GetChallenge changed from 72\u219298 bytes)\n- [ ] Verify Ristretto255, P-256, and secp256k1 test vectors are unaffected\n- [ ] Build both drafts with `make` to verify markdown renders correctly",
+      "createdAt": "2026-02-22T00:05:57Z",
+      "updatedAt": "2026-02-22T00:05:57Z",
+      "baseRepository": "SamuelSchlesinger/draft-act",
+      "baseRefName": "v0",
+      "baseRefOid": "2942c647008ab37597095bd515cc4ef23abbcd05",
+      "headRepository": "SamuelSchlesinger/draft-act",
+      "headRefName": "fix-new-ciphersuites-security",
+      "headRefOid": "e24aca70fdf41bf7e67127698c1302fca1a9695a",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
