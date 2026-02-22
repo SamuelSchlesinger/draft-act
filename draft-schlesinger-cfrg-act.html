@@ -1067,7 +1067,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger &amp; Katz</td>
-<td class="center">Expires 25 August 2026</td>
+<td class="center">Expires 26 August 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1080,12 +1080,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-schlesinger-cfrg-act-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-02-21" class="published">21 February 2026</time>
+<time datetime="2026-02-22" class="published">22 February 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-08-25">25 August 2026</time></dd>
+<dd class="expires"><time datetime="2026-08-26">26 August 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1157,7 +1157,7 @@ in the IRTF.<a href="#section-abstract-4" class="pilcrow">¶</a></p>
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 25 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 26 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1220,6 +1220,15 @@ in the IRTF.<a href="#section-abstract-4" class="pilcrow">¶</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.3.2.2">
                     <p id="section-toc.1-1.2.2.3.2.2.1"><a href="#section-2.3.2" class="auto internal xref">2.3.2</a>.  <a href="#name-act-p256-blake3" class="internal xref">ACT-P256-BLAKE3</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.3.2.3">
+                    <p id="section-toc.1-1.2.2.3.2.3.1"><a href="#section-2.3.3" class="auto internal xref">2.3.3</a>.  <a href="#name-act-secp256k1-blake3" class="internal xref">ACT-secp256k1-BLAKE3</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.3.2.4">
+                    <p id="section-toc.1-1.2.2.3.2.4.1"><a href="#section-2.3.4" class="auto internal xref">2.3.4</a>.  <a href="#name-act-p384-blake3" class="internal xref">ACT-P384-BLAKE3</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.3.2.5">
+                    <p id="section-toc.1-1.2.2.3.2.5.1"><a href="#section-2.3.5" class="auto internal xref">2.3.5</a>.  <a href="#name-act-p521-blake3" class="internal xref">ACT-P521-BLAKE3</a></p>
 </li>
                 </ul>
 </li>
@@ -1494,6 +1503,87 @@ in the IRTF.<a href="#section-abstract-4" class="pilcrow">¶</a></p>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.8">
                 <p id="section-toc.1-1.9.2.8.1"><a href="#appendix-A.8" class="auto internal xref">A.8</a>.  <a href="#name-act-p256-blake3-test-vector" class="internal xref">ACT-P256-BLAKE3 Test Vectors</a></p>
 </li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.9">
+                <p id="section-toc.1-1.9.2.9.1"><a href="#appendix-A.9" class="auto internal xref">A.9</a>.  <a href="#name-parameters-2" class="internal xref">Parameters</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.10">
+                <p id="section-toc.1-1.9.2.10.1"><a href="#appendix-A.10" class="auto internal xref">A.10</a>. <a href="#name-key-generation-3" class="internal xref">Key Generation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.11">
+                <p id="section-toc.1-1.9.2.11.1"><a href="#appendix-A.11" class="auto internal xref">A.11</a>. <a href="#name-issuance-2" class="internal xref">Issuance</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.12">
+                <p id="section-toc.1-1.9.2.12.1"><a href="#appendix-A.12" class="auto internal xref">A.12</a>. <a href="#name-spending-2" class="internal xref">Spending</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.13">
+                <p id="section-toc.1-1.9.2.13.1"><a href="#appendix-A.13" class="auto internal xref">A.13</a>. <a href="#name-refund-2" class="internal xref">Refund</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.14">
+                <p id="section-toc.1-1.9.2.14.1"><a href="#appendix-A.14" class="auto internal xref">A.14</a>. <a href="#name-refund-token-2" class="internal xref">Refund Token</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.15">
+                <p id="section-toc.1-1.9.2.15.1"><a href="#appendix-A.15" class="auto internal xref">A.15</a>. <a href="#name-act-secp256k1-blake3-test-v" class="internal xref">ACT-secp256k1-BLAKE3 Test Vectors</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.16">
+                <p id="section-toc.1-1.9.2.16.1"><a href="#appendix-A.16" class="auto internal xref">A.16</a>. <a href="#name-parameters-3" class="internal xref">Parameters</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.17">
+                <p id="section-toc.1-1.9.2.17.1"><a href="#appendix-A.17" class="auto internal xref">A.17</a>. <a href="#name-key-generation-4" class="internal xref">Key Generation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.18">
+                <p id="section-toc.1-1.9.2.18.1"><a href="#appendix-A.18" class="auto internal xref">A.18</a>. <a href="#name-issuance-3" class="internal xref">Issuance</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.19">
+                <p id="section-toc.1-1.9.2.19.1"><a href="#appendix-A.19" class="auto internal xref">A.19</a>. <a href="#name-spending-3" class="internal xref">Spending</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.20">
+                <p id="section-toc.1-1.9.2.20.1"><a href="#appendix-A.20" class="auto internal xref">A.20</a>. <a href="#name-refund-3" class="internal xref">Refund</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.21">
+                <p id="section-toc.1-1.9.2.21.1"><a href="#appendix-A.21" class="auto internal xref">A.21</a>. <a href="#name-refund-token-3" class="internal xref">Refund Token</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.22">
+                <p id="section-toc.1-1.9.2.22.1"><a href="#appendix-A.22" class="auto internal xref">A.22</a>. <a href="#name-act-p384-blake3-test-vector" class="internal xref">ACT-P384-BLAKE3 Test Vectors</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.23">
+                <p id="section-toc.1-1.9.2.23.1"><a href="#appendix-A.23" class="auto internal xref">A.23</a>. <a href="#name-parameters-4" class="internal xref">Parameters</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.24">
+                <p id="section-toc.1-1.9.2.24.1"><a href="#appendix-A.24" class="auto internal xref">A.24</a>. <a href="#name-key-generation-5" class="internal xref">Key Generation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.25">
+                <p id="section-toc.1-1.9.2.25.1"><a href="#appendix-A.25" class="auto internal xref">A.25</a>. <a href="#name-issuance-4" class="internal xref">Issuance</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.26">
+                <p id="section-toc.1-1.9.2.26.1"><a href="#appendix-A.26" class="auto internal xref">A.26</a>. <a href="#name-spending-4" class="internal xref">Spending</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.27">
+                <p id="section-toc.1-1.9.2.27.1"><a href="#appendix-A.27" class="auto internal xref">A.27</a>. <a href="#name-refund-4" class="internal xref">Refund</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.28">
+                <p id="section-toc.1-1.9.2.28.1"><a href="#appendix-A.28" class="auto internal xref">A.28</a>. <a href="#name-refund-token-4" class="internal xref">Refund Token</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.29">
+                <p id="section-toc.1-1.9.2.29.1"><a href="#appendix-A.29" class="auto internal xref">A.29</a>. <a href="#name-act-p521-blake3-test-vector" class="internal xref">ACT-P521-BLAKE3 Test Vectors</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.30">
+                <p id="section-toc.1-1.9.2.30.1"><a href="#appendix-A.30" class="auto internal xref">A.30</a>. <a href="#name-parameters-5" class="internal xref">Parameters</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.31">
+                <p id="section-toc.1-1.9.2.31.1"><a href="#appendix-A.31" class="auto internal xref">A.31</a>. <a href="#name-key-generation-6" class="internal xref">Key Generation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.32">
+                <p id="section-toc.1-1.9.2.32.1"><a href="#appendix-A.32" class="auto internal xref">A.32</a>. <a href="#name-issuance-5" class="internal xref">Issuance</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.33">
+                <p id="section-toc.1-1.9.2.33.1"><a href="#appendix-A.33" class="auto internal xref">A.33</a>. <a href="#name-spending-5" class="internal xref">Spending</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.34">
+                <p id="section-toc.1-1.9.2.34.1"><a href="#appendix-A.34" class="auto internal xref">A.34</a>. <a href="#name-refund-5" class="internal xref">Refund</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.35">
+                <p id="section-toc.1-1.9.2.35.1"><a href="#appendix-A.35" class="auto internal xref">A.35</a>. <a href="#name-refund-token-5" class="internal xref">Refund Token</a></p>
+</li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
@@ -1750,7 +1840,7 @@ is written as <code>a * n</code>, with group element <code>a</code> and scalar <
         <h3 id="name-ciphersuites">
 <a href="#section-2.3" class="section-number selfRef">2.3. </a><a href="#name-ciphersuites" class="section-name selfRef">Ciphersuites</a>
         </h3>
-<p id="section-2.3-1">This document defines two ciphersuites. All parties in a protocol session <span class="bcp14">MUST</span>
+<p id="section-2.3-1">This document defines five ciphersuites. All parties in a protocol session <span class="bcp14">MUST</span>
 agree on the same ciphersuite. Implementations <span class="bcp14">MUST NOT</span> mix parameters from
 different ciphersuites.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
 <div id="act-ristretto255-blake3">
@@ -1846,6 +1936,156 @@ different ciphersuites.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
                 <td class="text-left" rowspan="1" colspan="1">Protocol version</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>"p256 anonymous-credits v1.0"</code>
+</td>
+              </tr>
+            </tbody>
+          </table>
+</section>
+</div>
+<div id="act-secp256k1-blake3">
+<section id="section-2.3.3">
+          <h4 id="name-act-secp256k1-blake3">
+<a href="#section-2.3.3" class="section-number selfRef">2.3.3. </a><a href="#name-act-secp256k1-blake3" class="section-name selfRef">ACT-secp256k1-BLAKE3</a>
+          </h4>
+<table class="center" id="table-3">
+            <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Parameter</th>
+                <th class="text-left" rowspan="1" colspan="1">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Group</td>
+                <td class="text-left" rowspan="1" colspan="1">secp256k1 <span>[<a href="#SEC2" class="cite xref">SEC2</a>]</span>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Element encoding</td>
+                <td class="text-left" rowspan="1" colspan="1">33 bytes, SEC1 compressed point (0x02/0x03 prefix + 32 bytes) <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Scalar encoding</td>
+                <td class="text-left" rowspan="1" colspan="1">32 bytes, big-endian</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Group order q</td>
+                <td class="text-left" rowspan="1" colspan="1">0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Generator G</td>
+                <td class="text-left" rowspan="1" colspan="1">Standard secp256k1 generator</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Hash-to-group</td>
+                <td class="text-left" rowspan="1" colspan="1">HashToSecp256k1 (hash_to_curve from <span>[<a href="#RFC9380" class="cite xref">RFC9380</a>]</span> with suite secp256k1<em>XMD:SHA-256_SSWU_RO</em>)</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Protocol version</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>"secp256k1 anonymous-credits v1.0"</code>
+</td>
+              </tr>
+            </tbody>
+          </table>
+</section>
+</div>
+<div id="act-p384-blake3">
+<section id="section-2.3.4">
+          <h4 id="name-act-p384-blake3">
+<a href="#section-2.3.4" class="section-number selfRef">2.3.4. </a><a href="#name-act-p384-blake3" class="section-name selfRef">ACT-P384-BLAKE3</a>
+          </h4>
+<table class="center" id="table-4">
+            <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Parameter</th>
+                <th class="text-left" rowspan="1" colspan="1">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Group</td>
+                <td class="text-left" rowspan="1" colspan="1">P-384 (secp384r1) <span>[<a href="#RFC6090" class="cite xref">RFC6090</a>]</span>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Element encoding</td>
+                <td class="text-left" rowspan="1" colspan="1">49 bytes, SEC1 compressed point (0x02/0x03 prefix + 48 bytes) <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Scalar encoding</td>
+                <td class="text-left" rowspan="1" colspan="1">48 bytes, big-endian</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Group order q</td>
+                <td class="text-left" rowspan="1" colspan="1">0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC7634D81F4372DDF581A0DB248B0A77AECEC196ACCC52973</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Generator G</td>
+                <td class="text-left" rowspan="1" colspan="1">Standard P-384 generator</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Hash-to-group</td>
+                <td class="text-left" rowspan="1" colspan="1">HashToP384 (hash_to_curve from <span>[<a href="#RFC9380" class="cite xref">RFC9380</a>]</span> with suite P384<em>XMD:SHA-384_SSWU_RO</em>)</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Protocol version</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>"p384 anonymous-credits v1.0"</code>
+</td>
+              </tr>
+            </tbody>
+          </table>
+</section>
+</div>
+<div id="act-p521-blake3">
+<section id="section-2.3.5">
+          <h4 id="name-act-p521-blake3">
+<a href="#section-2.3.5" class="section-number selfRef">2.3.5. </a><a href="#name-act-p521-blake3" class="section-name selfRef">ACT-P521-BLAKE3</a>
+          </h4>
+<table class="center" id="table-5">
+            <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Parameter</th>
+                <th class="text-left" rowspan="1" colspan="1">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Group</td>
+                <td class="text-left" rowspan="1" colspan="1">P-521 (secp521r1) <span>[<a href="#RFC6090" class="cite xref">RFC6090</a>]</span>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Element encoding</td>
+                <td class="text-left" rowspan="1" colspan="1">67 bytes, SEC1 compressed point (0x02/0x03 prefix + 66 bytes) <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Scalar encoding</td>
+                <td class="text-left" rowspan="1" colspan="1">66 bytes, big-endian</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Group order q</td>
+                <td class="text-left" rowspan="1" colspan="1">0x01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA51868783BF2F966B7FCC0148F709A5D03BB5C9B8899C47AEBB6FB71E91386409</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Generator G</td>
+                <td class="text-left" rowspan="1" colspan="1">Standard P-521 generator</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Hash-to-group</td>
+                <td class="text-left" rowspan="1" colspan="1">HashToP521 (hash_to_curve from <span>[<a href="#RFC9380" class="cite xref">RFC9380</a>]</span> with suite P521<em>XMD:SHA-512_SSWU_RO</em>)</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Protocol version</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>"p521 anonymous-credits v1.0"</code>
 </td>
               </tr>
             </tbody>
@@ -1960,54 +2200,122 @@ HashToP256(seed, counter):
     8. return P
 </pre><a href="#section-3.1-10" class="pilcrow">¶</a>
 </div>
-<p id="section-3.1-11">The hash_to_curve function is defined in <span>[<a href="#RFC9380" class="cite xref">RFC9380</a>]</span> using the suite
-P256<em>XMD:SHA-256_SSWU_RO</em>, which provides a uniformly random mapping
-from arbitrary byte strings to P-256 points with no known discrete
-log relationship to the generator or any other point.<a href="#section-3.1-11" class="pilcrow">¶</a></p>
-<p id="section-3.1-12">The domain_separator <span class="bcp14">MUST</span> be unique for each deployment to ensure
+<p id="section-3.1-11"><strong>ACT-secp256k1-BLAKE3:</strong><a href="#section-3.1-11" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.1-12">
+<pre>
+HashToSecp256k1(seed, counter):
+  Input:
+    - seed: 32-byte seed value
+    - counter: Integer counter for domain separation
+  Output:
+    - P: A valid secp256k1 point
+
+  Steps:
+    1. hasher = BLAKE3.new()
+    2. hasher.update(LengthPrefixed(domain_separator))
+    3. hasher.update(LengthPrefixed(seed))
+    4. hasher.update(LengthPrefixed(counter.to_le_bytes(4)))
+    5. msg = hasher.finalize(32)
+    6. DST = "ACT-secp256k1-BLAKE3_H2C_" || domain_separator
+    7. P = hash_to_curve(msg, DST)
+    8. return P
+</pre><a href="#section-3.1-12" class="pilcrow">¶</a>
+</div>
+<p id="section-3.1-13"><strong>ACT-P384-BLAKE3:</strong><a href="#section-3.1-13" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.1-14">
+<pre>
+HashToP384(seed, counter):
+  Input:
+    - seed: 32-byte seed value
+    - counter: Integer counter for domain separation
+  Output:
+    - P: A valid P-384 point
+
+  Steps:
+    1. hasher = BLAKE3.new()
+    2. hasher.update(LengthPrefixed(domain_separator))
+    3. hasher.update(LengthPrefixed(seed))
+    4. hasher.update(LengthPrefixed(counter.to_le_bytes(4)))
+    5. msg = hasher.finalize(32)
+    6. DST = "ACT-P384-BLAKE3_H2C_" || domain_separator
+    7. P = hash_to_curve(msg, DST)
+    8. return P
+</pre><a href="#section-3.1-14" class="pilcrow">¶</a>
+</div>
+<p id="section-3.1-15">The hash_to_curve function for ACT-P256-BLAKE3 is defined in <span>[<a href="#RFC9380" class="cite xref">RFC9380</a>]</span>
+using the suite P256<em>XMD:SHA-256_SSWU_RO</em>. For ACT-secp256k1-BLAKE3 it
+uses suite secp256k1<em>XMD:SHA-256_SSWU_RO</em> (<span>[<a href="#RFC9380" class="cite xref">RFC9380</a>]</span> Section 8.7),
+for ACT-P384-BLAKE3 it uses suite P384<em>XMD:SHA-384_SSWU_RO</em> (<span>[<a href="#RFC9380" class="cite xref">RFC9380</a>]</span>
+Section 8.3), and for ACT-P521-BLAKE3 it uses suite
+P521<em>XMD:SHA-512_SSWU_RO</em> (<span>[<a href="#RFC9380" class="cite xref">RFC9380</a>]</span> Section 8.4). Each provides a
+uniformly random mapping from arbitrary byte strings to curve points with
+no known discrete log relationship to the generator or any other point.<a href="#section-3.1-15" class="pilcrow">¶</a></p>
+<p id="section-3.1-16"><strong>ACT-P521-BLAKE3:</strong><a href="#section-3.1-16" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.1-17">
+<pre>
+HashToP521(seed, counter):
+  Input:
+    - seed: 32-byte seed value
+    - counter: Integer counter for domain separation
+  Output:
+    - P: A valid P-521 point
+
+  Steps:
+    1. hasher = BLAKE3.new()
+    2. hasher.update(LengthPrefixed(domain_separator))
+    3. hasher.update(LengthPrefixed(seed))
+    4. hasher.update(LengthPrefixed(counter.to_le_bytes(4)))
+    5. msg = hasher.finalize(32)
+    6. DST = "ACT-P521-BLAKE3_H2C_" || domain_separator
+    7. P = hash_to_curve(msg, DST)
+    8. return P
+</pre><a href="#section-3.1-17" class="pilcrow">¶</a>
+</div>
+<p id="section-3.1-18">The domain_separator <span class="bcp14">MUST</span> be unique for each deployment to ensure
 cryptographic isolation between different services. The domain separator <span class="bcp14">SHOULD</span>
-follow this structured format:<a href="#section-3.1-12" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.1-13">
+follow this structured format:<a href="#section-3.1-18" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.1-19">
 <pre>
 domain_separator = "ACT-v1:" || organization || ":" || service || ":" || deployment_id || ":" || version
-</pre><a href="#section-3.1-13" class="pilcrow">¶</a>
+</pre><a href="#section-3.1-19" class="pilcrow">¶</a>
 </div>
-<p id="section-3.1-14">Each component (organization, service, deployment_id, version) <span class="bcp14">MUST NOT</span>
-contain the colon character ':'.<a href="#section-3.1-14" class="pilcrow">¶</a></p>
-<p id="section-3.1-15">Where:<a href="#section-3.1-15" class="pilcrow">¶</a></p>
+<p id="section-3.1-20">Each component (organization, service, deployment_id, version) <span class="bcp14">MUST NOT</span>
+contain the colon character ':'.<a href="#section-3.1-20" class="pilcrow">¶</a></p>
+<p id="section-3.1-21">Where:<a href="#section-3.1-21" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.1-16.1">
-            <p id="section-3.1-16.1.1"><code>organization</code>: A unique identifier for the organization (e.g., "example-corp", "acme-inc")<a href="#section-3.1-16.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-3.1-22.1">
+            <p id="section-3.1-22.1.1"><code>organization</code>: A unique identifier for the organization (e.g., "example-corp", "acme-inc")<a href="#section-3.1-22.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-3.1-16.2">
-            <p id="section-3.1-16.2.1"><code>service</code>: The specific service or application name (e.g., "payment-api", "rate-limiter")<a href="#section-3.1-16.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-3.1-22.2">
+            <p id="section-3.1-22.2.1"><code>service</code>: The specific service or application name (e.g., "payment-api", "rate-limiter")<a href="#section-3.1-22.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-3.1-16.3">
-            <p id="section-3.1-16.3.1"><code>deployment_id</code>: The deployment environment (e.g., "production", "staging", "us-west-1")<a href="#section-3.1-16.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-3.1-22.3">
+            <p id="section-3.1-22.3.1"><code>deployment_id</code>: The deployment environment (e.g., "production", "staging", "us-west-1")<a href="#section-3.1-22.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-3.1-16.4">
-            <p id="section-3.1-16.4.1"><code>version</code>: An ISO 8601 date (YYYY-MM-DD) indicating when parameters were generated<a href="#section-3.1-16.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-3.1-22.4">
+            <p id="section-3.1-22.4.1"><code>version</code>: An ISO 8601 date (YYYY-MM-DD) indicating when parameters were generated<a href="#section-3.1-22.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-3.1-17">Example: <code>"ACT-v1:example-corp:payment-api:production:2024-01-15"</code><a href="#section-3.1-17" class="pilcrow">¶</a></p>
-<p id="section-3.1-18">This structured format ensures:
+<p id="section-3.1-23">Example: <code>"ACT-v1:example-corp:payment-api:production:2024-01-15"</code><a href="#section-3.1-23" class="pilcrow">¶</a></p>
+<p id="section-3.1-24">This structured format ensures:
 1. Protocol identification through the "ACT-v1:" prefix
 2. Organizational namespace isolation
 3. Service-level separation within organizations
 4. Environment isolation (production vs staging)
-5. Version tracking for parameter updates<a href="#section-3.1-18" class="pilcrow">¶</a></p>
-<p id="section-3.1-19">Using generic or unstructured domain separators creates security risks through
+5. Version tracking for parameter updates<a href="#section-3.1-24" class="pilcrow">¶</a></p>
+<p id="section-3.1-25">Using generic or unstructured domain separators creates security risks through
 parameter collision and <span class="bcp14">MUST NOT</span> be used. When parameters need to be updated
 (e.g., for security reasons or protocol upgrades), a new version date <span class="bcp14">MUST</span> be
-used, creating entirely new parameters.<a href="#section-3.1-19" class="pilcrow">¶</a></p>
-<p id="section-3.1-20">For ACT-Ristretto255-BLAKE3, the OneWayMap function is defined in <span>[<a href="#RFC9496" class="cite xref">RFC9496</a>]</span>
+used, creating entirely new parameters.<a href="#section-3.1-25" class="pilcrow">¶</a></p>
+<p id="section-3.1-26">For ACT-Ristretto255-BLAKE3, the OneWayMap function is defined in <span>[<a href="#RFC9496" class="cite xref">RFC9496</a>]</span>
 Section 4.3.4, which provides a cryptographically secure mapping from
-uniformly random byte strings to valid Ristretto255 points.<a href="#section-3.1-20" class="pilcrow">¶</a></p>
-<p id="section-3.1-21">For ACT-P256-BLAKE3, the hash-to-group function uses hash_to_curve from
-<span>[<a href="#RFC9380" class="cite xref">RFC9380</a>]</span> with suite P256<em>XMD:SHA-256_SSWU_RO</em>. This maps inputs to
-P-256 points such that the discrete log with respect to any known point
-is infeasible to compute, which is essential for the security of the
-protocol.<a href="#section-3.1-21" class="pilcrow">¶</a></p>
+uniformly random byte strings to valid Ristretto255 points.<a href="#section-3.1-26" class="pilcrow">¶</a></p>
+<p id="section-3.1-27">For ACT-P256-BLAKE3, ACT-secp256k1-BLAKE3, ACT-P384-BLAKE3, and
+ACT-P521-BLAKE3, the hash-to-group function uses hash_to_curve from
+<span>[<a href="#RFC9380" class="cite xref">RFC9380</a>]</span> with the appropriate curve-specific suite. This maps inputs
+to curve points such that the discrete log with respect to any known
+point is infeasible to compute, which is essential for the security of
+the protocol.<a href="#section-3.1-27" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="key-generation">
@@ -2609,6 +2917,15 @@ ACT-Ristretto255-BLAKE3:
 
 ACT-P256-BLAKE3:
   PROTOCOL_VERSION = "p256 anonymous-credits v1.0"
+
+ACT-secp256k1-BLAKE3:
+  PROTOCOL_VERSION = "secp256k1 anonymous-credits v1.0"
+
+ACT-P384-BLAKE3:
+  PROTOCOL_VERSION = "p384 anonymous-credits v1.0"
+
+ACT-P521-BLAKE3:
+  PROTOCOL_VERSION = "p521 anonymous-credits v1.0"
 </pre><a href="#section-3.5.1-2" class="pilcrow">¶</a>
 </div>
 <p id="section-3.5.1-3">The version string <span class="bcp14">MUST</span> be used consistently across all implementations of a
@@ -2665,13 +2982,34 @@ GetChallenge(transcript):
     3. return challenge
 
   ACT-P256-BLAKE3:
-    1. hash = transcript.hasher.output(32)  // 32 bytes of output
-    2. challenge = from_big_endian_bytes(hash) mod q
+    1. hash = transcript.hasher.output(48)  // 48 bytes of output
+    2. challenge = FromOkm(hash)  // RFC 9380 Section 5.2
+    3. return challenge
+
+  ACT-secp256k1-BLAKE3:
+    1. hash = transcript.hasher.output(48)  // 48 bytes of output
+    2. challenge = FromOkm(hash)  // RFC 9380 Section 5.2
+    3. return challenge
+
+  ACT-P384-BLAKE3:
+    1. hash = transcript.hasher.output(72)  // 72 bytes of output
+    2. challenge = FromOkm(hash)  // RFC 9380 Section 5.2
+    3. return challenge
+
+  ACT-P521-BLAKE3:
+    1. hash = transcript.hasher.output(98)  // 98 bytes of output
+    2. challenge = FromOkm(hash)  // RFC 9380 Section 5.2
     3. return challenge
 </pre><a href="#section-3.5.2-2" class="pilcrow">¶</a>
 </div>
-<p id="section-3.5.2-3">Note: For ACT-P256-BLAKE3, 32 bytes of XOF output provides negligible bias
-(less than 2^-128) when reduced modulo the ~2^256 group order.<a href="#section-3.5.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.5.2-3">Note: For all short-Weierstrass ciphersuites, the challenge is derived via
+the FromOkm algorithm (<span>[<a href="#RFC9380" class="cite xref">RFC9380</a>]</span> Section 5.2), which reduces a
+uniformly random byte string modulo the group order with negligible bias.
+The output lengths follow the formula L = ceil((ceil(log2(q)) + k) / 8)
+from <span>[<a href="#RFC9380" class="cite xref">RFC9380</a>]</span> Section 5.2, with k = 128 as the security parameter:
+48 bytes for ACT-P256-BLAKE3 and ACT-secp256k1-BLAKE3 (~256-bit orders),
+72 bytes for ACT-P384-BLAKE3 (~384-bit order), and 98 bytes for
+ACT-P521-BLAKE3 (~521-bit order).<a href="#section-3.5.2-3" class="pilcrow">¶</a></p>
 <p id="section-3.5.2-4">This approach ensures:<a href="#section-3.5.2-4" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-3.5.2-5.1">
@@ -2714,6 +3052,24 @@ Encode(value):
     2.     return SEC1_compressed(value)  // 33 bytes, 0x02/0x03 + 32 bytes
     3. If value is a Scalar:
     4.     return value.to_bytes_be()  // 32 bytes, big-endian
+
+  ACT-secp256k1-BLAKE3:
+    1. If value is an Element:
+    2.     return SEC1_compressed(value)  // 33 bytes, 0x02/0x03 + 32 bytes
+    3. If value is a Scalar:
+    4.     return value.to_bytes_be()  // 32 bytes, big-endian
+
+  ACT-P384-BLAKE3:
+    1. If value is an Element:
+    2.     return SEC1_compressed(value)  // 49 bytes, 0x02/0x03 + 48 bytes
+    3. If value is a Scalar:
+    4.     return value.to_bytes_be()  // 48 bytes, big-endian
+
+  ACT-P521-BLAKE3:
+    1. If value is an Element:
+    2.     return SEC1_compressed(value)  // 67 bytes, 0x02/0x03 + 66 bytes
+    3. If value is a Scalar:
+    4.     return value.to_bytes_be()  // 66 bytes, big-endian
 </pre><a href="#section-3.5.3-2" class="pilcrow">¶</a>
 </div>
 <p id="section-3.5.3-3">The following function provides consistent length-prefixing for hash inputs:<a href="#section-3.5.3-3" class="pilcrow">¶</a></p>
@@ -2765,6 +3121,33 @@ BitDecompose(s):
     5.     bit = (bytes[byte_index] &gt;&gt; bit_position) &amp; 1
     6.     bits[i] = Scalar(bit)
     7. return bits
+
+  ACT-secp256k1-BLAKE3:
+    1. bytes = s.to_bytes_be()  // 32 bytes, big-endian
+    2. For i = 0 to L-1:
+    3.     byte_index = 31 - (i / 8)
+    4.     bit_position = i % 8
+    5.     bit = (bytes[byte_index] &gt;&gt; bit_position) &amp; 1
+    6.     bits[i] = Scalar(bit)
+    7. return bits
+
+  ACT-P384-BLAKE3:
+    1. bytes = s.to_bytes_be()  // 48 bytes, big-endian
+    2. For i = 0 to L-1:
+    3.     byte_index = 47 - (i / 8)
+    4.     bit_position = i % 8
+    5.     bit = (bytes[byte_index] &gt;&gt; bit_position) &amp; 1
+    6.     bits[i] = Scalar(bit)
+    7. return bits
+
+  ACT-P521-BLAKE3:
+    1. bytes = s.to_bytes_be()  // 66 bytes, big-endian
+    2. For i = 0 to L-1:
+    3.     byte_index = 65 - (i / 8)
+    4.     bit_position = i % 8
+    5.     bit = (bytes[byte_index] &gt;&gt; bit_position) &amp; 1
+    6.     bits[i] = Scalar(bit)
+    7. return bits
 </pre><a href="#section-3.5.4-2" class="pilcrow">¶</a>
 </div>
 <p id="section-3.5.4-3">Note: Both variants produce bits in LSB-first order (i.e., <code>bits[0]</code> is the
@@ -2802,7 +3185,7 @@ ScalarToCredit(s):
 
   Steps:
     1. amount = s as integer  // Interpret scalar bytes as integer
-       // (little-endian for Ristretto255, big-endian for P-256)
+       // (little-endian for Ristretto255, big-endian for P-256/secp256k1/P-384/P-521)
     2. if amount &gt;= 2^L:
     3.     return ScalarOutOfRangeError
     4. return amount
@@ -2826,7 +3209,11 @@ ScalarToCredit(s):
         </h3>
 <p id="section-4.1-1">All protocol messages <span class="bcp14">SHOULD</span> be encoded using deterministic CBOR (RFC 8949) for
 interoperability. Decoders <span class="bcp14">MUST</span> reject messages containing unknown CBOR map
-keys. The following sections define the structure of each message type.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+keys. The following sections define the structure of each message type. Field
+sizes are ciphersuite-dependent: Ns denotes the scalar size (32 bytes for
+Ristretto255/P-256/secp256k1, 48 bytes for P-384, 66 bytes for P-521) and
+Np denotes the compressed point size (32 bytes for Ristretto255, 33 bytes for
+P-256/secp256k1, 49 bytes for P-384, 67 bytes for P-521).<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 <div id="issuance-request-message">
 <section id="section-4.1.1">
           <h4 id="name-issuance-request-message">
@@ -2835,10 +3222,10 @@ keys. The following sections define the structure of each message type.<a href="
 <div class="alignLeft art-text artwork" id="section-4.1.1-1">
 <pre>
 IssuanceRequestMsg = {
-    1: bstr,  ; K (compressed point, 32 bytes for Ristretto255 / 33 bytes for P-256)
-    2: bstr,  ; gamma (scalar, 32 bytes)
-    3: bstr,  ; k_bar (scalar, 32 bytes)
-    4: bstr   ; r_bar (scalar, 32 bytes)
+    1: bstr,  ; K (compressed point, Np bytes)
+    2: bstr,  ; gamma (scalar, Ns bytes)
+    3: bstr,  ; k_bar (scalar, Ns bytes)
+    4: bstr   ; r_bar (scalar, Ns bytes)
 }
 </pre><a href="#section-4.1.1-1" class="pilcrow">¶</a>
 </div>
@@ -2852,12 +3239,12 @@ IssuanceRequestMsg = {
 <div class="alignLeft art-text artwork" id="section-4.1.2-1">
 <pre>
 IssuanceResponseMsg = {
-    1: bstr,  ; A (compressed point, 32 bytes for Ristretto255 / 33 bytes for P-256)
-    2: bstr,  ; e (scalar, 32 bytes)
-    3: bstr,  ; gamma_resp (scalar, 32 bytes)
-    4: bstr,  ; z (scalar, 32 bytes)
-    5: bstr,  ; c (scalar, 32 bytes)
-    6: bstr   ; ctx (scalar, 32 bytes)
+    1: bstr,  ; A (compressed point, Np bytes)
+    2: bstr,  ; e (scalar, Ns bytes)
+    3: bstr,  ; gamma_resp (scalar, Ns bytes)
+    4: bstr,  ; z (scalar, Ns bytes)
+    5: bstr,  ; c (scalar, Ns bytes)
+    6: bstr   ; ctx (scalar, Ns bytes)
 }
 </pre><a href="#section-4.1.2-1" class="pilcrow">¶</a>
 </div>
@@ -2871,24 +3258,24 @@ IssuanceResponseMsg = {
 <div class="alignLeft art-text artwork" id="section-4.1.3-1">
 <pre>
 SpendProofMsg = {
-    1: bstr,           ; k (nullifier, 32 bytes)
-    2: bstr,           ; s (spend amount, 32 bytes)
-    3: bstr,           ; A' (compressed point, 32/33 bytes)
-    4: bstr,           ; B_bar (compressed point, 32/33 bytes)
-    5: [* bstr],       ; Com array (L compressed points, 32/33 bytes each)
-    6: bstr,           ; gamma (scalar, 32 bytes)
-    7: bstr,           ; e_bar (scalar, 32 bytes)
-    8: bstr,           ; r2_bar (scalar, 32 bytes)
-    9: bstr,           ; r3_bar (scalar, 32 bytes)
-    10: bstr,          ; c_bar (scalar, 32 bytes)
-    11: bstr,          ; r_bar (scalar, 32 bytes)
-    12: bstr,          ; w00 (scalar, 32 bytes)
-    13: bstr,          ; w01 (scalar, 32 bytes)
-    14: [* bstr],      ; gamma0 array (L scalars)
-    15: [* [bstr, bstr]], ; z array (L pairs of scalars)
-    16: bstr,          ; k_bar (scalar, 32 bytes)
-    17: bstr,          ; s_bar (scalar, 32 bytes)
-    18: bstr           ; ctx (scalar, 32 bytes)
+    1: bstr,           ; k (nullifier, Ns bytes)
+    2: bstr,           ; s (spend amount, Ns bytes)
+    3: bstr,           ; A' (compressed point, Np bytes)
+    4: bstr,           ; B_bar (compressed point, Np bytes)
+    5: [* bstr],       ; Com array (L compressed points, Np bytes each)
+    6: bstr,           ; gamma (scalar, Ns bytes)
+    7: bstr,           ; e_bar (scalar, Ns bytes)
+    8: bstr,           ; r2_bar (scalar, Ns bytes)
+    9: bstr,           ; r3_bar (scalar, Ns bytes)
+    10: bstr,          ; c_bar (scalar, Ns bytes)
+    11: bstr,          ; r_bar (scalar, Ns bytes)
+    12: bstr,          ; w00 (scalar, Ns bytes)
+    13: bstr,          ; w01 (scalar, Ns bytes)
+    14: [* bstr],      ; gamma0 array (L scalars, Ns bytes each)
+    15: [* [bstr, bstr]], ; z array (L pairs of scalars, Ns bytes each)
+    16: bstr,          ; k_bar (scalar, Ns bytes)
+    17: bstr,          ; s_bar (scalar, Ns bytes)
+    18: bstr           ; ctx (scalar, Ns bytes)
 }
 </pre><a href="#section-4.1.3-1" class="pilcrow">¶</a>
 </div>
@@ -2902,11 +3289,11 @@ SpendProofMsg = {
 <div class="alignLeft art-text artwork" id="section-4.1.4-1">
 <pre>
 RefundMsg = {
-    1: bstr,  ; A* (compressed point, 32 bytes for Ristretto255 / 33 bytes for P-256)
-    2: bstr,  ; e* (scalar, 32 bytes)
-    3: bstr,  ; gamma (scalar, 32 bytes)
-    4: bstr,  ; z (scalar, 32 bytes)
-    5: bstr   ; t (partial return, scalar, 32 bytes)
+    1: bstr,  ; A* (compressed point, Np bytes)
+    2: bstr,  ; e* (scalar, Ns bytes)
+    3: bstr,  ; gamma (scalar, Ns bytes)
+    4: bstr,  ; z (scalar, Ns bytes)
+    5: bstr   ; t (partial return, scalar, Ns bytes)
 }
 </pre><a href="#section-4.1.4-1" class="pilcrow">¶</a>
 </div>
@@ -2946,7 +3333,7 @@ interoperability.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
           </h4>
 <div class="alignLeft art-text artwork" id="section-4.3.1-1">
 <pre>
-PublicKey = bstr  ; W (compressed Ristretto point, 32 bytes)
+PublicKey = bstr  ; W (compressed point, Np bytes)
 </pre><a href="#section-4.3.1-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -2959,8 +3346,8 @@ PublicKey = bstr  ; W (compressed Ristretto point, 32 bytes)
 <div class="alignLeft art-text artwork" id="section-4.3.2-1">
 <pre>
 PrivateKey = {
-    1: bstr,  ; x (secret scalar, 32 bytes)
-    2: bstr   ; W (public key point, 32 bytes)
+    1: bstr,  ; x (secret scalar, Ns bytes)
+    2: bstr   ; W (public key point, Np bytes)
 }
 </pre><a href="#section-4.3.2-1" class="pilcrow">¶</a>
 </div>
@@ -2988,8 +3375,8 @@ and before receiving the issuance response.<a href="#section-4.4.1-1" class="pil
 <div class="alignLeft art-text artwork" id="section-4.4.1-2">
 <pre>
 PreIssuance = {
-    1: bstr,  ; r (blinding factor, scalar, 32 bytes)
-    2: bstr   ; k (nullifier, scalar, 32 bytes)
+    1: bstr,  ; r (blinding factor, scalar, Ns bytes)
+    2: bstr   ; k (nullifier, scalar, Ns bytes)
 }
 </pre><a href="#section-4.4.1-2" class="pilcrow">¶</a>
 </div>
@@ -3004,12 +3391,12 @@ PreIssuance = {
 <div class="alignLeft art-text artwork" id="section-4.4.2-2">
 <pre>
 CreditToken = {
-    1: bstr,  ; A (BBS signature point, compressed Ristretto, 32 bytes)
-    2: bstr,  ; e (signature scalar, 32 bytes)
-    3: bstr,  ; k (nullifier, scalar, 32 bytes)
-    4: bstr,  ; r (blinding factor, scalar, 32 bytes)
-    5: bstr,  ; c (credit amount, scalar, 32 bytes)
-    6: bstr   ; ctx (request context, scalar, 32 bytes)
+    1: bstr,  ; A (BBS signature point, Np bytes)
+    2: bstr,  ; e (signature scalar, Ns bytes)
+    3: bstr,  ; k (nullifier, scalar, Ns bytes)
+    4: bstr,  ; r (blinding factor, scalar, Ns bytes)
+    5: bstr,  ; c (credit amount, scalar, Ns bytes)
+    6: bstr   ; ctx (request context, scalar, Ns bytes)
 }
 </pre><a href="#section-4.4.2-2" class="pilcrow">¶</a>
 </div>
@@ -3025,10 +3412,10 @@ before receiving the refund response.<a href="#section-4.4.3-1" class="pilcrow">
 <div class="alignLeft art-text artwork" id="section-4.4.3-2">
 <pre>
 PreRefund = {
-    1: bstr,  ; r (blinding factor, scalar, 32 bytes)
-    2: bstr,  ; k (nullifier, scalar, 32 bytes)
-    3: bstr,  ; m (remaining balance, scalar, 32 bytes)
-    4: bstr   ; ctx (request context, scalar, 32 bytes)
+    1: bstr,  ; r (blinding factor, scalar, Ns bytes)
+    2: bstr,  ; k (nullifier, scalar, Ns bytes)
+    3: bstr,  ; m (remaining balance, scalar, Ns bytes)
+    4: bstr   ; ctx (request context, scalar, Ns bytes)
 }
 </pre><a href="#section-4.4.3-2" class="pilcrow">¶</a>
 </div>
@@ -3259,34 +3646,70 @@ generated with extreme care:<a href="#section-5.3.2-1" class="pilcrow">¶</a></p
             <p id="section-5.4-5.3.1"><strong>Subgroup Check</strong>: P-256 has cofactor 1, so all curve points are in the prime-order subgroup<a href="#section-5.4-5.3.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-5.4-6">Example validation:<a href="#section-5.4-6" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-5.4-7">
+<p id="section-5.4-6"><strong>ACT-secp256k1-BLAKE3:</strong><a href="#section-5.4-6" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-5.4-7">
+<li id="section-5.4-7.1">
+            <p id="section-5.4-7.1.1"><strong>Deserialization</strong>: Verify the SEC1 compressed encoding is valid and the point lies on the secp256k1 curve<a href="#section-5.4-7.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-5.4-7.2">
+            <p id="section-5.4-7.2.1"><strong>Non-Identity</strong>: Verify the point is not the identity element (point at infinity)<a href="#section-5.4-7.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-5.4-7.3">
+            <p id="section-5.4-7.3.1"><strong>Subgroup Check</strong>: secp256k1 has cofactor 1, so all curve points are in the prime-order subgroup<a href="#section-5.4-7.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-5.4-8"><strong>ACT-P384-BLAKE3:</strong><a href="#section-5.4-8" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-5.4-9">
+<li id="section-5.4-9.1">
+            <p id="section-5.4-9.1.1"><strong>Deserialization</strong>: Verify the SEC1 compressed encoding is valid and the point lies on the P-384 curve<a href="#section-5.4-9.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-5.4-9.2">
+            <p id="section-5.4-9.2.1"><strong>Non-Identity</strong>: Verify the point is not the identity element (point at infinity)<a href="#section-5.4-9.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-5.4-9.3">
+            <p id="section-5.4-9.3.1"><strong>Subgroup Check</strong>: P-384 has cofactor 1, so all curve points are in the prime-order subgroup<a href="#section-5.4-9.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-5.4-10"><strong>ACT-P521-BLAKE3:</strong><a href="#section-5.4-10" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-5.4-11">
+<li id="section-5.4-11.1">
+            <p id="section-5.4-11.1.1"><strong>Deserialization</strong>: Verify the SEC1 compressed encoding is valid and the point lies on the P-521 curve<a href="#section-5.4-11.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-5.4-11.2">
+            <p id="section-5.4-11.2.1"><strong>Non-Identity</strong>: Verify the point is not the identity element (point at infinity)<a href="#section-5.4-11.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-5.4-11.3">
+            <p id="section-5.4-11.3.1"><strong>Subgroup Check</strong>: P-521 has cofactor 1, so all curve points are in the prime-order subgroup<a href="#section-5.4-11.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-5.4-12">Example validation:<a href="#section-5.4-12" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.4-13">
 <pre>
 ValidatePoint(P):
   1. If P fails to deserialize:
   2.     return INVALID
   3. If P == Identity:
   4.     return INVALID
-  5. // Both Ristretto255 and P-256 guarantee prime-order subgroup membership
+  5. // All five ciphersuites guarantee prime-order subgroup membership
   6. return VALID
-</pre><a href="#section-5.4-7" class="pilcrow">¶</a>
+</pre><a href="#section-5.4-13" class="pilcrow">¶</a>
 </div>
-<p id="section-5.4-8">All implementations <span class="bcp14">MUST</span> validate points at these locations:<a href="#section-5.4-8" class="pilcrow">¶</a></p>
+<p id="section-5.4-14">All implementations <span class="bcp14">MUST</span> validate points at these locations:<a href="#section-5.4-14" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-5.4-9.1">
-            <p id="section-5.4-9.1.1">When receiving <code>K</code> in issuance request<a href="#section-5.4-9.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-5.4-15.1">
+            <p id="section-5.4-15.1.1">When receiving <code>K</code> in issuance request<a href="#section-5.4-15.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.4-9.2">
-            <p id="section-5.4-9.2.1">When receiving <code>A</code> in issuance response<a href="#section-5.4-9.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.4-15.2">
+            <p id="section-5.4-15.2.1">When receiving <code>A</code> in issuance response<a href="#section-5.4-15.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.4-9.3">
-            <p id="section-5.4-9.3.1">When receiving <code>A'</code> and <code>B_bar</code> in spend proof<a href="#section-5.4-9.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.4-15.3">
+            <p id="section-5.4-15.3.1">When receiving <code>A'</code> and <code>B_bar</code> in spend proof<a href="#section-5.4-15.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.4-9.4">
-            <p id="section-5.4-9.4.1">When receiving <code>Com[j]</code> commitments in spend proof<a href="#section-5.4-9.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.4-15.4">
+            <p id="section-5.4-15.4.1">When receiving <code>Com[j]</code> commitments in spend proof<a href="#section-5.4-15.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.4-9.5">
-            <p id="section-5.4-9.5.1">When receiving <code>A*</code> in refund response<a href="#section-5.4-9.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.4-15.5">
+            <p id="section-5.4-15.5.1">When receiving <code>A*</code> in refund response<a href="#section-5.4-15.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3362,8 +3785,8 @@ to 2^L - 1). The choice of L involves several trade-offs:<a href="#section-5.6-2
               <p id="section-5.6.1-3.4.1"><strong>Issuance</strong>:<a href="#section-5.6.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<table class="center" id="table-3">
-            <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
+<table class="center" id="table-6">
+            <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Operation</th>
@@ -3406,8 +3829,8 @@ to 2^L - 1). The choice of L involves several trade-offs:<a href="#section-5.6-2
               <p id="section-5.6.1-5.1.1"><strong>Spending</strong>:<a href="#section-5.6.1-5.1.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<table class="center" id="table-4">
-            <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
+<table class="center" id="table-7">
+            <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Operation</th>
@@ -3451,8 +3874,8 @@ to 2^L - 1). The choice of L involves several trade-offs:<a href="#section-5.6-2
               <p id="section-5.6.1-8.1.1"><strong>Storage</strong> (ACT-Ristretto255-BLAKE3):<a href="#section-5.6.1-8.1.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<table class="center" id="table-5">
-            <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
+<table class="center" id="table-8">
+            <caption><a href="#table-8" class="selfRef">Table 8</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Component</th>
@@ -3479,8 +3902,8 @@ to 2^L - 1). The choice of L involves several trade-offs:<a href="#section-5.6-2
               <p id="section-5.6.1-10.1.1"><strong>Storage</strong> (ACT-P256-BLAKE3):<a href="#section-5.6.1-10.1.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<table class="center" id="table-6">
-            <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
+<table class="center" id="table-9">
+            <caption><a href="#table-9" class="selfRef">Table 9</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Component</th>
@@ -3502,8 +3925,93 @@ to 2^L - 1). The choice of L involves several trade-offs:<a href="#section-5.6-2
               </tr>
             </tbody>
           </table>
-<p id="section-5.6.1-12">Note: P-256 compressed points are 33 bytes (vs 32 for Ristretto255). Token
-size is independent of L for both ciphersuites.<a href="#section-5.6.1-12" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.6.1-12.1">
+              <p id="section-5.6.1-12.1.1"><strong>Storage</strong> (ACT-secp256k1-BLAKE3):<a href="#section-5.6.1-12.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<table class="center" id="table-10">
+            <caption><a href="#table-10" class="selfRef">Table 10</a></caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Component</th>
+                <th class="text-left" rowspan="1" colspan="1">Size</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Token size</td>
+                <td class="text-left" rowspan="1" colspan="1">193 bytes (1 × 33 bytes + 5 × 32 bytes)</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Spend proof size</td>
+                <td class="text-left" rowspan="1" colspan="1">32 × (14 + 4L) + (2 + L) bytes</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Nullifier database entry</td>
+                <td class="text-left" rowspan="1" colspan="1">32 bytes per spent token</td>
+              </tr>
+            </tbody>
+          </table>
+<ul class="normal">
+<li class="normal" id="section-5.6.1-14.1">
+              <p id="section-5.6.1-14.1.1"><strong>Storage</strong> (ACT-P384-BLAKE3):<a href="#section-5.6.1-14.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<table class="center" id="table-11">
+            <caption><a href="#table-11" class="selfRef">Table 11</a></caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Component</th>
+                <th class="text-left" rowspan="1" colspan="1">Size</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Token size</td>
+                <td class="text-left" rowspan="1" colspan="1">289 bytes (1 × 49 bytes + 5 × 48 bytes)</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Spend proof size</td>
+                <td class="text-left" rowspan="1" colspan="1">48 × (14 + 4L) + (2 + L) bytes</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Nullifier database entry</td>
+                <td class="text-left" rowspan="1" colspan="1">48 bytes per spent token</td>
+              </tr>
+            </tbody>
+          </table>
+<ul class="normal">
+<li class="normal" id="section-5.6.1-16.1">
+              <p id="section-5.6.1-16.1.1"><strong>Storage</strong> (ACT-P521-BLAKE3):<a href="#section-5.6.1-16.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<table class="center" id="table-12">
+            <caption><a href="#table-12" class="selfRef">Table 12</a></caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Component</th>
+                <th class="text-left" rowspan="1" colspan="1">Size</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Token size</td>
+                <td class="text-left" rowspan="1" colspan="1">397 bytes (1 × 67 bytes + 5 × 66 bytes)</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Spend proof size</td>
+                <td class="text-left" rowspan="1" colspan="1">66 × (14 + 4L) + (2 + L) bytes</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Nullifier database entry</td>
+                <td class="text-left" rowspan="1" colspan="1">66 bytes per spent token</td>
+              </tr>
+            </tbody>
+          </table>
+<p id="section-5.6.1-18">Note: Compressed point sizes vary by ciphersuite: 32 bytes for Ristretto255,
+33 bytes for P-256 and secp256k1, 49 bytes for P-384, and 67 bytes for P-521.
+Token size is independent of L for all ciphersuites.<a href="#section-5.6.1-18" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3562,7 +4070,7 @@ size is independent of L for both ciphersuites.<a href="#section-5.6.1-12" class
 <p id="section-6.2-1">Security relies on:<a href="#section-6.2-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-6.2-2">
 <li id="section-6.2-2.1">
-            <p id="section-6.2-2.1.1"><strong>The q-SDH Assumption</strong> in the ciphersuite's group (Ristretto255 or P-256). We refer to <span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span> for the formal definition.<a href="#section-6.2-2.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.2-2.1.1"><strong>The q-SDH Assumption</strong> in the ciphersuite's group (Ristretto255, P-256, secp256k1, P-384, or P-521). We refer to <span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span> for the formal definition.<a href="#section-6.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-6.2-2.2">
             <p id="section-6.2-2.2.1"><strong>Random Oracle Model</strong>: The BLAKE3 hash function H is modeled as a random oracle.<a href="#section-6.2-2.2.1" class="pilcrow">¶</a></p>
@@ -3932,8 +4440,12 @@ quantum computer.<a href="#section-6.7-1" class="pilcrow">¶</a></p>
 <span class="refAuthor">de Valence, H.</span>, <span class="refAuthor">Grigg, J.</span>, <span class="refAuthor">Hamburg, M.</span>, <span class="refAuthor">Lovecruft, I.</span>, <span class="refAuthor">Tankersley, G.</span>, and <span class="refAuthor">F. Valsorda</span>, <span class="refTitle">"The ristretto255 and decaf448 Groups"</span>, <span class="seriesInfo">RFC 9496</span>, <span class="seriesInfo">DOI 10.17487/RFC9496</span>, <time datetime="2023-12" class="refDate">December 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9496">https://www.rfc-editor.org/rfc/rfc9496</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="SEC1">[SEC1]</dt>
-      <dd>
+        <dd>
 <span class="refTitle">"SEC 1: Elliptic Curve Cryptography"</span>, <time datetime="2009-05-21" class="refDate">21 May 2009</time>, <span>&lt;<a href="https://www.secg.org/sec1-v2.pdf">https://www.secg.org/sec1-v2.pdf</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="SEC2">[SEC2]</dt>
+      <dd>
+<span class="refTitle">"SEC 2: Recommended Elliptic Curve Domain Parameters"</span>, <time datetime="2010-01-27" class="refDate">27 January 2010</time>, <span>&lt;<a href="https://www.secg.org/sec2-v2.pdf">https://www.secg.org/sec2-v2.pdf</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -4201,8 +4713,994 @@ remaining_balance: 80
         <h3 id="name-act-p256-blake3-test-vector">
 <a href="#appendix-A.8" class="section-number selfRef">A.8. </a><a href="#name-act-p256-blake3-test-vector" class="section-name selfRef">ACT-P256-BLAKE3 Test Vectors</a>
         </h3>
-<p id="appendix-A.8-1">TODO: Regenerate test vectors using the updated HashToP256 function
-based on hash_to_curve from <span>[<a href="#RFC9380" class="cite xref">RFC9380</a>]</span> with suite P256<em>XMD:SHA-256_SSWU_RO</em>.<a href="#appendix-A.8-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.8-1">The following test vector was generated deterministically using a
+ChaCha20 RNG seeded with the bytes <code>00 01 02 ... 1e 1f</code> and L=8.
+The domain separator is <code>"ACT-v1:test:vectors:v0:2025-01-01"</code>, credit amount
+c=100, spend amount s=30, partial return t=10, and ctx=0. Values labelled <code>*_cbor</code>
+are the CBOR wire-format encodings (Section 4) of each protocol
+message, displayed in hexadecimal.<a href="#appendix-A.8-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.8-2">Implementations <span class="bcp14">SHOULD</span> verify they can deserialize these CBOR
+messages and that a full protocol run with the same deterministic
+RNG produces identical output.<a href="#appendix-A.8-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="parameters-1">
+<section id="appendix-A.9">
+        <h3 id="name-parameters-2">
+<a href="#appendix-A.9" class="section-number selfRef">A.9. </a><a href="#name-parameters-2" class="section-name selfRef">Parameters</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.9-1">
+<pre>
+domain_separator: "ACT-v1:test:vectors:v0:2025-01-01"
+L: 8
+c: 100
+s: 30
+t: 10
+ctx: 0000000000000000000000000000000000000000000000000000000000000000
+</pre><a href="#appendix-A.9-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="key-generation-2">
+<section id="appendix-A.10">
+        <h3 id="name-key-generation-3">
+<a href="#appendix-A.10" class="section-number selfRef">A.10. </a><a href="#name-key-generation-3" class="section-name selfRef">Key Generation</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.10-1">
+<pre>
+sk_cbor:
+  a201582039fd2b7dd9c5196a8dbd0377b8dc4a498a35d86fbcde6accb2cc7d4c
+  d8ea249202582102ceff7e162d6baee1abd2f72b83fdaa96df661e4375d87561
+  c8e41936310f3dc4
+
+pk_cbor:
+  582102ceff7e162d6baee1abd2f72b83fdaa96df661e4375d87561c8e4193631
+  0f3dc4
+</pre><a href="#appendix-A.10-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="issuance-1">
+<section id="appendix-A.11">
+        <h3 id="name-issuance-2">
+<a href="#appendix-A.11" class="section-number selfRef">A.11. </a><a href="#name-issuance-2" class="section-name selfRef">Issuance</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.11-1">
+<pre>
+preissuance_cbor:
+  a20158202b23cce7a26023ab3f0eef693ac87f64258235eab1f7a32dc22762a0
+  485b410c02582018b84231ade6a6d113615c61af434e27f8b1f3f5e1ad5b5cec
+  f8fc122a35755c
+
+issuance_request_cbor:
+  a4015821026e58ff0193bcbeca44fac89c2bfa10460fd6244ea2ebed87d8880f
+  d400416a9b02582026e96d7da34b92ee4563f7ea7ccbb0eaf4e5dbd3c23b7b6b
+  b342c64f782f357a035820e207ce3fa31ef309a6d2fd9f550cad22bfba0edd54
+  33c1d4b3423ff56f4f3e4b045820777eac48c4f4f140ca186e08e2e61c50f4dc
+  ca318146aa6057c8e68b31bca474
+
+issuance_response_cbor:
+  a6015821028f470643404f28577a22be26b6b6fe2c860434633c860c68767b45
+  e575696c2902582084a8021b8a5c0b2494cd3c8d5b13507ec7e7a0784df4a3e2
+  ea8162d261c59d230358204dd5f53c42fed5eaf04e61888f0479dd4c4365b37b
+  7546ed78502bb63c02006504582071a31e0a8009b0959f3cc2ee3acf9c1b66ae
+  e2e9bdc81d223a4d577baef63a9d055820000000000000000000000000000000
+  0000000000000000000000000000000064065820000000000000000000000000
+  0000000000000000000000000000000000000000
+
+credit_token_cbor:
+  a6015821028f470643404f28577a22be26b6b6fe2c860434633c860c68767b45
+  e575696c2902582084a8021b8a5c0b2494cd3c8d5b13507ec7e7a0784df4a3e2
+  ea8162d261c59d2303582018b84231ade6a6d113615c61af434e27f8b1f3f5e1
+  ad5b5cecf8fc122a35755c0458202b23cce7a26023ab3f0eef693ac87f642582
+  35eab1f7a32dc22762a0485b410c055820000000000000000000000000000000
+  0000000000000000000000000000000064065820000000000000000000000000
+  0000000000000000000000000000000000000000
+</pre><a href="#appendix-A.11-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="spending-1">
+<section id="appendix-A.12">
+        <h3 id="name-spending-2">
+<a href="#appendix-A.12" class="section-number selfRef">A.12. </a><a href="#name-spending-2" class="section-name selfRef">Spending</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.12-1">
+<pre>
+nullifier:
+  18b84231ade6a6d113615c61af434e27f8b1f3f5e1ad5b5cecf8fc122a35755c
+
+context:
+  0000000000000000000000000000000000000000000000000000000000000000
+
+charge:
+  000000000000000000000000000000000000000000000000000000000000001e
+
+spend_proof_cbor:
+  b201582018b84231ade6a6d113615c61af434e27f8b1f3f5e1ad5b5cecf8fc12
+  2a35755c02582000000000000000000000000000000000000000000000000000
+  0000000000001e03582102738d8ae82048de8955c263e9c00a29567632258628
+  54765a0d793afc4b2cf48104582103fb5ad1b75fe460acb1cb9cf2a24f8ada51
+  42a25539a0452e3c2d48406b8ea6ae0588582102997f6ec67ba7398e93281412
+  a94ddeef0e5d31bf9a756b202029e60b257d5793582103f4c046d8a7550387c0
+  2f7cc1ebc91e41920ff3968435c20f5aebe7f3d2317a47582102bd494d458626
+  e83c365a1c915f4d0c6cade3ce49e0ad76f3ed40b45c6717f30a582103cd8a75
+  fe55aa93ac4fbb45eebfca905710e9cce3291a1803e9de7ac24f66a5a8582103
+  4bc72ce6cfa743e9cc1f1dc52788be9dd19b87ecd92e35afd2771e7a62c1359c
+  58210343d68b8ea1b98af1f8ce8fa76dbcf45bad67a2b28b5cc77abeda39cbf4
+  578c5d582103245de90001244716e982800a1ed4e41546b6061c2eb0511289c3
+  1edd059e169758210200357e013b2a536a8bf3574e723867198809c24909a434
+  2c96bc58c20717b51c065820e782d1b6ba455e6df553894ec9011b04139287e9
+  2fb2ca7f0787f0ab7e616bcb075820278205b5400795d405b97db55f95257351
+  c2aa8b8939166494ceea243b22742d085820a23592671701f2b9d351e31e07ae
+  cb8f83d650e2e5fd07521335241d1ea8d01509582078214773099b07b8a29157
+  c2906948a107be7b36631a993fdfa448d772df30ca0a582073136773ea5e1da7
+  2641b18fd6db7642e1f19e1059c61813b7d56621426d58930b5820f569c7c3ba
+  efcb183750165fb7987ea951564ab8f671fa993f295a51ce15cfd30c58206070
+  7bd2aae531a2e537ef84f1f25d02ffedcab45dbd5cf5ad9db47ffb29f5400d58
+  206a9192e22167b171783edc442d1debea35c8c62cd27be25ccdd0cb887fc41b
+  530e885820b16895e5640288e2ea42aef2fa64c7c2b3cf27fea5a5baecc9300e
+  46fac903d25820ceca4aa2ff6d7aae8d4a8e9ad50786663932729106f437bfb4
+  f735df0b52b40a58204fa9a0fbc0552298605991cea5c0600a388e83f6d065e2
+  aae3666aa6e87d69e65820caebc89604ec67b5bba8217ae84c2f8f5c49add8fb
+  ef66cfb71a80d4a0aa2ed458203eda012591de6843d1580c9959e61da04b035b
+  7a02173f5fae657376c915c8b458204639bc6891251c1de384fd527752f8503e
+  6fb621fd7d08a250dc8616f6f5d0f058209ca80e6252fae8f0bf5bbbf33157a0
+  fda42ed9f25cc3fe099a2b1fbd793e1c3458200110928a6d7097e454ebd220d0
+  ff675c2a53210cb97fa511ae6a963a5c4ee6b60f88825820c893c88a8e86c344
+  c8230311a465ee7d945d390d163e357dd6b327f8646e6d90582021dfcb29a804
+  6791dca97da2e977616065171fdca134c9e02e67fe356c70da208258207d7a20
+  ccff17e7873f7f3465f6c8c70abc53d97ff7dac95f56a19a103edcd9a2582022
+  02fdc0009d495b813706da05bf1c60d33eac88f474aece195a8ff1e98c07da82
+  5820d45cab4cd1d9924b4bbfbaf09c34769621184923e61d8384a064d607beaa
+  72b45820916ec0a1b8faf9965c435847d1dc94babb0a3d0d0b61f2f54c06fadb
+  ce4e1ebf8258209c9cf1dbf1959abf9015d1c7ca8548a4b6d2a0273de30807cb
+  e4cb3143aebd6b582005d644e79d25d9b4b913ad9a64826a5dd60edfa8bbf1c7
+  604c77c81b8d4285358258203cf43a3a128f254e0a8e70d2605fdc741be98ada
+  ed93e24dac0d32a1676776435820183588ca784a4e5606a2627b641ca044376b
+  dfb7f2b3e3c8f5bc5dc1c6ff03058258205a94acd42769d36c2d5d8ebaeccf98
+  c007a517ff1aad003cc133ce86d6da8eb85820bb6e37774d548b6d6a714bd84b
+  fdfbc94074836079640e86d6998877c9716a59825820d44d65d01b23b9c3789e
+  75b5b5a34751f269d2d81d80bc7d33d2e41a71b2424158203afcba9e60ad6d51
+  89ee582a8b560ac448da1625ddf79437a7df8896a3adc611825820b03cc81b71
+  8f0c1a5242dc3988434f0300c0fdfee993fe65e58d7d0f7a3553e25820627d76
+  64c5fd194f8f1b38539167d77bcc036beed2f47005e69a940ccf52b239105820
+  3d933d30ba8f597bbc8661419cf06f9119ea26506f92e0c4284a16d941d6b778
+  115820905736a05a44f2866cca5f33600347b88d62d79385d1351d117b05e7d7
+  0131361258200000000000000000000000000000000000000000000000000000
+  000000000000
+
+prerefund_cbor:
+  a4015820a7173d05ed1dcb97392f4e8da31fbf2fae2856706441f486418dffd1
+  7794fefd025820185838beabf85b1605467c46149350e877815eefc73f7d9b3d
+  94b198d7fef9c903582000000000000000000000000000000000000000000000
+  0000000000000000004604582000000000000000000000000000000000000000
+  00000000000000000000000000
+</pre><a href="#appendix-A.12-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="refund-1">
+<section id="appendix-A.13">
+        <h3 id="name-refund-2">
+<a href="#appendix-A.13" class="section-number selfRef">A.13. </a><a href="#name-refund-2" class="section-name selfRef">Refund</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.13-1">
+<pre>
+refund_cbor:
+  a5015821020e4bae5552fa1869c6f4ce8b1a02af205b497d1d67047175fd4514
+  95adfe21de025820608f22735090d5bc4c5008960d409643e95e2fbbac5573d3
+  8961045c80dc83fb0358207f00027065f6f2677dfcb88364c08424ed8e4ef968
+  f4963b90a72a7044f02c0a0458200c3fc80af252eae45b0b3e2d3863d53cf149
+  efb29a2db79b060d98126f6e3fb1055820000000000000000000000000000000
+  000000000000000000000000000000000a
+</pre><a href="#appendix-A.13-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="refund-token-1">
+<section id="appendix-A.14">
+        <h3 id="name-refund-token-2">
+<a href="#appendix-A.14" class="section-number selfRef">A.14. </a><a href="#name-refund-token-2" class="section-name selfRef">Refund Token</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.14-1">
+<pre>
+refund_token_cbor:
+  a6015821020e4bae5552fa1869c6f4ce8b1a02af205b497d1d67047175fd4514
+  95adfe21de025820608f22735090d5bc4c5008960d409643e95e2fbbac5573d3
+  8961045c80dc83fb035820185838beabf85b1605467c46149350e877815eefc7
+  3f7d9b3d94b198d7fef9c9045820a7173d05ed1dcb97392f4e8da31fbf2fae28
+  56706441f486418dffd17794fefd055820000000000000000000000000000000
+  0000000000000000000000000000000050065820000000000000000000000000
+  0000000000000000000000000000000000000000
+
+refund_token_credits:
+  0000000000000000000000000000000000000000000000000000000000000050
+
+refund_token_nullifier:
+  185838beabf85b1605467c46149350e877815eefc73f7d9b3d94b198d7fef9c9
+
+remaining_balance: 80
+</pre><a href="#appendix-A.14-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="act-secp256k1-blake3-test-vectors">
+<section id="appendix-A.15">
+        <h3 id="name-act-secp256k1-blake3-test-v">
+<a href="#appendix-A.15" class="section-number selfRef">A.15. </a><a href="#name-act-secp256k1-blake3-test-v" class="section-name selfRef">ACT-secp256k1-BLAKE3 Test Vectors</a>
+        </h3>
+<p id="appendix-A.15-1">The following test vector was generated deterministically using a
+ChaCha20 RNG seeded with the bytes <code>00 01 02 ... 1e 1f</code> and L=8.
+The domain separator is <code>"ACT-v1:test:vectors:v0:2025-01-01"</code>, credit amount
+c=100, spend amount s=30, partial return t=10, and ctx=0. Values labelled <code>*_cbor</code>
+are the CBOR wire-format encodings (Section 4) of each protocol
+message, displayed in hexadecimal.<a href="#appendix-A.15-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.15-2">Implementations <span class="bcp14">SHOULD</span> verify they can deserialize these CBOR
+messages and that a full protocol run with the same deterministic
+RNG produces identical output.<a href="#appendix-A.15-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="parameters-2">
+<section id="appendix-A.16">
+        <h3 id="name-parameters-3">
+<a href="#appendix-A.16" class="section-number selfRef">A.16. </a><a href="#name-parameters-3" class="section-name selfRef">Parameters</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.16-1">
+<pre>
+domain_separator: "ACT-v1:test:vectors:v0:2025-01-01"
+L: 8
+c: 100
+s: 30
+t: 10
+ctx: 0000000000000000000000000000000000000000000000000000000000000000
+</pre><a href="#appendix-A.16-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="key-generation-3">
+<section id="appendix-A.17">
+        <h3 id="name-key-generation-4">
+<a href="#appendix-A.17" class="section-number selfRef">A.17. </a><a href="#name-key-generation-4" class="section-name selfRef">Key Generation</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.17-1">
+<pre>
+sk_cbor:
+  a201582039fd2b7dd9c5196a8dbd0377b8dc4a498a35d86fbcde6accb2cc7d4c
+  d8ea24920258210301302fa089e8355da29cc6d17fd7f19de9312ce145a457bf
+  399d9bced806be42
+
+pk_cbor:
+  58210301302fa089e8355da29cc6d17fd7f19de9312ce145a457bf399d9bced8
+  06be42
+</pre><a href="#appendix-A.17-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="issuance-2">
+<section id="appendix-A.18">
+        <h3 id="name-issuance-3">
+<a href="#appendix-A.18" class="section-number selfRef">A.18. </a><a href="#name-issuance-3" class="section-name selfRef">Issuance</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.18-1">
+<pre>
+preissuance_cbor:
+  a20158202b23cce7a26023ab3f0eef693ac87f64258235eab1f7a32dc22762a0
+  485b410c02582018b84231ade6a6d113615c61af434e27f8b1f3f5e1ad5b5cec
+  f8fc122a35755c
+
+issuance_request_cbor:
+  a40158210233591f3a5c791a422b27b5e795e3abe33438b75a12c91ee9a7b4fe
+  13a7bd4c2502582033029bfd21f72d9595951761e00c6c8a9f42be24c8636707
+  a721a98adf8061010358204affafb35e774352c143d2633e874d2a727a7de1fb
+  9c3a0a81442210ae837ad204582039b2879940dd4dd323009991c88328119d92
+  52300958942bffa025321c35368d
+
+issuance_response_cbor:
+  a60158210353ad23d990da86086e7174de8872e211c4074dfb3806c694d02e34
+  1f30e1018902582084a8021b8a5c0b2494cd3c8d5b13507ec7e7a0784df4a3e2
+  ea8162d261c59d230358209b1fcf4a2abd433def37ab844120bb18dad7958784
+  b1c097aa4b654baca7ae630458201cb4188584a7961b64e867824abd2e4e6b1b
+  4450eb64dc159bfc12be5ed46add055820000000000000000000000000000000
+  0000000000000000000000000000000064065820000000000000000000000000
+  0000000000000000000000000000000000000000
+
+credit_token_cbor:
+  a60158210353ad23d990da86086e7174de8872e211c4074dfb3806c694d02e34
+  1f30e1018902582084a8021b8a5c0b2494cd3c8d5b13507ec7e7a0784df4a3e2
+  ea8162d261c59d2303582018b84231ade6a6d113615c61af434e27f8b1f3f5e1
+  ad5b5cecf8fc122a35755c0458202b23cce7a26023ab3f0eef693ac87f642582
+  35eab1f7a32dc22762a0485b410c055820000000000000000000000000000000
+  0000000000000000000000000000000064065820000000000000000000000000
+  0000000000000000000000000000000000000000
+</pre><a href="#appendix-A.18-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="spending-2">
+<section id="appendix-A.19">
+        <h3 id="name-spending-3">
+<a href="#appendix-A.19" class="section-number selfRef">A.19. </a><a href="#name-spending-3" class="section-name selfRef">Spending</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.19-1">
+<pre>
+nullifier:
+  18b84231ade6a6d113615c61af434e27f8b1f3f5e1ad5b5cecf8fc122a35755c
+
+context:
+  0000000000000000000000000000000000000000000000000000000000000000
+
+charge:
+  000000000000000000000000000000000000000000000000000000000000001e
+
+spend_proof_cbor:
+  b201582018b84231ade6a6d113615c61af434e27f8b1f3f5e1ad5b5cecf8fc12
+  2a35755c02582000000000000000000000000000000000000000000000000000
+  0000000000001e035821027017582a4451a02f86235a18382fb18882eab36d6a
+  a6d88af4e70551abde0de8045821034f0e16a404e3397e2e8fd051dcc90dfc68
+  fb542af63fa628fde531c51a6350b60588582103a87031706ff4a8eaa3b847e3
+  37ecfdc4a1d466d0b1825a1ef1f2b5058cb3b2c858210285eae1a685949147f3
+  f360ca096eb6b946045fb1318f26c8d41fd3dfe0961be858210360620f2a0217
+  25bf8f2d6053216451ad738735bb8e58ebee34b6365d88550188582102e8fe1c
+  16109af904956a43744de751a48b7f5babf223a7d9d4d806875cec2eda582103
+  5d70250f1ba3974daaa56ee0a54ae53756a2990602b76dc7b33313701c23308a
+  5821033bd90dfe3a0a9ad44bc093e5476457b207a16ba2aa12212e469c009bad
+  b44864582103fb80424145bfee4510b0daa66c9a3610d6f8a77f9460808aba6a
+  35a2e2dc788258210354e7cdc20d6ce47e7a0cd9604c14ad27c11f4e2ce4d00a
+  f5ab840de359266fd6065820b1148d93a9bc491b8e16aa2e0550dca20bc3442b
+  bdf0274c4df23c6410dba2740758206f045da12aae89c0d0fb75ea926ffd017b
+  61752999ca0beaabbcd87d2e3165b40858201665e39e44f79fb8736b0f7aa51e
+  93b0b18f198af4773d947240c02f3ffa580a095820606415390f9c72225f500d
+  112c46461983b6ef5581c51eb2a281018ae95362960a5820b62605805fea717d
+  7a08da5c47b3d44dd6d57d314a134d413ab2056f6e74769a0b5820608191b7e5
+  dc82e184164d90df231a3110687ef2ef53d122faefecb73949a96a0c58206df6
+  42d946a55f875b9f0860a06e4108131372e7ce52a218ae56e7b573ab83440d58
+  206a9192e22167b171783edc442d1debea35c8c62cd27be25ccdd0cb887fc41b
+  530e8858207afa51c2537973908305cfd236b48960abffe44133e317ba0f9a59
+  ff8d433a7b5820ceca4aa2ff6d7aae8d4a8e9ad50786663932729106f437bfb4
+  f735df0b52b40a58204fa9a0fbc0552298605991cea5c0600a388e83f6d065e2
+  aae3666aa6e87d69e65820947d8472f4635263546b425a249bf12d547a6a1b8a
+  2cc39cfd84cc8d3324657d5820086bbd02815552f16a1b2d789635df3e433417
+  bc90549c2cf4cfbf2f5b8fff5d58200fcb7845809c06cb7c481e31b3a2b9ee36
+  a072648bba656f9746d1cf8970079958209ca80e6252fae8f0bf5bbbf33157a0
+  fda42ed9f25cc3fe099a2b1fbd793e1c345820caa24e675ce78291edaef3000d
+  4f28f8dd32ba35f705a21ab4a7407fbeff5ea00f8882582003abed40e708604f
+  04669dbbdbda04f007daec46aabbcd1e27371b357e64e50c582021dfcb29a804
+  6791dca97da2e977616065171fdca134c9e02e67fe356c70da208258207d7a20
+  ccff17e7873f7f3465f6c8c70abc53d97ff7dac95f56a19a103edcd9a2582054
+  bbfbd16238d2888005f0ff4b41f2ca2dcfabbbee9cdcd66a9f0a3ef534d6cd82
+  5820d45cab4cd1d9924b4bbfbaf09c34769621184923e61d8384a064d607beaa
+  72b4582006c5453ed8dfd826021c4b84cd53180203a4b3b5eee1f0c371d6aa87
+  fe786631825820d1ccc19d18e0e53e87e00e3576a07408ffbead81c83130fcdf
+  893189c465c6e1582005d644e79d25d9b4b913ad9a64826a5dd60edfa8bbf1c7
+  604c77c81b8d428535825820d66ff214e18271898115abbe62af0470c20a3d7e
+  60142b4f28c7ce41178d08595820183588ca784a4e5606a2627b641ca044376b
+  dfb7f2b3e3c8f5bc5dc1c6ff0305825820a9aa1b4a62b657c10374aa35b1d301
+  ac3153025c130e8968de1b67e9e81a92ae5820bb6e37774d548b6d6a714bd84b
+  fdfbc94074836079640e86d6998877c9716a59825820d44d65d01b23b9c3789e
+  75b5b5a34751f269d2d81d80bc7d33d2e41a71b24241582074d75e48f7fc13e3
+  1e3f116c4806121bb93ad7a7c027ffccad2da8e55edfe0f4825820ef1e3b797e
+  5dbdeeb57ed5847abb260f890ce5bd8320d3ee9da54405bfddd1a15820627d76
+  64c5fd194f8f1b38539167d77bcc036beed2f47005e69a940ccf52b239105820
+  dbd24ffdcb566c16dd8cf66e6882f941830f9b3c10ad4debec0ae2d10bc3e03c
+  115820b49c3b0eaac33ef2b56e7b8e34a900bbc983d4c390f469b88bc67b21d2
+  32c7cd1258200000000000000000000000000000000000000000000000000000
+  000000000000
+
+prerefund_cbor:
+  a4015820a7173cbaed1dcbe2392f4e8da31fbf7b54990fbafde673f8765ab3b0
+  68bbcfad025820185838beabf85b1605467c46149350e877815eefc73f7d9b3d
+  94b198d7fef9c903582000000000000000000000000000000000000000000000
+  0000000000000000004604582000000000000000000000000000000000000000
+  00000000000000000000000000
+</pre><a href="#appendix-A.19-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="refund-2">
+<section id="appendix-A.20">
+        <h3 id="name-refund-3">
+<a href="#appendix-A.20" class="section-number selfRef">A.20. </a><a href="#name-refund-3" class="section-name selfRef">Refund</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.20-1">
+<pre>
+refund_cbor:
+  a501582103132603f95005e506212da5c8bec0ed1b18f0aea1752e529db15fc8
+  d21dc78eda025820608f22735090d5bc4c5008960d409643e95e2fbbac5573d3
+  8961045c80dc83fb0358204e85fe14a0be99fe2b99867002f83c72cdd2c55786
+  9ca112ad97beb72d989d3b0458206eb0f315bcf6e17702a8bca3c584c3bfe413
+  0554c55220b6989bad80823b4173055820000000000000000000000000000000
+  000000000000000000000000000000000a
+</pre><a href="#appendix-A.20-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="refund-token-2">
+<section id="appendix-A.21">
+        <h3 id="name-refund-token-3">
+<a href="#appendix-A.21" class="section-number selfRef">A.21. </a><a href="#name-refund-token-3" class="section-name selfRef">Refund Token</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.21-1">
+<pre>
+refund_token_cbor:
+  a601582103132603f95005e506212da5c8bec0ed1b18f0aea1752e529db15fc8
+  d21dc78eda025820608f22735090d5bc4c5008960d409643e95e2fbbac5573d3
+  8961045c80dc83fb035820185838beabf85b1605467c46149350e877815eefc7
+  3f7d9b3d94b198d7fef9c9045820a7173cbaed1dcbe2392f4e8da31fbf7b5499
+  0fbafde673f8765ab3b068bbcfad055820000000000000000000000000000000
+  0000000000000000000000000000000050065820000000000000000000000000
+  0000000000000000000000000000000000000000
+
+refund_token_credits:
+  0000000000000000000000000000000000000000000000000000000000000050
+
+refund_token_nullifier:
+  185838beabf85b1605467c46149350e877815eefc73f7d9b3d94b198d7fef9c9
+
+remaining_balance: 80
+</pre><a href="#appendix-A.21-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="act-p384-blake3-test-vectors">
+<section id="appendix-A.22">
+        <h3 id="name-act-p384-blake3-test-vector">
+<a href="#appendix-A.22" class="section-number selfRef">A.22. </a><a href="#name-act-p384-blake3-test-vector" class="section-name selfRef">ACT-P384-BLAKE3 Test Vectors</a>
+        </h3>
+<p id="appendix-A.22-1">The following test vector was generated deterministically using a
+ChaCha20 RNG seeded with the bytes <code>00 01 02 ... 1e 1f</code> and L=8.
+The domain separator is <code>"ACT-v1:test:vectors:v0:2025-01-01"</code>, credit amount
+c=100, spend amount s=30, partial return t=10, and ctx=0. Values labelled <code>*_cbor</code>
+are the CBOR wire-format encodings (Section 4) of each protocol
+message, displayed in hexadecimal.<a href="#appendix-A.22-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.22-2">Implementations <span class="bcp14">SHOULD</span> verify they can deserialize these CBOR
+messages and that a full protocol run with the same deterministic
+RNG produces identical output.<a href="#appendix-A.22-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="parameters-3">
+<section id="appendix-A.23">
+        <h3 id="name-parameters-4">
+<a href="#appendix-A.23" class="section-number selfRef">A.23. </a><a href="#name-parameters-4" class="section-name selfRef">Parameters</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.23-1">
+<pre>
+domain_separator: "ACT-v1:test:vectors:v0:2025-01-01"
+L: 8
+c: 100
+s: 30
+t: 10
+ctx: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+</pre><a href="#appendix-A.23-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="key-generation-4">
+<section id="appendix-A.24">
+        <h3 id="name-key-generation-5">
+<a href="#appendix-A.24" class="section-number selfRef">A.24. </a><a href="#name-key-generation-5" class="section-name selfRef">Key Generation</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.24-1">
+<pre>
+sk_cbor:
+  a201583039fd2b7dd9c5196a8dbd0377b8dc4a498a35d86fbcde6accb2cc7d4c
+  d8ea24922b23cce7a26023ab3f0eef693ac87f640258310263d8397072540c4f
+  654ea4ce5975630c7067b519107a81c7030e349c8b331517be27199568faed4b
+  9f16671b6cb99835
+
+pk_cbor:
+  58310263d8397072540c4f654ea4ce5975630c7067b519107a81c7030e349c8b
+  331517be27199568faed4b9f16671b6cb99835
+</pre><a href="#appendix-A.24-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="issuance-3">
+<section id="appendix-A.25">
+        <h3 id="name-issuance-4">
+<a href="#appendix-A.25" class="section-number selfRef">A.25. </a><a href="#name-issuance-4" class="section-name selfRef">Issuance</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.25-1">
+<pre>
+preissuance_cbor:
+  a2015830258235eab1f7a32dc22762a0485b410c18b84231ade6a6d113615c61
+  af434e27f8b1f3f5e1ad5b5cecf8fc122a35755c0258307208086dd1ee3c5d9d
+  815824640e003c9ba0f65ede5d59ce0d2a4a7f31955acd42f22ddca74a92d56c
+  a78aef298e723b
+
+issuance_request_cbor:
+  a4015831026e0bd2b2a4d6a164bf836f49424b0dfac89575c5154bae176e5f8b
+  ddba16f0021e26a169c853e22238e9d1296bc6251902583094f40eb51f9b07c6
+  989a27104c33bda89da9f17d8b6ffc3b90f0d0d4c43d1bd587b679c83d095f1d
+  4ccc6a5d447912330358306fd0884850269492ce3a1f28ddf3f6f0b6aa8de5f5
+  170e8bdca0c86eda3fefaa89b92c762f69582054f6ef73e217a458045830be6c
+  82d5bfb23f9fe122a5592da119d4f60bd3d5243e234055a78dcbaf3906616bc1
+  c0d6c07652cabef2f50284ec81f5
+
+issuance_response_cbor:
+  a6015831030e2419259bc1f3244fddc601e0c3e731d7f891b589a0a2def9b606
+  38de861ead79c88ec43856ad48d49cf3cb5ad4f3ce0258304acbf8ff1fd1a7c8
+  06d81ca8e4ae3b2cffdba11827588c438f5434eac956be8f95a043ad04cdfd0a
+  97d7fa49d40d099e035830daabd3bf03f27de80cdee2b5f1228ce1e16b5e9bdd
+  db7f7a3ffd89558e91eadc05f6ed2b510c2fb1fa112ef1110dfe4d045830dbab
+  9bfc9cf5689f8b3726648abf7953734d32ef6343ae515d962da90c51eb35149d
+  cde0665ca601918755f17f3426ee055830000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  6406583000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000
+
+credit_token_cbor:
+  a6015831030e2419259bc1f3244fddc601e0c3e731d7f891b589a0a2def9b606
+  38de861ead79c88ec43856ad48d49cf3cb5ad4f3ce0258304acbf8ff1fd1a7c8
+  06d81ca8e4ae3b2cffdba11827588c438f5434eac956be8f95a043ad04cdfd0a
+  97d7fa49d40d099e0358307208086dd1ee3c5d9d815824640e003c9ba0f65ede
+  5d59ce0d2a4a7f31955acd42f22ddca74a92d56ca78aef298e723b0458302582
+  35eab1f7a32dc22762a0485b410c18b84231ade6a6d113615c61af434e27f8b1
+  f3f5e1ad5b5cecf8fc122a35755c055830000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  6406583000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000
+</pre><a href="#appendix-A.25-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="spending-3">
+<section id="appendix-A.26">
+        <h3 id="name-spending-4">
+<a href="#appendix-A.26" class="section-number selfRef">A.26. </a><a href="#name-spending-4" class="section-name selfRef">Spending</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.26-1">
+<pre>
+nullifier:
+  7208086dd1ee3c5d9d815824640e003c9ba0f65ede5d59ce0d2a4a7f31955acd42f22ddca74a92d56ca78aef298e723b
+
+context:
+  000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+charge:
+  00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001e
+
+spend_proof_cbor:
+  b20158307208086dd1ee3c5d9d815824640e003c9ba0f65ede5d59ce0d2a4a7f
+  31955acd42f22ddca74a92d56ca78aef298e723b025830000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0000000000001e035831036296e1aed312204c396288d2f99f7bbc6a4717ef1e
+  c5b97b4be73322c75f9aab70539cbcab21f124e2b3d5d1a5f9c31404583103e5
+  364a37d75aaa65b02f3e11f9e427df29ac0344b9b52401141efcacba6266af1d
+  d6a4e1a7498ceeeaf7bd7a15e71a2005885831038278a69e56cc22343ebf02d3
+  ed9335e39ba9796cc1764c6a247399d54c5790bc055694b53481beb92f20c138
+  1d31278c583103bfb1d3b5777f7745a64eb594e061ea1fe191e7635fd9582bb1
+  ca177192ab43552ee03a63d8bb39103385ab469de21fd8583103eb0798861c9b
+  488a7922747c22d7a237a1265ce17e7e01a6d34f2ced91e0d8d321c2497d5c8b
+  5966c813737df094fc04583102d2fd906a5aba6789a67224c37447b0711d2e4c
+  65bf74adb351ccf9780312ae292e5e283d6629e6f7db6cd79f41c6e4cb583102
+  ace9728aa318f26dbfe0b8ee909d3fc653a30d48f383a64dd934bd0a3b9f60d1
+  7e9b020db9b141b780cfc79e01713ba9583102dd2ea82fc4c2c3e203841f3761
+  1656e1ccd1b7f6e5df4ed790c067854b73f99f556cd3ec35a256b2b79b5f18db
+  4dbcd2583102daa44b9179c2cff850625f8249e536bbbaa3e8d8d2381dccc612
+  0e06f16847291199a6b1ef837650fdb6d003cfae920b5831034a7e5472342c50
+  8a334e283cd7db6378fb266b01037209bef85481f57fdafd8432280b78526dbf
+  02d69f9e7e6a7b0f310658301a410efe60766c174b4a8f4054d9c68b94381d72
+  172409246f9dcc429a9421e60087d5bb1a32538bee3532be6b100c30075830e2
+  c075df6052fc5466e475c9e47a7954a969319b14cb31545f4895c121f12a6893
+  840136ac0293d6ef24a4d986a8aaa208583076e2325b3b1b91c075cac39838b5
+  89f2df963e0261922745201f4690564ea694f8550b796f441f4e27357288a6ee
+  21630958309fdd9c7586e5caea4bec00589e7c9c69d06ee8d8875e61144f7a11
+  cb4e820a8e0804d3def875220280e8c802a09795fe0a5830d8ed702215be6dac
+  ac925cfab5241aa9326cb82da1e4c8d7fce706d731150ba90b907882ab2e0d3a
+  5ef1f6cdd232fefa0b5830ae319e6c5f2d943d3307af34919f624921273b8661
+  7231960612df3886e2d5c3b53f09a2b97aba5342b4b0663f26657d0c583073c4
+  ca0b6998564c4ee93008bba12b805f6adab8e46d06c6af15bab101e29fbfe351
+  7bb7decb8788e67629f9d17051030d58300b48a8c0cb0ae7abeffc0590d41306
+  efae441736ed447b25cb4545737b3b2500a00961ad005939216625863b9053a7
+  740e885830b7c398999a7952c7bc2f56ecc371ef0fc834b183442f991e506685
+  b7bf789d8bb765a27942e25394515ce97dbc4d9bf85830cc23010d4abf0a047a
+  fed5404716edc61e3096f7979b18ce28703f44a58bb3acbb7d34963797654502
+  d2fa065a6d41b85830608f22735090d5bc4c5008960d409643e95e2fbbac5573
+  d38961045c80dc83fb8328e6c432e205bb41d3dd422d5f264f5830252c199782
+  2af8fa9c298af2432236782d3e88bc9cad5659d3e502b76aa4760cf869da4456
+  9590a0116eaa7267df9fd65830b087d2bc167da4874fca54a6e754c6d38cec53
+  c7184749294e766585c75b84c2dc8fad07ae257ead95ffc06fe7a3df8858301e
+  08a0d7e6180558408f46e440cda16bb5535e7e7294e7849ff12f8de3db43ff8b
+  87271e51da1e84d917a7df10102a205830a4697a8d626a333693e5b318baf83d
+  4e4c91c300271e53f819b02d2a3dae07319a61da49f48e65f6b4ab2bdb59677b
+  39583043796cbaf6fcdcf91a986f1a97dbdf4bf32e68e955586bfd5be0f8cfb3
+  72ad3d0abea6d3a640a0e2d313fa90b434be020f8882583081855f1def5035fa
+  d8f540245351cfb24c16699f37390386854a8a096310f5e2b588d442d333fa0d
+  5ff8403547506ea35830a4144478d893392a42c79609ff78ecd4c8ddcd9a265d
+  62302c1d5fc5ad298e450085e8368c1654aaa6981a57b1fadb538258303d4980
+  07b3ae70f022bee08accdb2122382d0876e0917392b843c4b31fd64373ff1df8
+  6b6ddc8e08f8619bdc2028ba61583049a2bd5520a2367badc6e79aa55d87f820
+  48168e151667e7e63338a0fccb2e43fac4c5c6f02bc0dc6a1797de0eec06e282
+  58302aaf5eca3cbe45770cb6a7458a6fd047eec0e4dfa6720114e1fea30f7002
+  5dfe04e6a8815a6ec715d75fe23cbc7dd27b58306c5e50a4d57fd541341b0f11
+  91519d7ce13c8d3db24653d823b2a16a3e0166754be888119c27ed30b0b08110
+  c9c0801d825830889d8de226dd46990e712659c4f9b4d4b4d5dd0446b584626d
+  d44c8d1f7b398be545ad964ed4be32f00ac94b53982a3e5830ead4b239547b0a
+  2214f49e19643d4da7c0d7993d18f4aac7f14486db5480a924fb2b8c3d3e2eff
+  bd50d8e661f2a11b30825830f977b645937ec4436c8ef94a2c33d4855feb3515
+  044ca44f366a904a6b6512137efd17e16b64a60aeddb35f007a03c625830eeae
+  fe61aedec9d1b54453bcc37198bdd442690814c688f44b84674f729828a55cc1
+  07dcda3bdb1589226fb506af2db4825830a6705c616a401f8489534e14f62964
+  61f4d8393eb2f0e5312bad2c70ed4125151001db798653784c8733dc0125a590
+  6e5830361e223c8309364fd60e8340138a38632de3eb7850ab7c644308338df5
+  9564dd519a30176f266a532c53c4da81a89352825830697a98d2cbc64f2860bb
+  7d5cf6e72bd155bd92eea8167a80683d8e6fa048f9ef8e05c16050d13ec8532d
+  89ee05054b6058302051c11e84b7c1e321c4389b9a6e4f1d1453a05eddffb268
+  c1b1d1c2443ad544b31692b6a765865e3677884bf4f3b73682583033ca622e29
+  624b6387bfd4ea1f75ddd9e3bcc45e4a3ca02ee5e562f2d4e4457484c62373f0
+  a998712bc579c48af21f7e58300414f19c59adf415baefe2f58b6e305e38d549
+  c10c4bdf8d90934c3a69d8a5a06c1cfc7bf8bdee06bce4756ef324af81105830
+  f9ebd4cbf2dac31ae9ad9ac33c931f7e6edd819382d5febe2d43b115d9de3acd
+  38d75ad069644f9a4e0615f21c770e9511583078ae5f283679f873537cf5ed75
+  34332181a5181226cfcfb4c4f9a10bbedec25a23b5a26454a43d8f9bf21e4c63
+  18b3ce1258300000000000000000000000000000000000000000000000000000
+  00000000000000000000000000000000000000000000
+
+prerefund_cbor:
+  a4015830d56c1ee7f0ca1e3e8e08b0150ca2693117ec9fa46561a2d63cbdfff5
+  d30aa3ab8adb5542d6dc452630f224e8619dec13025830426faedde352ae3915
+  c9a9d4a4c0573f956e6018d65ee23197594b12437425fa40ca8cc5ac1254adef
+  8d17424395631903583000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000046045830000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  00000000000000000000000000
+</pre><a href="#appendix-A.26-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="refund-3">
+<section id="appendix-A.27">
+        <h3 id="name-refund-4">
+<a href="#appendix-A.27" class="section-number selfRef">A.27. </a><a href="#name-refund-4" class="section-name selfRef">Refund</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.27-1">
+<pre>
+refund_cbor:
+  a5015831030c7354b41acf1c0a1a2a48b8abf831218dae6f99012605c7646d41
+  e67a7a3b87628a89ed92313ec9b0f3a224f979cccd02583044cc72ceb77e4824
+  ef568678064c3a183b8621284405a706e789a6e7a22d64207e69fb0b8515ce8a
+  b878ca7a07ebab00035830481b2c90e0753dd9c90909a7ef8e9fa78d63ce045e
+  64f962ef1e433991fa040ae503ad0a81754c1e67262db0832bb3be0458300076
+  ef18fab64d3e967c8435409a2c051f9658bc66fbf0d73bb94bbc23803daa3025
+  5971a8dccbbd25a34727e1a931df055830000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0a
+</pre><a href="#appendix-A.27-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="refund-token-3">
+<section id="appendix-A.28">
+        <h3 id="name-refund-token-4">
+<a href="#appendix-A.28" class="section-number selfRef">A.28. </a><a href="#name-refund-token-4" class="section-name selfRef">Refund Token</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.28-1">
+<pre>
+refund_token_cbor:
+  a6015831030c7354b41acf1c0a1a2a48b8abf831218dae6f99012605c7646d41
+  e67a7a3b87628a89ed92313ec9b0f3a224f979cccd02583044cc72ceb77e4824
+  ef568678064c3a183b8621284405a706e789a6e7a22d64207e69fb0b8515ce8a
+  b878ca7a07ebab00035830426faedde352ae3915c9a9d4a4c0573f956e6018d6
+  5ee23197594b12437425fa40ca8cc5ac1254adef8d174243956319045830d56c
+  1ee7f0ca1e3e8e08b0150ca2693117ec9fa46561a2d63cbdfff5d30aa3ab8adb
+  5542d6dc452630f224e8619dec13055830000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  5006583000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000
+
+refund_token_credits:
+  000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000050
+
+refund_token_nullifier:
+  426faedde352ae3915c9a9d4a4c0573f956e6018d65ee23197594b12437425fa40ca8cc5ac1254adef8d174243956319
+
+remaining_balance: 80
+</pre><a href="#appendix-A.28-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="act-p521-blake3-test-vectors">
+<section id="appendix-A.29">
+        <h3 id="name-act-p521-blake3-test-vector">
+<a href="#appendix-A.29" class="section-number selfRef">A.29. </a><a href="#name-act-p521-blake3-test-vector" class="section-name selfRef">ACT-P521-BLAKE3 Test Vectors</a>
+        </h3>
+<p id="appendix-A.29-1">The following test vector was generated deterministically using a
+ChaCha20 RNG seeded with the bytes <code>00 01 02 ... 1e 1f</code> and L=8.
+The domain separator is <code>"ACT-v1:test:vectors:v0:2025-01-01"</code>, credit amount
+c=100, spend amount s=30, partial return t=10, and ctx=0. Values labelled <code>*_cbor</code>
+are the CBOR wire-format encodings (Section 4) of each protocol
+message, displayed in hexadecimal.<a href="#appendix-A.29-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.29-2">Implementations <span class="bcp14">SHOULD</span> verify they can deserialize these CBOR
+messages and that a full protocol run with the same deterministic
+RNG produces identical output.<a href="#appendix-A.29-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="parameters-4">
+<section id="appendix-A.30">
+        <h3 id="name-parameters-5">
+<a href="#appendix-A.30" class="section-number selfRef">A.30. </a><a href="#name-parameters-5" class="section-name selfRef">Parameters</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.30-1">
+<pre>
+domain_separator: "ACT-v1:test:vectors:v0:2025-01-01"
+L: 8
+c: 100
+s: 30
+t: 10
+ctx: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+</pre><a href="#appendix-A.30-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="key-generation-5">
+<section id="appendix-A.31">
+        <h3 id="name-key-generation-6">
+<a href="#appendix-A.31" class="section-number selfRef">A.31. </a><a href="#name-key-generation-6" class="section-name selfRef">Key Generation</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.31-1">
+<pre>
+sk_cbor:
+  a201584201befaead7d149884a0b3f7e38cff16702d3668b7e9fa1556d545ad8
+  a06339c94e42d0802a4aa38a0327e8f401f047c799f9084e99f6af19385c65b4
+  453f0121dcb0025843030142f404e66e481d1ecbb4de97fc07cb2898474c979b
+  dec8858de8ceb4eb625107af489e37c8e9cb6809b62fea5332937966e1e25acc
+  7e493f33e45d3d6b681aa0a4
+
+pk_cbor:
+  5843030142f404e66e481d1ecbb4de97fc07cb2898474c979bdec8858de8ceb4
+  eb625107af489e37c8e9cb6809b62fea5332937966e1e25acc7e493f33e45d3d
+  6b681aa0a4
+</pre><a href="#appendix-A.31-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="issuance-4">
+<section id="appendix-A.32">
+        <h3 id="name-issuance-5">
+<a href="#appendix-A.32" class="section-number selfRef">A.32. </a><a href="#name-issuance-5" class="section-name selfRef">Issuance</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.32-1">
+<pre>
+preissuance_cbor:
+  a201584200cd3d331035754fcd8e7b105925786510efb8bc1302a8f2dc08ac91
+  c64d20738b3d31b30d77f921617430c70ff94d761880b95ca944610f83aceaa1
+  10f630c3685502584201de9af6a86567a837119225e4983962a9b61ae65faa00
+  9f596b09d9605816535474c51c196779fa2f8cd1f69e887bd51b9baaf4f96a40
+  cbe7513dc7286f34da7847
+
+issuance_request_cbor:
+  a401584303005ad4ec8051a905bec5442a1682ba5d4a6e08ab9ee6cd0bcb4e49
+  43f42b740f59b2f0b8b5a6bc8cd5848bac08399884cde90fbc658f92aa208920
+  fc31981b4e663302584200d29989f20e0b320f2d80abaf5c200c0538ce4a3c27
+  3b2f2ab44241c633cd192cf0342fe30ff0f2838ed2780bfcd8c0329956713c42
+  9137c939922ef14a0c81b7f003584201aef9949b8092d5f481976029921efcc6
+  a27509ee0a78f2188fa8d482d4d54b6e92ac48af9094ff1c3e86f5589607862f
+  ffffa0c046a070a7ca61236ac9939c750c04584201aff5cf27806ca4a725e50b
+  b36af028251c9c1997db13a6cd0c163b8b44c165a9000fe4c3060147cb2a5ac1
+  8bbbf19556ca372019f1c343d5e7f5e02c01d2484e56
+
+issuance_response_cbor:
+  a60158430200dc5c6fcfd51a26f0885b14bd520a7ce4eaa5c42372c758d788b1
+  57034a9d73601c25b1f2aabb06da6fdbbf7577a104e6d8a3027b644be4b79b4f
+  efe30494c2a5940258420150f60a980d35d7e9b45078236789ba8ff32550304b
+  c04e33df13e407c3114b20f3f1b8ea6c623e600b336d17f556fdb9c9a2f828f5
+  77352961dd665abaae26354703584201b4418a119ef7ff0be33a0d00f436078c
+  ea60caee7abc0b68ef4b5601ef1e89bd4a057903a2d98fca306aeb120c92216d
+  78934978cc0c3a05e8bbfab9465759282a045842019dc4c5f7342bae111987f6
+  8481d361af19cbc2114c25a0f1ce109656bcaa0409484a05b13abded3487f3f4
+  ee9c3535927c95b4b291dda4693ed4c4522a31c2b32805584200000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000640658420000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+
+credit_token_cbor:
+  a60158430200dc5c6fcfd51a26f0885b14bd520a7ce4eaa5c42372c758d788b1
+  57034a9d73601c25b1f2aabb06da6fdbbf7577a104e6d8a3027b644be4b79b4f
+  efe30494c2a5940258420150f60a980d35d7e9b45078236789ba8ff32550304b
+  c04e33df13e407c3114b20f3f1b8ea6c623e600b336d17f556fdb9c9a2f828f5
+  77352961dd665abaae26354703584201de9af6a86567a837119225e4983962a9
+  b61ae65faa009f596b09d9605816535474c51c196779fa2f8cd1f69e887bd51b
+  9baaf4f96a40cbe7513dc7286f34da784704584200cd3d331035754fcd8e7b10
+  5925786510efb8bc1302a8f2dc08ac91c64d20738b3d31b30d77f921617430c7
+  0ff94d761880b95ca944610f83aceaa110f630c3685505584200000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000640658420000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+</pre><a href="#appendix-A.32-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="spending-4">
+<section id="appendix-A.33">
+        <h3 id="name-spending-5">
+<a href="#appendix-A.33" class="section-number selfRef">A.33. </a><a href="#name-spending-5" class="section-name selfRef">Spending</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.33-1">
+<pre>
+nullifier:
+  01de9af6a86567a837119225e4983962a9b61ae65faa009f596b09d9605816535474c51c196779fa2f8cd1f69e887bd51b9baaf4f96a40cbe7513dc7286f34da7847
+
+context:
+  000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+charge:
+  00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001e
+
+spend_proof_cbor:
+  b201584201de9af6a86567a837119225e4983962a9b61ae65faa009f596b09d9
+  605816535474c51c196779fa2f8cd1f69e887bd51b9baaf4f96a40cbe7513dc7
+  286f34da78470258420000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  000000000000000000001e0358430200b3c697109ce6aa66f1e65d6aad841650
+  17e2e2cfbd2a7178ec4a3c8410f8e132495100e9a2e2b38618f85e36ecfb9d18
+  e1200282dd52c958b46630be5ba808343e045843030006b484acdbbf867c770c
+  7cd28726163f0d3013881e1e18811261b4e1046e3dd84d7851c2753df1671357
+  7318dc2a35b4be55526dbb84d446ca21a0bc5fec54e9e90588584303018c12f6
+  b9231bd8cc808a1d3b9621afc283c981c371c2be8c358bbdc32685bb4afffb48
+  125bc1592458c5af8b4725799f5e85c6cce53434b79fcb9c983c03d8640e5843
+  02010606b32b004402d710b07ce7e2c8cedfe10d5420d79a12dc2174b7e96695
+  784a8c7ef343e7c98a64decf25eb0c464287b2d741e80caacf19e99edaf73dc4
+  9e9eaf584302009b2e147004f882783d3bfe9033c8b098a3ad44664f182391b8
+  23a6697757ac8180bd0adc17175f91d3f5332c5b6155fa14b9596b00ef41a563
+  1132d77ad670b8095843020009f8bdaba82adc7826dacc478cf9992a1757be05
+  a3f9169d847d1fcdb8514c620c26a17b4c1c03b6cb3027be8b8efceeec5a5b98
+  6682bc52bd20e3148b8940a7a8584302007f8951f501dbc1dfed736bd0f9414f
+  0c07b69af1fc13bba648b091946a4230b62fdbaa542a08b349930c7361b536b4
+  3881fd6a1264888bcff817232e47345eb67f5843020096012242dcd7e3d77d65
+  37ead2b0aa42442fb3e265845a9b02d570c344b0c166031fec2e0d45d1453238
+  cf20fb59b038c1c0769610000595cfd79863a5f3d6a87d5843020054b38e6944
+  1762303e638e54289a4aaf93658730807ffef08ad96be10bc1ba13c6ae3fc80c
+  b50eac7fcd28ee39a7c06c0800f2f6cad517d15487a374685d26f42e58430200
+  01827d9c19161d8ec81d3f99c31a415f7d62eca0a42af542104eed2ac4e40f3b
+  2f0de7181bd592ce3a74a92cdcf8767636e8eff9ba6590dd7bed2dc1a22837f1
+  8b0658420150f9e2c7a8b930280c3ef278419abf3b3140e7ef73b6c63fc8b0b7
+  ed9c18446c7b578a7b86c473c2de82967d2a65af83d8fc0899005388119ad7b5
+  a956a3230251075842016debbb51df327aabdd525badad9be11b2c318ea08c39
+  9d43ee81e9e1bd9a17968c13ff8fb5b8aa6c7a53c3009476f611c1350c951321
+  0816055541edae12f263fd0858420116b37f5a266254650c74c301ad166966b6
+  65d0d7356959659f875f5f2d90cde8cb3788349cd39f1d85d0ce91d351db6744
+  2f3ec0d9d84957be74d42662fb8d17be095842000263e21d4ba8f96ef11cdefc
+  491658f47a526e40c6d56d21ce2d1dad84b898a4f2a0270afc96ae38da65e862
+  b83a3b869f91acdf72bc11c45b0b335c6c130bc4890a584201cd225fa754e231
+  965597825557839f0ac6b233eed87eb0b0892bd069ee8045451ef10e89fe7240
+  8c7e0cf4e472367b0b5ae68aac2642e53b49db7bc0fd5d90ce150b584201744f
+  3d64eb82224f7cadbd4b2aa4d6c8f516e5cee162329e31d687db06ec6dc3fcb6
+  809082697c058a88fee599a8162915844bcdc43d57de5fd02642c00a94a43f0c
+  584200f4f46cb0e6ba946bd5498f53942cff65baab07abfb7f743f82bad0fcdb
+  e39c066635d3bfb0ce73d5c2294d13b35a4cdd6ef016f9d0a6d40f21e04cc3b0
+  193fc24f0d584200332687fe0f448f005589e0072b4a910e81fb5a80baf6d8b9
+  2384a3400d1db56528bfb84e5dbfc8e1315d82f7240eec08d8ad13c361b1ae19
+  2cf1559d7042e07ccc0e88584200c3fd9e5ae7a1a8331123b22f10891ea1d0bd
+  dbab795e43a440e2e8a3b045949c3d04a89c49237a157ea4f8d7c69b333ce176
+  caa15a636eb82609026a2f4dbbb348584201b556ba9acb1021a6b6f6f35bc502
+  03cab9b27f20a4ca8caaf655ca17eaf91049a82139d506ec044e85cc78f09ef5
+  4ab3758b02578070527befbd4dbf03e22214285842019d57f6d23450219bf6a5
+  1c6480adf62bf2cc9129a09fc764383a04e0edfe69b814a947f7ca2b337d79cb
+  39011f7960ea3cae7d6fe75d3400e863cc12886233fa985842006008825a5f50
+  3d067846930719b90d2058d0872f6160cb0ff0950b4d33429ef624ab8ea949cc
+  8882f2a5b0b41f6115c45ace1b1b25d2dae52397cf1607464dd538584200df37
+  974d11b012d42dcb491568f373b604cbdc046ad9db2bdc8d3702d026ddda7e82
+  b1aa4d934c3134cbfb46d7edd4e0bb56a004be9fe095e4d383544a4826ee8e58
+  42011db367a3dad89ddd099da6544ebd78745ba3e6dad90b2eef0a97fd23f5d8
+  6f9b3d35c7a1cdf142d39c89ec5629d999f36b7ef8b13606cd72e0d118b5bb28
+  e3c2f5584201d370bd0faea3faa51d29ce50ec8734580f400a3bc877df21b2f0
+  3f35c0dcfeea1b471da83d94c81e62acfaf1155ef22c64d1807ea317e068aec3
+  075c81dd8e94c3584200e2147a4bbf4177aef5eaeb1913facbf5f365f15380b3
+  bd1107b7c2f0ccb54974a3067e1ddd590946b2e71ac3a1ceaabc0d6a2cdf45b9
+  5c04b9ac4c8a780858190d0f8882584201c794f31e17e989408ce3fea4409900
+  bcc57bc1205969ce840a526fa2f7d0bbfc9cb6212868df5337ee73806957d0c1
+  e2619328bcab0b36b2936716abaec31ef198584200e8afe0efe99f08f6580cb1
+  e67807ecb57281bfcf0a53240859c95e1dc09c7cc2df155fff84ba110056bdf7
+  74006fca32fad8da9d1b79017dda2a7c325eebb24da8825842007af29d6c8f68
+  dce0d30e47d9447ddafc6f00793136262d55568137b8caabd507653cbfc9cfdb
+  7fc33380bc4a4367f3b5e974cf66a531f2d21cb8dbb1b42004bbb4584201f7c0
+  c7b4189892b1c65c7667070f9d5e0290031746357e0ef197be21adeabd6ebc96
+  9355525e6ae1d944a4f26d95c5a13dde536dc9adaad6a694ed30385a57273f82
+  584200436e9460eb1672ddd522d3751c97a03c94086dfa428e20d5aa973c5bad
+  49dd36542108192b506352063cc36f3b8e696b6a03b789aac5f0cc6050bd60a6
+  04382fdb584201121bdfe1e4e1be3b7cfa6a6bd97e68a90ac5f9c648b98439d2
+  a0ca296ed2d5f2dfc1c914af3e5e809ea59ffddc2aff5bae470a9defbe9fac1d
+  619355d20851345f825842009a54d3073c75b14442d38dc5a61b81f455646fe1
+  9f6864f5257074c858699e4977fc06b6518cd113401394e69ba49404060f102e
+  9832dac1f66e8d09bdeb6c540158420016a9f19190f7f59190c90833762c0707
+  39b71493b8b91e690b1366398ff5f1cb65ee210fb9564aad01387f48e4ca8cbf
+  a28ee9d65735d2361c5b7493b34102c69382584200a0268d0d1c98270b30271f
+  b453451c53875cb4a980c88a6cfc8992181a6eff3ef2cf1839683eddeaca1a4c
+  2be7a1f09c7d8cf7d3be4591ad9c21e398ec28d331d7584200637b18682031f5
+  e1c5aac8c0034a950529b0374e02f48a85721f4a1df3a08f38fa0cb898383d92
+  fb0ab99350de725a2920efb5646886110f9cd0c5a42ce54394cb82584201dd73
+  fa0accd074d0ca5f730a40ded2760aa64df0509614ee872127d9b72e1c500b75
+  09011de6c2f61b0b6bfd8a4a1fcaac85d5e4eb95635f80acf82cb608758a1b58
+  4200a0db7cc1853c4130044d7dd3214b23bbd194fee3a0ccd8d261ac3cdd61e0
+  4a9562a1b31a8955a4842d340227786c90c46859938f0f6b3c581ec9b99cbced
+  7a66e2825842007fe62fe3da03b0a078e957997ae06fddda7c1dd9452ea8ef3c
+  49672c673f1698097dab24532d1c9edb5cbf182c8b7f31dfe0398b4e6b6f17a9
+  1925b608f62d4d74584201bd184bfcae930cb155f9c4e424783129cdca6480f0
+  91b3e0b8c7b471477b92ec31da443a64cd6910d649458133427bb1e8766bdea2
+  e22ede6747e0cecefa2bb91a8258420035bb2850b2359f7e12391eefc3860e8a
+  fad0e5c41f58bde263bd8eb4dac706ee3e7712acb618bdf07e6eb01842a1d029
+  d9e5e6369e5c276c23a3415ff14f7773fb584200ca56271a0aa5ffdbd60cdc06
+  00589d9ca82b98250fdcf1bffb0e7b750374f04f7236de6103088fa853e32ec5
+  90e3b5ea11290eae2de64c9fde2d95d055a236e96f10584200817e368f0c2519
+  92c021916d0a66918ca2dc8f0be73a7569a7fa1d353e38733603f7e1071e1f69
+  b16639560ab88df8017ae58b6bff8873a37074b22ba43efaabff11584201f07d
+  5f47d37111edcbabc14c365df1cf0c52a3720f6c77003725373a80aba8869d61
+  7ac501d43087d17b953d675f1a9f8a6dca0e8a80f7d2f31323bcd0d5ac586212
+  5842000000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  00000000
+
+prerefund_cbor:
+  a4015842005a1158f8cab152e1dc4ec0a3dbccb973f4b36184b0986e241e84f8
+  3806cd77d64dc6552ca88e6c58f824144405cea9ffa332fced6ed16a8ba90899
+  b86e550b03f102584200b5c5ff5d82cd8f2a78e8c6ab81c32c3899727eb25cf7
+  ef9d8d5a82ab6352e5657539d30b31c78285fac8f26e4c7e3a23ad89e2b2ce80
+  910632e36544cb58092e1b035842000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000004604584200000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  000000000000000000000000000000000000000000
+</pre><a href="#appendix-A.33-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="refund-4">
+<section id="appendix-A.34">
+        <h3 id="name-refund-5">
+<a href="#appendix-A.34" class="section-number selfRef">A.34. </a><a href="#name-refund-5" class="section-name selfRef">Refund</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.34-1">
+<pre>
+refund_cbor:
+  a50158430300984f1ff8b3de97475468f543054ff3fdd84b27231363ae78df42
+  b54c0bf7fa4c1085ba31cf7deb6809b8ff905dbc982d4495875f219a3d0be84e
+  9ac55111761f3402584201e8c72e3cd4c95faecf4cef3b1a34b16a55cda50a16
+  a0d4fc279a93837db43abf12f2632ea30d37a2d2e75aa3f7d72d66fb0b27f3d5
+  d2a52a6d1153ada3cb133fcf03584200f9d3d070f8c4ea9aa912e44026c34b7f
+  9c0ec05c78527e554c229bd10740d9944712747eb31d0b2f2eaa846f06dd95ae
+  74f8938fe858be3af1ee52d3a3ba01fdb6045842003390a0ba686db6ab46d3ad
+  ccc534f59a82b02364a649305619aeea58b50c8b536ec4e5c30e65704ec67b13
+  2157cddefd54492bfb8949d1bc4cdf2a1d93d7120e4d05584200000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  00000000000000000000000000000000000000000000000000000a
+</pre><a href="#appendix-A.34-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="refund-token-4">
+<section id="appendix-A.35">
+        <h3 id="name-refund-token-5">
+<a href="#appendix-A.35" class="section-number selfRef">A.35. </a><a href="#name-refund-token-5" class="section-name selfRef">Refund Token</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.35-1">
+<pre>
+refund_token_cbor:
+  a60158430300984f1ff8b3de97475468f543054ff3fdd84b27231363ae78df42
+  b54c0bf7fa4c1085ba31cf7deb6809b8ff905dbc982d4495875f219a3d0be84e
+  9ac55111761f3402584201e8c72e3cd4c95faecf4cef3b1a34b16a55cda50a16
+  a0d4fc279a93837db43abf12f2632ea30d37a2d2e75aa3f7d72d66fb0b27f3d5
+  d2a52a6d1153ada3cb133fcf03584200b5c5ff5d82cd8f2a78e8c6ab81c32c38
+  99727eb25cf7ef9d8d5a82ab6352e5657539d30b31c78285fac8f26e4c7e3a23
+  ad89e2b2ce80910632e36544cb58092e1b045842005a1158f8cab152e1dc4ec0
+  a3dbccb973f4b36184b0986e241e84f83806cd77d64dc6552ca88e6c58f82414
+  4405cea9ffa332fced6ed16a8ba90899b86e550b03f105584200000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000500658420000
+  0000000000000000000000000000000000000000000000000000000000000000
+  0000000000000000000000000000000000000000000000000000000000000000
+
+refund_token_credits:
+  000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000050
+
+refund_token_nullifier:
+  00b5c5ff5d82cd8f2a78e8c6ab81c32c3899727eb25cf7ef9d8d5a82ab6352e5657539d30b31c78285fac8f26e4c7e3a23ad89e2b2ce80910632e36544cb58092e1b
+
+remaining_balance: 80
+</pre><a href="#appendix-A.35-1" class="pilcrow">¶</a>
+</div>
 </section>
 </div>
 </section>
@@ -4242,7 +5740,7 @@ and is based on a proposal described in RFC 7942.<a href="#appendix-B-1" class="
 <p id="appendix-C-4"><strong>Refund</strong>: The refund issued for the remaining balance after a partial spend.<a href="#appendix-C-4" class="pilcrow">¶</a></p>
 <p id="appendix-C-5"><strong>Credit</strong>: A numerical unit of authorization that can be spent by clients.<a href="#appendix-C-5" class="pilcrow">¶</a></p>
 <p id="appendix-C-6"><strong>Domain Separator</strong>: A unique string used to ensure cryptographic isolation between different deployments.<a href="#appendix-C-6" class="pilcrow">¶</a></p>
-<p id="appendix-C-7"><strong>Element</strong>: A point in the ciphersuite's prime-order elliptic curve group (Ristretto255 or P-256).<a href="#appendix-C-7" class="pilcrow">¶</a></p>
+<p id="appendix-C-7"><strong>Element</strong>: A point in the ciphersuite's prime-order elliptic curve group (Ristretto255, P-256, secp256k1, P-384, or P-521).<a href="#appendix-C-7" class="pilcrow">¶</a></p>
 <p id="appendix-C-8"><strong>Issuer</strong>: The entity that creates and signs credit tokens.<a href="#appendix-C-8" class="pilcrow">¶</a></p>
 <p id="appendix-C-9"><strong>Nullifier</strong>: A unique value revealed during spending that prevents double-spending of the same token.<a href="#appendix-C-9" class="pilcrow">¶</a></p>
 <p id="appendix-C-10"><strong>Partial Spending</strong>: The ability to spend less than the full value of a token and receive change.<a href="#appendix-C-10" class="pilcrow">¶</a></p>

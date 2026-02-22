@@ -5,8 +5,8 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                    Google
 Intended status: Standards Track                              T. Meunier
-Expires: 25 August 2026                                  Cloudflare Inc.
-                                                        21 February 2026
+Expires: 26 August 2026                                  Cloudflare Inc.
+                                                        22 February 2026
 
 
        Privacy Pass Issuance Protocol for Anonymous Credit Tokens
@@ -50,7 +50,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 25 August 2026.
+   This Internet-Draft will expire on 26 August 2026.
 
 Copyright Notice
 
@@ -402,7 +402,7 @@ Table of Contents
 
 6.1.  Ciphersuites
 
-   This document defines two token types corresponding to the two
+   This document defines five token types corresponding to the five
    ciphersuites specified in [ACT]:
 
        +============+===================+=========================+
@@ -412,11 +412,17 @@ Table of Contents
        +------------+-------------------+-------------------------+
        | 0xE5AE     | ACT(P-256)        | ACT-P256-BLAKE3         |
        +------------+-------------------+-------------------------+
+       | 0xE5AF     | ACT(secp256k1)    | ACT-secp256k1-BLAKE3    |
+       +------------+-------------------+-------------------------+
+       | 0xE5B0     | ACT(P-384)        | ACT-P384-BLAKE3         |
+       +------------+-------------------+-------------------------+
+       | 0xE5B1     | ACT(P-521)        | ACT-P521-BLAKE3         |
+       +------------+-------------------+-------------------------+
 
                                  Table 1
 
-   Both ciphersuites use SHA-256 for key identification, so Nid = 32 for
-   both.  The remaining size parameters (Nrequest, Nresponse,
+   All ciphersuites use SHA-256 for key identification, so Nid = 32 for
+   all.  The remaining size parameters (Nrequest, Nresponse,
    Nspend_proof, Nrefund) are determined by the ciphersuite's
    serialization format as described in Section 4.1 of [ACT].
 
@@ -469,16 +475,16 @@ Table of Contents
    one specified in [AUTHSCHEME].  In particular, the updated
    TokenChallenge structure is as follows:
 
-   struct {
-       uint16_t token_type; /* 0xE5AD or 0xE5AE */
-       opaque issuer_name<1..2^16-1>;
-       opaque redemption_context<0..32>;
-       opaque origin_info<0..2^16-1>;
-       opaque credential_context<0..32>;
-   } TokenChallenge;
+struct {
+    uint16_t token_type; /* 0xE5AD, 0xE5AE, 0xE5AF, 0xE5B0, or 0xE5B1 */
+    opaque issuer_name<1..2^16-1>;
+    opaque redemption_context<0..32>;
+    opaque origin_info<0..2^16-1>;
+    opaque credential_context<0..32>;
+} TokenChallenge;
 
-   Note: The token type values 0xE5AD and 0xE5AE are provisional pending
-   IANA assignment.
+   Note: The token type values 0xE5AD, 0xE5AE, 0xE5AF, 0xE5B0, and
+   0xE5B1 are provisional pending IANA assignment.
 
    With the exception of credential_context, all fields are exactly as
    specified in Section 2.1.1 of [AUTHSCHEME].  The credential_context
@@ -559,16 +565,17 @@ Table of Contents
 
    The Client then creates a TokenRequest structure as follows:
 
-   struct {
-     uint16_t token_type; /* 0xE5AD or 0xE5AE */
-     uint8_t truncated_issuer_key_id;
-     uint8_t encoded_request[Nrequest];
-   } TokenRequest;
+  struct {
+    uint16_t token_type; /* 0xE5AD, 0xE5AE, 0xE5AF, 0xE5B0, or 0xE5B1 */
+    uint8_t truncated_issuer_key_id;
+    uint8_t encoded_request[Nrequest];
+  } TokenRequest;
 
    The structure fields are defined as follows:
 
    *  "token_type" is a 2-octet integer, set to 0xE5AD for
-      ACT(Ristretto255) or 0xE5AE for ACT(P-256).
+      ACT(Ristretto255), 0xE5AE for ACT(P-256), 0xE5AF for
+      ACT(secp256k1), 0xE5B0 for ACT(P-384), or 0xE5B1 for ACT(P-521).
 
    *  "truncated_issuer_key_id" is the least significant byte of the
       issuer_key_id (Section 6) in network byte order (in other words,
@@ -600,8 +607,8 @@ Table of Contents
    Upon receipt of the request, the Issuer validates the following
    conditions:
 
-   *  The TokenRequest contains a supported token_type equal to 0xE5AD
-      or 0xE5AE.
+   *  The TokenRequest contains a supported token_type (one of 0xE5AD,
+      0xE5AE, 0xE5AF, 0xE5B0, or 0xE5B1).
 
    *  The TokenRequest.truncated_token_key_id corresponds to the
       truncated key ID of an Issuer Public Key, with corresponding
@@ -694,17 +701,18 @@ response = IssueResponse(skI, request, initial_credits, request_context)
 
    The resulting Token value is then constructed as follows:
 
-   struct {
-       uint16_t token_type; /* 0xE5AD or 0xE5AE */
-       uint8_t challenge_digest[32];
-       uint8_t issuer_key_id[Nid];
-       uint8_t encoded_spend_proof[Nspend_proof];
-   } Token;
+struct {
+    uint16_t token_type; /* 0xE5AD, 0xE5AE, 0xE5AF, 0xE5B0, or 0xE5B1 */
+    uint8_t challenge_digest[32];
+    uint8_t issuer_key_id[Nid];
+    uint8_t encoded_spend_proof[Nspend_proof];
+} Token;
 
    The structure fields are defined as follows:
 
    *  "token_type" is a 2-octet integer, in network byte order, set to
-      0xE5AD for ACT(Ristretto255) or 0xE5AE for ACT(P-256).
+      0xE5AD for ACT(Ristretto255), 0xE5AE for ACT(P-256), 0xE5AF for
+      ACT(secp256k1), 0xE5B0 for ACT(P-384), or 0xE5B1 for ACT(P-521).
 
    *  "challenge_digest" is a 32-octet value containing the hash of the
       original TokenChallenge, SHA-256(TokenChallenge).
@@ -917,6 +925,81 @@ response = IssueResponse(skI, request, initial_credits, request_context)
    *  Value: 0xE5AE
 
    *  Name: ACT (P-256)
+
+   *  Token Structure: As defined in Section 2.2 of [AUTHSCHEME]
+
+   *  Token Key Encoding: Serialized as described in Section 6
+
+   *  TokenChallenge Structure: As defined in Section 2.1 of
+      [AUTHSCHEME]
+
+   *  Public Verifiability: N
+
+   *  Public Metadata: N
+
+   *  Private Metadata: N
+
+   *  Nk: 0 (not applicable)
+
+   *  Nid: 32
+
+   *  Reference: This document
+
+   *  Notes: None
+
+   *  Value: 0xE5AF
+
+   *  Name: ACT (secp256k1)
+
+   *  Token Structure: As defined in Section 2.2 of [AUTHSCHEME]
+
+   *  Token Key Encoding: Serialized as described in Section 6
+
+   *  TokenChallenge Structure: As defined in Section 2.1 of
+      [AUTHSCHEME]
+
+   *  Public Verifiability: N
+
+   *  Public Metadata: N
+
+   *  Private Metadata: N
+
+   *  Nk: 0 (not applicable)
+
+   *  Nid: 32
+
+   *  Reference: This document
+
+   *  Notes: None
+
+   *  Value: 0xE5B0
+
+   *  Name: ACT (P-384)
+
+   *  Token Structure: As defined in Section 2.2 of [AUTHSCHEME]
+
+   *  Token Key Encoding: Serialized as described in Section 6
+
+   *  TokenChallenge Structure: As defined in Section 2.1 of
+      [AUTHSCHEME]
+
+   *  Public Verifiability: N
+
+   *  Public Metadata: N
+
+   *  Private Metadata: N
+
+   *  Nk: 0 (not applicable)
+
+   *  Nid: 32
+
+   *  Reference: This document
+
+   *  Notes: None
+
+   *  Value: 0xE5B1
+
+   *  Name: ACT (P-521)
 
    *  Token Structure: As defined in Section 2.2 of [AUTHSCHEME]
 
