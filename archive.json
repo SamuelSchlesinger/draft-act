@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-02-22T00:12:32.848798+00:00",
+  "timestamp": "2026-02-24T00:14:00.599066+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -2640,24 +2640,26 @@
       "id": "PR_kwDOPc24Mc7FZHk-",
       "title": "Fix new ciphersuite security issues; add to Privacy Pass draft",
       "url": "https://github.com/SamuelSchlesinger/draft-act/pull/24",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "SamuelSchlesinger",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
-      "body": "## Summary\n\n- **P-521 HashToGroup (CRITICAL)**: Replaced non-standard try-and-increment with RFC 9380's `P521_XMD:SHA-512_SSWU_RO_` suite \u2014 the draft incorrectly claimed RFC 9380 doesn't cover P-521 (it does, Section 8.4)\n- **P-384/P-521 GetChallenge (HIGH)**: Changed to `FromOkm` with proper output lengths (72/98 bytes) per RFC 9380 Section 5.2, instead of insufficient raw mod reduction\n- **CBOR/serialization comments**: Replaced hardcoded \"32 bytes\" with ciphersuite-generic `Ns`/`Np` notation\n- **Privacy Pass integration**: Added ACT(secp256k1) `0xE5AF`, ACT(P-384) `0xE5B0`, ACT(P-521) `0xE5B1` token types across all locations\n- **Test vectors**: Regenerated P-384 and P-521 vectors to match updated algorithms\n\n## Test plan\n\n- [x] Regenerate P-384 test vectors (GetChallenge changed from 48\u219272 bytes, raw mod\u2192FromOkm)\n- [x] Regenerate P-521 test vectors (HashToGroup changed to RFC 9380 suite, GetChallenge changed from 72\u219298 bytes)\n- [ ] Verify Ristretto255, P-256, and secp256k1 test vectors are unaffected\n- [ ] Build both drafts with `make` to verify markdown renders correctly",
+      "body": "## Summary\n\n- **P-521 HashToGroup (CRITICAL)**: Replaced non-standard try-and-increment with RFC 9380's `P521_XMD:SHA-512_SSWU_RO_` suite \u2014 the draft incorrectly claimed RFC 9380 doesn't cover P-521 (it does, Section 8.4)\n- **P-384/P-521 GetChallenge (HIGH)**: Changed to `FromOkm` with proper output lengths (72/98 bytes) per RFC 9380 Section 5.2, instead of insufficient raw mod reduction\n- **CBOR/serialization comments**: Replaced hardcoded \"32 bytes\" with ciphersuite-generic `Ns`/`Np` notation\n- **Privacy Pass integration**: Added ACT(secp256k1) `0xE5AF`, ACT(P-384) `0xE5B0`, ACT(P-521) `0xE5B1` token types across all locations\n- **Test vectors**: Regenerated P-384 and P-521 vectors to match updated algorithms\n\n## Test plan\n\n- [x] Regenerate P-384 test vectors (GetChallenge changed from 48\u219272 bytes, raw mod\u2192FromOkm)\n- [x] Regenerate P-521 test vectors (HashToGroup changed to RFC 9380 suite, GetChallenge changed from 72\u219298 bytes)\n- [x] Verify Ristretto255 test vectors are unaffected\n- [x] Build both drafts with \\`make\\` to verify markdown renders correctly",
       "createdAt": "2026-02-22T00:05:57Z",
-      "updatedAt": "2026-02-22T00:05:57Z",
+      "updatedAt": "2026-02-22T00:22:37Z",
       "baseRepository": "SamuelSchlesinger/draft-act",
       "baseRefName": "v0",
       "baseRefOid": "2942c647008ab37597095bd515cc4ef23abbcd05",
       "headRepository": "SamuelSchlesinger/draft-act",
       "headRefName": "fix-new-ciphersuites-security",
       "headRefOid": "e24aca70fdf41bf7e67127698c1302fca1a9695a",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-02-22T00:22:37Z",
+      "mergedAt": "2026-02-22T00:22:37Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "145c930186c4fc214fb6c0c8ee69c2370d78d954"
+      },
       "comments": [],
       "reviews": []
     }
