@@ -646,25 +646,29 @@ ProveSpend(token, s, rng):
    36.     terms.append((s_com_vars[j], coeff_H3_var))
    37. statement.append_equation(Com_total_var, terms)
 
-    // Assemble witness
-    // Order: [e, r2, r3, c, r, b[0..L-1], s_com[0..L-1],
-    //         s2[0..L-1], kstar, k2]
-   38. witness = [e, r2, r3, c, r]
-   39. witness += b[0..L-1]
-   40. witness += s_com[0..L-1]
-   41. witness += s2[0..L-1]
-   42. witness += [kstar, k2]
+    // Assemble witness (indexed by allocated scalar variables)
+   38. witness[e_var] = e
+   39. witness[r2_var] = r2
+   40. witness[r3_var] = r3
+   41. witness[c_var] = c
+   42. witness[r_var] = r
+   43. For j = 0 to L-1:
+   44.     witness[b_vars[j]] = b[j]
+   45.     witness[s_com_vars[j]] = s_com[j]
+   46.     witness[s2_vars[j]] = s2[j]
+   47. witness[kstar_var] = kstar
+   48. witness[k2_var] = k2
 
     // Generate non-interactive proof
-   43. session_id = domain_separator + "spend" + Encode(k) + Encode(ctx)
-   44. prover = NISigmaProtocol(session_id, statement)
-   45. pok = prover.prove(witness, rng)
+   49. session_id = domain_separator + "spend" + Encode(k) + Encode(ctx)
+   50. prover = NISigmaProtocol(session_id, statement)
+   51. pok = prover.prove(witness, rng)
 
     // Construct output
-   46. r_star = sum(s_com[j] * 2^j for j in [L])
-   47. proof = (k, s, ctx, A', B_bar, Com, pok)
-   48. state = (kstar, r_star, m, ctx)
-   49. return (proof, state)
+   52. r_star = sum(s_com[j] * 2^j for j in [L])
+   53. proof = (k, s, ctx, A', B_bar, Com, pok)
+   54. state = (kstar, r_star, m, ctx)
+   55. return (proof, state)
 ~~~
 
 ### Issuer: Spend Verification and Refund
