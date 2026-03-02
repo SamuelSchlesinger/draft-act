@@ -882,6 +882,9 @@ Encode(value):
     4.     return SerializeScalar(value)   // Ns bytes
 ~~~
 
+In expressions such as `session_id = domain_separator + "spend" + Encode(k)`,
+string literals are ASCII byte strings and `+` denotes raw byte concatenation.
+
 ### Binary Decomposition {#binary-decomposition}
 
 To decompose a scalar into its binary representation:
@@ -1139,19 +1142,22 @@ The spending proof uses a single `LinearRelation` with `2L + 3` equations
 and a witness of `3L + 7` scalars. The `NISigmaProtocol` interface
 handles all proof generation and verification.
 
-- **Storage**:
+- **Sizes**:
 
-| Component | Size |
-|-----------|------|
-| Token | Ne + 5\*Ns |
-| Spend proof | (L+2)\*Ne + (3L+11)\*Ns + 2 |
-| Nullifier database entry | Ns per spent token |
+| Component | Size | ristretto255 (Ne=Ns=32) |
+|-----------|------|-------------------------|
+| Issuance request | Ne + 3\*Ns + 2 | 130 bytes |
+| Issuance response | Ne + 4\*Ns + 2 | 162 bytes |
+| Spend proof | (L+2)\*Ne + (3L+11)\*Ns + 2 | 128L + 418 bytes |
+| Refund | Ne + 4\*Ns + 2 | 162 bytes |
+| Token (client storage) | Ne + 5\*Ns | 192 bytes |
+| Nullifier (server storage) | Ns | 32 bytes |
 
-Note: Token size is independent of L. The spend proof contains
-`k`, `s`, `ctx` (3\*Ns), `A'`, `B_bar` (2\*Ne), `Com[0..L-1]` (L\*Ne),
-and the compact `pok` output from `NISigmaProtocol` which encodes
-a challenge scalar and `3L + 7` response scalars ((3L+8)\*Ns),
-prefixed by a 2-byte length field.
+Each `pok` field encodes a challenge scalar and the response scalars
+from `NISigmaProtocol`, prefixed by a 2-byte length field.
+The issuance request proof has 2 witness scalars (3\*Ns),
+the issuance response and refund proofs have 1 witness scalar (2\*Ns),
+and the spend proof has `3L + 7` witness scalars ((3L+8)\*Ns).
 
 # Suites for ACT {#suites}
 

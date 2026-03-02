@@ -652,7 +652,7 @@ refund = VerifyAndRefund(skI, spend_proof, t, rng)
 
 This function returns the `refund` serialized according to {{Section 4.1.4 of ACT}} if the spend proof is valid, and nil otherwise. The request_context is extracted directly from the spend proof during verification, so the Origin does not need to pass it separately.
 
-As mentioned in {{Section 2.2.2 of AUTHSCHEME}}, Origins SHOULD implement some form of double-spend prevention that prevents a token with the same nonce from being redeemed twice.
+As mentioned in {{Section 2.2.2 of AUTHSCHEME}}, Origins SHOULD implement some form of double-spend prevention that prevents a token with the same nonce (nullifier in ACT) from being redeemed twice.
 With ACT, the Origin SHOULD check that the nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier
 for use in future double-spending checks.
 To reduce the overhead of performing double spend checks, the Origin MAY store and
