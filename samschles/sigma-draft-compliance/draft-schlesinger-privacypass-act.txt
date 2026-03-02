@@ -5,8 +5,8 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                    Google
 Intended status: Standards Track                              T. Meunier
-Expires: 23 August 2026                                  Cloudflare Inc.
-                                                        19 February 2026
+Expires: 3 September 2026                                Cloudflare Inc.
+                                                            2 March 2026
 
 
        Privacy Pass Issuance Protocol for Anonymous Credit Tokens
@@ -50,7 +50,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 August 2026.
+   This Internet-Draft will expire on 3 September 2026.
 
 Copyright Notice
 
@@ -97,7 +97,9 @@ Table of Contents
      10.4.  Issuer Key Identification
      10.5.  Dynamic Revocation and Origin Control
    11. IANA Considerations
-   12. Normative References
+   12. References
+     12.1.  Normative References
+     12.2.  Informative References
    Acknowledgments
    Authors' Addresses
 
@@ -773,13 +775,13 @@ request_context = spend_proof.ctx // Field 3: request context (32 bytes)
 
    As mentioned in Section 2.2.2 of [AUTHSCHEME], Origins SHOULD
    implement some form of double-spend prevention that prevents a token
-   with the same nonce from being redeemed twice.  With ACT, the Origin
-   SHOULD check that the nullifier has not previously been seen before
-   calling VerifyAndRefund.  It then stores the nullifier for use in
-   future double-spending checks.  To reduce the overhead of performing
-   double spend checks, the Origin MAY store and look up the nullifiers
-   corresponding to the associated request_context value (which is
-   extracted from the spend proof).
+   with the same nonce (nullifier in ACT) from being redeemed twice.
+   With ACT, the Origin SHOULD check that the nullifier has not
+   previously been seen before calling VerifyAndRefund.  It then stores
+   the nullifier for use in future double-spending checks.  To reduce
+   the overhead of performing double spend checks, the Origin MAY store
+   and look up the nullifiers corresponding to the associated
+   request_context value (which is extracted from the spend proof).
 
    struct {
        opaque refund<1..2^16-1>;
@@ -787,6 +789,10 @@ request_context = spend_proof.ctx // Field 3: request context (32 bytes)
 
    The Origin sends the refund back to the client encoded as the above
    Refund struct.
+
+   In practice, it encodes Refund as base64url and set PrivacyPass-
+   Reverse header to that value, as defined in Section 6 of
+   [REVERSE-FLOW].
 
 9.3.  New Credential from Refund
 
@@ -940,7 +946,9 @@ request_context = spend_proof.ctx // Field 3: request context (32 bytes)
 
    *  Notes: None
 
-12.  Normative References
+12.  References
+
+12.1.  Normative References
 
    [ACT]      Schlesinger, S. and J. Katz, "Anonymous Credit Tokens",
               Work in Progress, Internet-Draft, draft-schlesinger-cfrg-
@@ -948,22 +956,23 @@ request_context = spend_proof.ctx // Field 3: request context (32 bytes)
               <https://datatracker.ietf.org/doc/html/draft-schlesinger-
               cfrg-act-01>.
 
-   [ARC]      Yun, C. and C. A. Wood, "Privacy Pass Issuance Protocol
-              for Anonymous Rate-Limited Credentials", Work in Progress,
-              Internet-Draft, draft-yun-privacypass-arc-02, 20 October
-              2025, <https://datatracker.ietf.org/doc/html/draft-yun-
-              privacypass-arc-02>.
+   [ARC]      Yun, C., Wood, C. A., and A. F. Faz-Hernandez, "Privacy
+              Pass Issuance Protocol for Anonymous Rate-Limited
+              Credentials", Work in Progress, Internet-Draft, draft-
+              ietf-privacypass-arc-protocol-01, 2 March 2026,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-
+              privacypass-arc-protocol-01>.
 
    [ARCHITECTURE]
               Davidson, A., Iyengar, J., and C. A. Wood, "The Privacy
               Pass Architecture", RFC 9576, DOI 10.17487/RFC9576, June
               2024, <https://www.rfc-editor.org/rfc/rfc9576>.
 
-   [ARC_PP]   Yun, C. and C. A. Wood, "Anonymous Rate-Limited
-              Credentials", Work in Progress, Internet-Draft, draft-yun-
-              cfrg-arc-01, 6 August 2025,
-              <https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-
-              01>.
+   [ARC_PP]   Yun, C., Wood, C. A., and A. F. Faz-Hernandez, "Anonymous
+              Rate-Limited Credentials Cryptography", Work in Progress,
+              Internet-Draft, draft-ietf-privacypass-arc-crypto-01, 2
+              March 2026, <https://datatracker.ietf.org/doc/html/draft-
+              ietf-privacypass-arc-crypto-01>.
 
    [AUTHSCHEME]
               Pauly, T., Valdez, S., and C. A. Wood, "The Privacy Pass
@@ -988,6 +997,15 @@ request_context = spend_proof.ctx // Field 3: request context (32 bytes)
    [TLS13]    Rescorla, E., "The Transport Layer Security (TLS) Protocol
               Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018,
               <https://www.rfc-editor.org/rfc/rfc8446>.
+
+12.2.  Informative References
+
+   [REVERSE-FLOW]
+              Meunier, T., "Privacy Pass Reverse Flow", Work in
+              Progress, Internet-Draft, draft-meunier-privacypass-
+              reverse-flow-03, 16 February 2026,
+              <https://datatracker.ietf.org/doc/html/draft-meunier-
+              privacypass-reverse-flow-03>.
 
 Acknowledgments
 

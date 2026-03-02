@@ -1064,11 +1064,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">ACT</td>
-<td class="right">February 2026</td>
+<td class="right">March 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger, et al.</td>
-<td class="center">Expires 23 August 2026</td>
+<td class="center">Expires 3 September 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1081,12 +1081,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-schlesinger-cfrg-act-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-02-19" class="published">19 February 2026</time>
+<time datetime="2026-03-02" class="published">2 March 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-08-23">23 August 2026</time></dd>
+<dd class="expires"><time datetime="2026-09-03">3 September 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1162,7 +1162,7 @@ in the IRTF.<a href="#section-abstract-4" class="pilcrow">¶</a></p>
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 23 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 3 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2211,25 +2211,29 @@ ProveSpend(token, s, rng):
    36.     terms.append((s_com_vars[j], coeff_H3_var))
    37. statement.append_equation(Com_total_var, terms)
 
-    // Assemble witness
-    // Order: [e, r2, r3, c, r, b[0..L-1], s_com[0..L-1],
-    //         s2[0..L-1], kstar, k2]
-   38. witness = [e, r2, r3, c, r]
-   39. witness += b[0..L-1]
-   40. witness += s_com[0..L-1]
-   41. witness += s2[0..L-1]
-   42. witness += [kstar, k2]
+    // Assemble witness (indexed by allocated scalar variables)
+   38. witness[e_var] = e
+   39. witness[r2_var] = r2
+   40. witness[r3_var] = r3
+   41. witness[c_var] = c
+   42. witness[r_var] = r
+   43. For j = 0 to L-1:
+   44.     witness[b_vars[j]] = b[j]
+   45.     witness[s_com_vars[j]] = s_com[j]
+   46.     witness[s2_vars[j]] = s2[j]
+   47. witness[kstar_var] = kstar
+   48. witness[k2_var] = k2
 
     // Generate non-interactive proof
-   43. session_id = domain_separator + "spend" + Encode(k) + Encode(ctx)
-   44. prover = NISigmaProtocol(session_id, statement)
-   45. pok = prover.prove(witness, rng)
+   49. session_id = domain_separator + "spend" + Encode(k) + Encode(ctx)
+   50. prover = NISigmaProtocol(session_id, statement)
+   51. pok = prover.prove(witness, rng)
 
     // Construct output
-   46. r_star = sum(s_com[j] * 2^j for j in [L])
-   47. proof = (k, s, ctx, A', B_bar, Com, pok)
-   48. state = (kstar, r_star, m, ctx)
-   49. return (proof, state)
+   52. r_star = sum(s_com[j] * 2^j for j in [L])
+   53. proof = (k, s, ctx, A', B_bar, Com, pok)
+   54. state = (kstar, r_star, m, ctx)
+   55. return (proof, state)
 </pre><a href="#section-3.4.1-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -2473,6 +2477,8 @@ Encode(value):
     4.     return SerializeScalar(value)   // Ns bytes
 </pre><a href="#section-3.5.1-2" class="pilcrow">¶</a>
 </div>
+<p id="section-3.5.1-3">In expressions such as <code>session_id = domain_separator + "spend" + Encode(k)</code>,
+string literals are ASCII byte strings and <code>+</code> denotes raw byte concatenation.<a href="#section-3.5.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="binary-decomposition">
@@ -2890,7 +2896,7 @@ and a witness of <code>3L + 7</code> scalars. The <code>NISigmaProtocol</code> i
 handles all proof generation and verification.<a href="#section-5.6.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-5.6.1-2.1">
-              <p id="section-5.6.1-2.1.1"><strong>Storage</strong>:<a href="#section-5.6.1-2.1.1" class="pilcrow">¶</a></p>
+              <p id="section-5.6.1-2.1.1"><strong>Sizes</strong>:<a href="#section-5.6.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <table class="center" id="table-1">
@@ -2899,28 +2905,47 @@ handles all proof generation and verification.<a href="#section-5.6.1-1" class="
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Component</th>
                 <th class="text-left" rowspan="1" colspan="1">Size</th>
+                <th class="text-left" rowspan="1" colspan="1">ristretto255 (Ne=Ns=32)</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">Token</td>
-                <td class="text-left" rowspan="1" colspan="1">Ne + 5*Ns</td>
+                <td class="text-left" rowspan="1" colspan="1">Issuance request</td>
+                <td class="text-left" rowspan="1" colspan="1">Ne + 3*Ns + 2</td>
+                <td class="text-left" rowspan="1" colspan="1">130 bytes</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Issuance response</td>
+                <td class="text-left" rowspan="1" colspan="1">Ne + 4*Ns + 2</td>
+                <td class="text-left" rowspan="1" colspan="1">162 bytes</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">Spend proof</td>
                 <td class="text-left" rowspan="1" colspan="1">(L+2)*Ne + (3L+11)*Ns + 2</td>
+                <td class="text-left" rowspan="1" colspan="1">128L + 418 bytes</td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">Nullifier database entry</td>
-                <td class="text-left" rowspan="1" colspan="1">Ns per spent token</td>
+                <td class="text-left" rowspan="1" colspan="1">Refund</td>
+                <td class="text-left" rowspan="1" colspan="1">Ne + 4*Ns + 2</td>
+                <td class="text-left" rowspan="1" colspan="1">162 bytes</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Token (client storage)</td>
+                <td class="text-left" rowspan="1" colspan="1">Ne + 5*Ns</td>
+                <td class="text-left" rowspan="1" colspan="1">192 bytes</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Nullifier (server storage)</td>
+                <td class="text-left" rowspan="1" colspan="1">Ns</td>
+                <td class="text-left" rowspan="1" colspan="1">32 bytes</td>
               </tr>
             </tbody>
           </table>
-<p id="section-5.6.1-4">Note: Token size is independent of L. The spend proof contains
-<code>k</code>, <code>s</code>, <code>ctx</code> (3*Ns), <code>A'</code>, <code>B_bar</code> (2*Ne), <code>Com[0..L-1]</code> (L*Ne),
-and the compact <code>pok</code> output from <code>NISigmaProtocol</code> which encodes
-a challenge scalar and <code>3L + 7</code> response scalars ((3L+8)*Ns),
-prefixed by a 2-byte length field.<a href="#section-5.6.1-4" class="pilcrow">¶</a></p>
+<p id="section-5.6.1-4">Each <code>pok</code> field encodes a challenge scalar and the response scalars
+from <code>NISigmaProtocol</code>, prefixed by a 2-byte length field.
+The issuance request proof has 2 witness scalars (3*Ns),
+the issuance response and refund proofs have 1 witness scalar (2*Ns),
+and the spend proof has <code>3L + 7</code> witness scalars ((3L+8)*Ns).<a href="#section-5.6.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
