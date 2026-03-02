@@ -69,8 +69,8 @@ of the protocols, and the remainder of the document specifies the protocols them
 # Motivation
 
 To demonstrate how ACT is useful, one can use a similar example to
-the one presented in {{Section 2 of ARC_PP}}: a client that wishes to keep its IP address private while accessing a service. {{ARC_PP}} offers the origin to limit the number of requests a client can make to N. This is enforced by each origin getting its own presentation context, and limiting the number of presentations per context to N. This means that, from a single credential, a client
-can produce N presentations and access the system N times,
+the one presented in {{Section 2 of ARC_PP}}: a client that wishes to keep its IP address private while accessing a service. {{ARC_PP}} allows the origin to limit the number of requests a client can make to N. This is enforced by each origin getting its own presentation context, and limiting the number of presentations per context to N. This means that, from a single credential, a client
+can produce N presentations to access the system N times,
 unlinkably. These presentations can be generated in parallel.
 
 On the other hand, consider a credential initially holding N credits. A client redeeming
@@ -85,9 +85,8 @@ the origin gains the ability to invalidate a session by declining to issue a ref
 This creates the
 ability to shed harmful future traffic or redirect it in a favorable way.
 
-One such use case for this is a privacy proxy, another is privately accessing
-web APIs like the artificial intelligence models, and finally zero trust networks
-which act as forward proxies for their user traffic.
+Use cases include privacy proxies, privately accessing web APIs such as AI
+models, and zero trust networks acting as forward proxies for user traffic.
 
 Therefore, ACT provides the following properties:
 
@@ -108,15 +107,34 @@ This document uses the terms Origin, Client, Issuer, and Token as defined in
 used throughout this document.
 
 - Issuer Public Key: The public key (from a private-public key pair) used by
-  the Issuer for issuing and verifying Tokens.
+  the Issuer for issuing and verifying Tokens. See {{ACT}} for details.
 - Issuer Private Key: The private key (from a private-public key pair) used by
-  the Issuer for issuing and verifying Tokens.
-
-OPEN ISSUE: Consider taking them from {{ACT}}
+  the Issuer for issuing and verifying Tokens. See {{ACT}} for details.
 
 Unless otherwise specified, this document encodes protocol messages in TLS
 notation from {{Section 3 of !TLS13=RFC8446}}. Moreover, all constants are in
 network byte order.
+
+The following constants are used throughout this document:
+
+- `Nid`: The size of the Issuer Public Key ID in bytes. Nid = 32.
+- `Ne`: The size of a serialized group element in bytes. Ne = 32.
+- `Ns`: The size of a serialized scalar in bytes. Ns = 32.
+
+The `concat(a, b, ...)` function denotes length-prefixed concatenation,
+where each input is prefixed with a 2-byte big-endian length. This ensures
+unambiguous parsing of the concatenated result.
+
+The `HashToScalar(msg)` function hashes a variable-length byte string `msg`
+to a Scalar using the suite's extendable-output function (SHAKE128 for the
+ristretto255 suite): squeeze 64 bytes of output from `SHAKE128(msg)` and
+reduce modulo the group order `q`. This matches the scalar derivation used
+by the `SeededPRNG` construction in {{ACT}}.
+
+Note: This document uses the term "credential" to refer to what the ACT
+specification {{ACT}} calls a "token" (the cryptographic object containing a
+BBS signature and associated data). The term "Token" in this document refers
+to the Privacy Pass Token structure presented to Origins.
 
 # Protocol Overview {#overview}
 
@@ -202,7 +220,7 @@ A client managing an ACT credential progresses through the following states:
         | ConstructRefundToken(refund)
         v
    +----------+
-   | Refunded |  (New credential with N-cost credits)
+   | Refunded |  (New credential with `N-c+t` credits)
    +----------+
 ~~~
 
@@ -216,9 +234,10 @@ State transitions:
   blocked waiting for a refund response.
 
 - **Refunded**: Client has received a valid refund and constructed a new credential
-  with the remaining balance. If the new balance is greater than 0, the client
-  returns to the Initial state with the new credential. If the balance is 0, the
-  credential is exhausted.
+  with balance `m + t`, where `m = N - c` is the remaining balance after spending
+  `c` credits, and `t` is the partial return amount from the Origin (`0 <= t <= c`). If the
+  new balance is greater than 0, the client returns to the Initial state with the
+  new credential. If the balance is 0, the credential is exhausted.
 
 The transition from Spent to Refunded may fail if the origin does not provide a
 valid refund. Error handling for this case is described in {{error-handling}}.
@@ -294,53 +313,47 @@ verification. Concretely, Issuers run the `KeyGen` function from {{ACT}}
 to produce a private and public key, denoted skI and pkI, respectively.
 
 ~~~
-skI, pkI = KeyGen()
+skI, pkI = KeyGen(G, rng)
 ~~~
+
+where `G` is the Group and `rng` is the PRNG as defined in {{ACT}}.
 
 The Issuer Public Key ID, denoted `issuer_key_id`, is computed as the
 SHA-256 hash of the Issuer Public Key, i.e., `issuer_key_id = SHA-256(pkI_serialized)`,
-where `pkI_serialized` is the serialized version of `pkI` as described in {{Section 4.1 of ACT}}.
+where `pkI_serialized` is the serialized version of `pkI` using `SerializeElement`
+as described in {{Section 6.1 of ACT}}.
 
-OPEN ISSUE: Coordinate with {{ACT}} specification authors on the serialization format (CBOR vs TLS presentation language) to ensure consistency.
-
-## Request Context Extension {#request-context-extension}
+## Request Context {#request-context}
 
 This Privacy Pass integration binds credentials to application-specific contexts
 using a `request_context` parameter. This approach is inspired by the Anonymous
 Rate-Limited Credentials (ARC) protocol {{ARC_PP}}, which threads a similar
 context parameter through its cryptographic operations for domain separation.
 
-IMPORTANT: The current CFRG ACT specification {{ACT}} does not include
-`request_context` parameters in its cryptographic functions. To support the
-Privacy Pass integration described in this document, the ACT specification would
-need to be extended with the following changes:
+The ACT specification {{ACT}} includes `request_context` as a first-class parameter
+(`ctx`) in the following cryptographic functions:
 
 1. **IssueRequest**: No changes needed - the client generates a blinded commitment
    without knowledge of the final context binding.
 
-2. **IssueResponse**: Add `request_context` as an input parameter alongside the
-   credit amount `c`. The issuer determines the appropriate context based on its
-   policy (e.g., derived from TokenChallenge fields) and binds the credential to
-   this context. The function would hash the context into a scalar and include it
-   in the credential signature, similar to how ARC hashes `requestContext` into `m2`.
+2. **IssueResponse**: Takes `request_context` as the `ctx` input parameter alongside
+   the credit amount `c`. The issuer determines the appropriate context based on its
+   policy (e.g., derived from TokenChallenge fields), hashes it to a scalar using
+   `HashToScalar`, and binds the credential to this context via the BBS signature.
 
-3. **VerifyAndRefund**: Add `request_context` as an input parameter to verify
-   that the spend proof is bound to the correct application context. The issuer
-   reconstructs the context from the TokenChallenge and uses it during verification.
+3. **VerifyAndRefund**: The `request_context` is revealed in the clear as part of
+   the `SpendProof` structure. The verifier extracts it from the spend proof and
+   checks that it matches the expected application context reconstructed from the
+   TokenChallenge.
 
-4. **Credential Structure**: The Anonymous Credit Token structure would be extended
-   to include the context-bound component within the BBS signature, analogous to
-   how ARC credentials include `m2` for presentation context binding.
+4. **Credential Structure**: The Anonymous Credit Token structure includes the
+   context-bound component (`ctx`) within the BBS signature.
 
 The key insight is that `request_context` is determined by the issuer (like the
 credit amount), not by the client. The issuer sets the context during IssueResponse
-based on the TokenChallenge requirements, and both parties reconstruct it from
-TokenChallenge fields during spending.
-
-Until these extensions are incorporated into the CFRG ACT specification, the
-function calls in this document should be understood as describing the intended
-behavior with request_context support. Implementations SHOULD coordinate with
-the CFRG ACT specification authors to ensure compatibility.
+based on the TokenChallenge requirements. During spending, the context is revealed
+in the spend proof, allowing the verifier to confirm that the credential was bound
+to the correct application context.
 
 For reference on how request context threading works in practice, see
 {{Section 3 of ARC_PP}}, which demonstrates the pattern of binding credentials
@@ -362,7 +375,8 @@ struct {
 } TokenChallenge;
 ~~~
 
-OPEN ISSUE: This token type value (0xE5AD) was chosen arbitrarily and may be too close to the ARC token type. This should be coordinated with IANA registry assignments.
+TODO: The token type value 0xE5AD is a placeholder and MUST be coordinated
+with IANA registry assignments before publication.
 
 With the exception of `credential_context`, all fields are exactly as specified
 in {{Section 2.1.1 of AUTHSCHEME}}. The `credential_context` field is defined as
@@ -381,7 +395,19 @@ as F(current time window), where F is a pseudorandom function. Semantically, thi
 equivalent to the Origin asking the Client for a token from a credential that is
 bound to "current time window."
 
-OPEN ISSUE: give more guidance about how to construct credential_context and redemption_context depending on the application's needs.
+When constructing `credential_context`, Origins SHOULD consider the following
+guidance:
+
+- **Session binding**: Use a unique session identifier to bind credentials
+  to a specific session.
+- **Time-bounded access**: Use `F(current_time_window)` where `F` is a
+  pseudorandom function, to enforce periodic credential renewal.
+- **Service differentiation**: Include a service identifier to prevent
+  cross-service credential reuse.
+
+The `redemption_context` SHOULD be a fresh random value for each challenge
+when per-request uniqueness is desired, or a deterministic value derived
+from session state when correlation within a session is acceptable.
 
 In addition to this updated TokenChallenge, the HTTP authentication challenge
 also SHOULD contain the following additional attribute:
@@ -389,9 +415,12 @@ also SHOULD contain the following additional attribute:
 - "cost", which contains a JSON number indicating the amount of credits to
   spend out of the ACT credential.
 
-Implementation-specific steps: the client should store the Origin-provided input `tokenChallenge` so that when they receive a new `tokenChallenge` value, they can check if it has changed and which fields are different. This will inform the client's behavior - for example, if `credential_context` is being used to enforce an expiration on the credential, then if the `credential_context` has changed, this can prompt the client to request a new credential.
+Clients SHOULD store the Origin-provided `tokenChallenge` and compare it
+against subsequent challenges to detect changes. If the `credential_context`
+has changed (e.g., due to time window expiration), the client SHOULD request
+a new credential through the issuance protocol.
 
-# Credential Issuance Protocol
+# Credential Issuance Protocol {#credential-issuance-protocol}
 
 Issuers provide an Issuer Private and Public Key, denoted `skI` and `pkI`
 respectively, used to produce credentials as input to the protocol. See {{setup}}
@@ -421,7 +450,7 @@ the Client first creates a credential request message using the `IssueRequest`
 function from {{ACT}} as follows:
 
 ~~~
-(clientSecrets, request) = IssueRequest()
+(request, state) = IssueRequest(rng)
 ~~~
 
 The Client then creates a TokenRequest structure as follows:
@@ -430,7 +459,7 @@ The Client then creates a TokenRequest structure as follows:
 struct {
   uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
   uint8_t truncated_issuer_key_id;
-  uint8_t encoded_request[Nrequest];
+  opaque encoded_request<1..2^16-1>;
 } TokenRequest;
 ~~~
 
@@ -444,7 +473,7 @@ The structure fields are defined as follows:
   `issuer_key_id` as a way of uniquely identifying Clients; see {{security}}
   and referenced information for more details.
 
-- "encoded_request" is the Nrequest-octet request, computed as the serialization
+- "encoded_request" is a variable-length field containing the serialization
   of the `request` value as defined in {{Section 4.1.1 of ACT}}.
 
 The Client then generates an HTTP POST request to send to the Issuer Request URL,
@@ -470,7 +499,7 @@ Upon receipt of the request, the Issuer validates the following conditions:
 - The TokenRequest.truncated_token_key_id corresponds to the truncated key ID
   of an Issuer Public Key, with corresponding secret key `skI`, owned by
   the Issuer.
-- The TokenRequest.encoded_request is of the correct size (`Nrequest`).
+- The TokenRequest.encoded_request is well-formed and of a valid size.
 
 If any of these conditions is not met, the Issuer MUST return an HTTP 422
 (Unprocessable Content) error to the client.
@@ -479,31 +508,32 @@ If these conditions are met, the Issuer then tries to deserialize
 TokenRequest.encoded_request according to {{Section 4.1.1 of ACT}}, yielding `request`.
 If this fails, the Issuer MUST return an HTTP 422 (Unprocessable Content)
 error to the client. Otherwise, if the Issuer is willing to produce a credential
-for the Client, the Issuer determines both the number of initial credits and the
-request_context based on its policy (e.g., based on attestation results, payment
-verification, or TokenChallenge requirements). The request_context binds the
-credential to the specific application context:
+for the Client, the Issuer determines the number of initial credits based on its
+policy (e.g., based on attestation results, payment verification, or
+TokenChallenge requirements). The request_context is derived from the
+TokenChallenge fields and hashed to a scalar for the `ctx` parameter:
 
 ~~~
-request_context = concat(tokenChallenge.issuer_name,
+context_input = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
-response = IssueResponse(skI, request, initial_credits, request_context)
+request_context = HashToScalar(context_input)
+response = IssueResponse(skI, request, initial_credits, request_context, rng)
 ~~~
 
 The Issuer then creates a TokenResponse structured as follows:
 
 ~~~
 struct {
-   uint8_t encoded_response[Nresponse];
+   opaque encoded_response<1..2^16-1>;
 } TokenResponse;
 ~~~
 
 The structure fields are defined as follows:
 
-- "encoded_response" is the Nresponse-octet encoded issuance response message, computed
-  as the serialization of `response` as specified in {{Section 4.1.2 of ACT}}.
+- "encoded_response" is a variable-length field containing the serialization
+  of `response` as specified in {{Section 4.1.2 of ACT}}.
 
 The Issuer generates an HTTP response with status code 200 whose content
 consists of TokenResponse, with the content type set as
@@ -525,7 +555,7 @@ yielding `response`. If deserialization fails, the Client aborts the protocol.
 Otherwise, the Client processes the response as follows:
 
 ~~~
-credential = VerifyIssuance(pkI, request, response, clientSecrets)
+credential = VerifyIssuance(pkI, response, request_context, state)
 ~~~
 
 The Client then saves the credential structure, associated with the given Issuer
@@ -548,7 +578,7 @@ for the Issuer identifier in the challenge, denoted `credential`, containing at
 least `cost` credits, Clients compute a spend request as follows:
 
 ~~~
-spend_proof, state = ProveSpend(credential, cost)
+spend_proof, state = ProveSpend(credential, cost, rng)
 ~~~
 
 Each credential instance MUST only ever be used for a single spend request. When the client
@@ -562,8 +592,8 @@ The resulting Token value is then constructed as follows:
 struct {
     uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
     uint8_t challenge_digest[32];
-    uint8_t issuer_key_id[Nid];
-    uint8_t encoded_spend_proof[Nspend_proof];
+    uint8_t issuer_key_id[Nid];    /* Nid = 32 bytes */
+    opaque encoded_spend_proof<1..2^16-1>;
 } Token;
 ~~~
 
@@ -576,9 +606,10 @@ The structure fields are defined as follows:
 - "issuer_key_id" is a Nid-octet identifier for the Issuer Public Key, computed
 as defined in {{setup}}.
 
-- "encoded_spend_proof" is a Nspend_proof-octet encoded spend proof, set to the serialized
+- "encoded_spend_proof" is a variable-length field containing the serialized
 `spend_proof` value as specified in {{Section 4.1.3 of ACT}}. The spend proof contains
-the nullifier (field 1) and spend amount (field 2), among other cryptographic values.
+the nullifier (field 1), spend amount (field 2), and request context (field 3),
+among other cryptographic values.
 
 ## Token Refund {#refund}
 
@@ -588,35 +619,49 @@ Origin then extracts the relevant fields from the spend proof:
 
 ~~~
 // Extract fields from SpendProofMsg (see Section 4.1.3 of ACT)
-nullifier = spend_proof.k      // Field 1: nullifier (32 bytes)
-spend_amount = spend_proof.s   // Field 2: spend amount (32 bytes)
+nullifier = spend_proof.k        // Field 1: nullifier (32 bytes)
+spend_amount = spend_proof.s     // Field 2: spend amount (32 bytes)
+request_context = spend_proof.ctx // Field 3: request context (32 bytes)
 ~~~
 
 The Origin SHOULD verify that the spend_amount matches the requested cost from
 TokenChallenge to ensure the client is spending the expected amount.
 
-To verify the Token and issue a refund, the Origin constructs the request_context
-and invokes VerifyAndRefund:
+The Origin SHOULD also verify that the `request_context` revealed in the spend
+proof matches the expected context derived from the TokenChallenge:
 
 ~~~
-request_context = concat(tokenChallenge.issuer_name,
+context_input = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
-refund = VerifyAndRefund(skI, request_context, spend_proof)
+expected_context = HashToScalar(context_input)
 ~~~
 
-This function returns the `refund` serialized according to {{Section 4.1.4 of ACT}} if the spend proof is valid, and nil otherwise.
+If `request_context != expected_context`, the Origin MUST reject the spend proof.
 
-As mentioned in {{Section 2.2.2 of AUTHSCHEME}}, Origins SHOULD implement some form of double-spend prevention that prevents a token with the same nonce from being redeemed twice.
+To verify the Token and issue a refund, the Origin invokes VerifyAndRefund with
+the partial return amount `t`. The parameter `t` specifies how many of the spent
+credits to return to the client. Setting `t = 0` means no partial return (the
+Origin keeps the full spend amount), while `t > 0` returns that many credits back
+to the client. The value of `t` MUST satisfy `0 <= t <= spend_amount`:
+
+~~~
+refund = VerifyAndRefund(skI, spend_proof, t, rng)
+~~~
+
+This function returns the `refund` serialized according to {{Section 4.1.4 of ACT}} if the spend proof is valid, and nil otherwise. The request_context is extracted directly from the spend proof during verification, so the Origin does not need to pass it separately.
+
+As mentioned in {{Section 2.2.2 of AUTHSCHEME}}, Origins SHOULD implement some form of double-spend prevention that prevents a token with the same nonce (nullifier in ACT) from being redeemed twice.
 With ACT, the Origin SHOULD check that the nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier
-for  use in future double-spending checks.
+for use in future double-spending checks.
 To reduce the overhead of performing double spend checks, the Origin MAY store and
-look up the nullifiers corresponding to the associated request_context value.
+look up the nullifiers corresponding to the associated request_context value
+(which is extracted from the spend proof).
 
 ~~~
 struct {
-    uint8_t refund[Nrefund];
+    opaque refund<1..2^16-1>;
 } Refund;
 ~~~
 
@@ -633,6 +678,13 @@ so, clients invoke the `ConstructRefundToken` function from {{Section 3.4.4 of A
 ~~~
 credential = ConstructRefundToken(pkI, spend_proof, refund, state)
 ~~~
+
+The resulting credential has a balance of `new_balance = m + t`, where `m` is
+the remaining balance after the spend (i.e., `m = original_balance - cost`) and
+`t` is the partial return amount specified by the Origin during `VerifyAndRefund`.
+When `t = 0` (the default), the new credential balance equals `m`, which is the
+original balance minus the full spend amount. When `t > 0`, the client receives
+`t` credits back, resulting in a higher balance on the new credential.
 
 The client then uses this new credential instance for subsequent spend operations.
 
