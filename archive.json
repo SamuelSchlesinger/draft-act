@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-02-24T00:14:00.599066+00:00",
+  "timestamp": "2026-03-03T00:14:10.356423+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -477,6 +477,24 @@
       "body": "The ZKP prover and verifier are instantiated with NISigmaProtocol in the spec, such as here:\nhttps://github.com/SamuelSchlesinger/draft-act/blob/main/draft-schlesinger-cfrg-act.md#client-issuance-request\n\nHowever, this code wouldn't actually run correctly because NISigmaProtocol is the class, whereas you need an actual ciphersuite (eg `NISchnorrProofShake128P256` as defined in https://mmaker.github.io/draft-irtf-cfrg-sigma-protocols/draft-irtf-cfrg-fiat-shamir.html#section-5.1) which has the Protocol, Codec, and Hash defined. If you want to keep the `NISigmaProtocol` abstraction for crypto agility, please add a comment to clarify the use and how it differs from how you'd actually need to instantiate it in practice.",
       "createdAt": "2025-10-30T18:25:46Z",
       "updatedAt": "2025-10-30T18:25:46Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 25,
+      "id": "I_kwDOPc24Mc7u31HD",
+      "title": "Media types for credential request and response",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/issues/25",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "bug"
+      ],
+      "body": "The draft act+privacypass defines two new media types `application/private-credential-request` and `application/private-credential-response` but does not request a registration in the IANA section.",
+      "createdAt": "2026-03-01T16:14:27Z",
+      "updatedAt": "2026-03-01T16:14:27Z",
       "closedAt": null,
       "comments": []
     }
@@ -2176,24 +2194,26 @@
       "id": "PR_kwDOPc24Mc7DuTu7",
       "title": "Sigma+F/S Compliance",
       "url": "https://github.com/SamuelSchlesinger/draft-act/pull/20",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "SamuelSchlesinger",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "",
       "createdAt": "2026-02-14T04:16:33Z",
-      "updatedAt": "2026-02-19T01:30:51Z",
+      "updatedAt": "2026-03-02T23:13:11Z",
       "baseRepository": "SamuelSchlesinger/draft-act",
       "baseRefName": "main",
-      "baseRefOid": "1a2947cf82811aee9467de083e6002f90ea19f44",
+      "baseRefOid": "c14b122bea24817fff154497dfc5995067bd50ed",
       "headRepository": "SamuelSchlesinger/draft-act",
       "headRefName": "samschles/sigma-draft-compliance",
-      "headRefOid": "9d696b1a51472d70b59dca112644ee19371e61f3",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "c1335d9310ab9fe94752cfa75ddd3139bf820aa5",
+      "closedAt": "2026-03-02T23:13:11Z",
+      "mergedAt": "2026-03-02T23:13:10Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "d2daf31c73737197e2e2c9449159ab85e6d21f9b"
+      },
       "comments": [
         {
           "author": "SamuelSchlesinger",
@@ -2488,6 +2508,32 @@
           "createdAt": "2026-02-19T01:30:51Z",
           "updatedAt": "2026-02-19T01:30:51Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOPc24Mc7nIKCW",
+          "commit": {
+            "abbreviatedOid": "9d696b1"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "I got two distinct implementations to interop (rust and typescript) with minor modification to rust not due to this branch\n\nThis is for the full round-trip: issuance, spend proof verification, refund.\n\nI've generated test vectors which are available in https://github.com/thibmeu/act-ts/blob/main/packages/act-ts/test/vectors/draft-schlesinger-02.json",
+          "createdAt": "2026-03-02T17:37:32Z",
+          "updatedAt": "2026-03-02T17:43:33Z",
+          "comments": [
+            {
+              "originalPosition": 332,
+              "body": "Interop between typescript and rust made the following choice: string literals as ASCII, `+` as raw concatenation.\n\nWorth a one-liner clarifying this",
+              "createdAt": "2026-03-02T17:37:32Z",
+              "updatedAt": "2026-03-02T17:43:33Z"
+            },
+            {
+              "originalPosition": 607,
+              "body": "it took me a few tries to get rust and typescript to align here. The ordering is implicit from the allocation sequence above.\n\none thing as well: `e` is declared as `e_var` in 20. that's similar for other variable. would be good to correct",
+              "createdAt": "2026-03-02T17:41:48Z",
+              "updatedAt": "2026-03-02T17:43:33Z"
+            }
+          ]
         }
       ]
     },
