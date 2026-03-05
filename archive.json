@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-03-03T00:14:10.356423+00:00",
+  "timestamp": "2026-03-05T00:13:40.222249+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -495,6 +495,22 @@
       "body": "The draft act+privacypass defines two new media types `application/private-credential-request` and `application/private-credential-response` but does not request a registration in the IANA section.",
       "createdAt": "2026-03-01T16:14:27Z",
       "updatedAt": "2026-03-01T16:14:27Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 26,
+      "id": "I_kwDOPc24Mc7vVCOM",
+      "title": "Generate and include test vectors for act sigma draft",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/issues/26",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "We should add new test vectors for the ACT sigma draft.\n\nThere are some that have been generated in Typescript that interrop with Rust. Would be good to have some test the other way around.\n\nhttps://github.com/SamuelSchlesinger/anonymous-credit-tokens/blob/samschles/sigma-draft-compliance/test_vectors/draft-schlesinger-02.json",
+      "createdAt": "2026-03-03T07:56:43Z",
+      "updatedAt": "2026-03-03T07:56:43Z",
       "closedAt": null,
       "comments": []
     }
