@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-03-05T00:13:40.222249+00:00",
+  "timestamp": "2026-03-31T00:16:30.293341+00:00",
   "repo": "SamuelSchlesinger/draft-act",
   "labels": [
     {
@@ -511,6 +511,22 @@
       "body": "We should add new test vectors for the ACT sigma draft.\n\nThere are some that have been generated in Typescript that interrop with Rust. Would be good to have some test the other way around.\n\nhttps://github.com/SamuelSchlesinger/anonymous-credit-tokens/blob/samschles/sigma-draft-compliance/test_vectors/draft-schlesinger-02.json",
       "createdAt": "2026-03-03T07:56:43Z",
       "updatedAt": "2026-03-03T07:56:43Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 27,
+      "id": "I_kwDOPc24Mc74aTcM",
+      "title": "CFRG product?",
+      "url": "https://github.com/SamuelSchlesinger/draft-act/issues/27",
+      "state": "OPEN",
+      "author": "martinthomson",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "From [the abstract](https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-abstract-4):\n\n> This document is a product of the Crypto Forum Research Group (CFRG) in the IRTF.\n\nThis is not true, though you might wish it was.\n\nI would even hazard to suggest that this is not what you want.  There are some very capable cryptographers who contribute to the work there, but you aren't going to get any worse review if the work is executed elsewhere.  On the contrary, people who might be inclined to participate might actively avoid CFRG and so be dissuaded from contributing if it continues there.",
+      "createdAt": "2026-03-30T05:51:18Z",
+      "updatedAt": "2026-03-30T05:51:18Z",
       "closedAt": null,
       "comments": []
     }
