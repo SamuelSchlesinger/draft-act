@@ -343,6 +343,9 @@ append_range_proof(statement, H1, H2, H3, Com, T, D):
     - w_vars: Array of D scalar variable handles.
     - kstar_var: Scalar variable handle.
     - k3_var: Scalar variable handle.
+    - H1_var, H2_var, H3_var: Element variable handles, returned so
+      that callers reuse them; each group element value MUST be
+      assigned to at most one element variable.
 
   Steps:
     // Allocate scalar variables
@@ -395,9 +398,18 @@ append_range_proof(statement, H1, H2, H3, Com, T, D):
    20.     statement.append_equation(T2_vars[j],
              [(d_vars[j], T_vars[j]), (w_vars[j], H3_var)])
 
-   21. return (d_vars, s_vars, rho_vars, w_vars, kstar_var, k3_var)
+   21. return (d_vars, s_vars, rho_vars, w_vars, kstar_var, k3_var,
+         H1_var, H2_var, H3_var)
 ~~~
 {: #append_range_proof }
+
+Implementations of the LinearRelation interface may require that each
+group element value is assigned to at most one element variable, since
+element variables are deduplicated or checked when the statement is
+put into canonical form. The pseudocode in this document therefore
+reuses the element variables returned by
+{{append_range_proof}}{:format="title"} instead of assigning the same
+value to a second variable.
 
 # Protocol Specification
 
@@ -691,17 +703,20 @@ ProveSpend(token, s, a, rng):
          (negH3_var, -H3), (H1p_var, H1_prime)])
 
     // Eqs 3..2+3D: Range proof (3D equations)
-   32. (d_vars, s_com_vars, rho_vars, w_vars, kstar_var, k3_var) =
+   32. (d_vars, s_com_vars, rho_vars, w_vars, kstar_var, k3_var,
+         H1_var, H2_var, H3_var) =
          append_range_proof(statement, H1, H2, H3, Com, T, D)
 
     // Eq 3D+3: Commitment consistency
     // Com_total = c*H1 + kstar*H2 + sum(s_com[j]*3^j*H3)
+    // Element variables from the range proof are reused; the
+    // 3^0 = 1 coefficient element for j = 0 is H3_var itself.
    33. Com_total = H1 * (s - a) + Sum(Com[j] * 3^j for j in [D])
-   34. H1_var2, H2_var2, Com_total_var = statement.allocate_elements(3)
-   35. statement.set_elements([(H1_var2, H1), (H2_var2, H2),
-         (Com_total_var, Com_total)])
-   36. terms = [(c_var, H1_var2), (kstar_var, H2_var2)]
-   37. For j = 0 to D-1:
+   34. Com_total_var = statement.allocate_elements(1)
+   35. statement.set_elements([(Com_total_var, Com_total)])
+   36. terms = [(c_var, H1_var), (kstar_var, H2_var),
+         (s_com_vars[0], H3_var)]
+   37. For j = 1 to D-1:
    38.     coeff_H3_var = statement.allocate_elements(1)
    39.     statement.set_elements([(coeff_H3_var, H3 * (3^j))])
    40.     terms.append((s_com_vars[j], coeff_H3_var))
@@ -913,15 +928,18 @@ VerifySpendProof(sk, proof):
          (negH3_var, -H3), (H1p_var, H1_prime)])
 
     // Eqs 3..2+3D: Range proof (3D equations)
-   16. (d_vars, s_com_vars, rho_vars, w_vars, kstar_var, k3_var) =
+   16. (d_vars, s_com_vars, rho_vars, w_vars, kstar_var, k3_var,
+         H1_var, H2_var, H3_var) =
          append_range_proof(statement, H1, H2, H3, Com, T, D)
 
     // Eq 3D+3: Commitment consistency
-   17. H1_var2, H2_var2, Com_total_var = statement.allocate_elements(3)
-   18. statement.set_elements([(H1_var2, H1), (H2_var2, H2),
-         (Com_total_var, Com_total)])
-   19. terms = [(c_var, H1_var2), (kstar_var, H2_var2)]
-   20. For j = 0 to D-1:
+    // Element variables from the range proof are reused; the
+    // 3^0 = 1 coefficient element for j = 0 is H3_var itself.
+   17. Com_total_var = statement.allocate_elements(1)
+   18. statement.set_elements([(Com_total_var, Com_total)])
+   19. terms = [(c_var, H1_var), (kstar_var, H2_var),
+         (s_com_vars[0], H3_var)]
+   20. For j = 1 to D-1:
    21.     coeff_H3_var = statement.allocate_elements(1)
    22.     statement.set_elements([(coeff_H3_var, H3 * (3^j))])
    23.     terms.append((s_com_vars[j], coeff_H3_var))
