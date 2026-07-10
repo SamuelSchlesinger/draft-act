@@ -589,6 +589,11 @@ bound as a public value in the spend proof. Clients set `topup = 0`
 unless the application has authorized a top-up (e.g., through a
 purchase bound to the request context).
 
+The resulting balance `balance - cost + topup` MUST also be a valid credit
+amount in the range `[0, 3^D)` defined in {{ACT}}; otherwise `ProveSpend`
+raises an error. A client holding a nearly full credential therefore cannot
+apply a top-up that would push its balance to or beyond `3^D`.
+
 Each credential instance MUST only ever be used for a single spend request. When the client
 receives the refunded credential from the server, the client uses that new credential instance
 for the next spend. If the same credential instance is used more than once, the privacy
@@ -699,8 +704,8 @@ The resulting credential has a balance of `new_balance = v + t`, where `v` is
 the balance after the spend and any top-up
 (i.e., `v = original_balance - cost + topup_amount`) and
 `t` is the partial return amount specified by the Origin during `VerifyAndRefund`.
-When `t = 0` (the default), the new credential balance equals `m`, which is the
-original balance minus the full spend amount. When `t > 0`, the client receives
+When `t = 0` (the default), the new credential balance equals `v`, the original
+balance less the spend amount plus any top-up. When `t > 0`, the client receives
 `t` credits back, resulting in a higher balance on the new credential.
 
 The client then uses this new credential instance for subsequent spend operations.

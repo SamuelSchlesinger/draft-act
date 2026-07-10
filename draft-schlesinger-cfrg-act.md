@@ -551,32 +551,39 @@ IssueResponse(sk, request, c, ctx, rng):
     - response: Issuance response
   Exceptions:
     - InvalidIssuanceRequestProof, raised when the client proof verification fails
+    - AmountTooBigError, raised when c does not fit in the credit range [0, 3^D)
 
   Steps:
+    // Validate the credit amount. This bounds every issued balance below
+    // 3^D and is REQUIRED for the wraparound soundness argument (see the
+    // Amount Validation and Modular Wraparound security considerations).
+    1. if c >= 3^D:
+    2.     raise AmountTooBigError
+
     // Verify proof of knowledge of (k, r) such that K = H2 * k + H3 * r
-    1. Parse request as (K, pok)
-    2. statement = LinearRelation(group)
-    3. append_pedersen(statement, H2, H3, K)
-    4. session_id = domain_separator + "request"
-    5. verifier = NISigmaProtocol(session_id, statement)
-    6. if not verifier.verify(pok):
-    7.     raise InvalidIssuanceRequestProof
+    3. Parse request as (K, pok)
+    4. statement = LinearRelation(group)
+    5. append_pedersen(statement, H2, H3, K)
+    6. session_id = domain_separator + "request"
+    7. verifier = NISigmaProtocol(session_id, statement)
+    8. if not verifier.verify(pok):
+    9.     raise InvalidIssuanceRequestProof
 
     // Create BBS signature on (c, ctx, k, r)
-    8. e <- Zq
-    9. X_A = G.Generator() + H1 * c + H4 * ctx + K    // K = H2 * k + H3 * r
-   10. A = X_A * (1/(e + sk))
-   11. X_G = G.Generator() * (e + sk)
+   10. e <- Zq
+   11. X_A = G.Generator() + H1 * c + H4 * ctx + K    // K = H2 * k + H3 * r
+   12. A = X_A * (1/(e + sk))
+   13. X_G = G.Generator() * (e + sk)
 
    // Generate proof of knowledge of (e+sk) such that X_A = A * (e+sk) and X_G = G.Generator() * (e+sk)
-   12. statement = LinearRelation(group)
-   13. append_dleq(statement, A, G.Generator(), X_A, X_G)
-   14. session_id = domain_separator + "respond" + Encode(c) + Encode(ctx)
-   15. prover = NISigmaProtocol(session_id, statement)
-   16. witness = [e + sk]
-   17. pok = prover.prove(witness, rng)
-   18. response = (A, e, c, pok)
-   19. return response
+   14. statement = LinearRelation(group)
+   15. append_dleq(statement, A, G.Generator(), X_A, X_G)
+   16. session_id = domain_separator + "respond" + Encode(c) + Encode(ctx)
+   17. prover = NISigmaProtocol(session_id, statement)
+   18. witness = [e + sk]
+   19. pok = prover.prove(witness, rng)
+   20. response = (A, e, c, pok)
+   21. return response
 ~~~
 
 Note: The `ctx` parameter is not included in the response because
@@ -736,8 +743,12 @@ ProveSpend(token, s, a, rng):
    52. witness[kstar_var] = kstar
    53. witness[k3_var] = (2 - d[0]) * (d[0] - 1) * kstar
 
-    // Generate non-interactive proof
-   54. session_id = domain_separator + "spend" + Encode(k) + Encode(ctx)
+    // Generate non-interactive proof.
+    // The public amounts s and a are bound into the session identifier so
+    // that the proof authenticates them individually; the statement alone
+    // constrains only their difference s - a through Com_total.
+   54. session_id = domain_separator + "spend" + Encode(k) + Encode(s)
+         + Encode(a) + Encode(ctx)
    55. prover = NISigmaProtocol(session_id, statement)
    56. pok = prover.prove(witness, rng)
 
@@ -761,7 +772,10 @@ VerifyAndRefund(sk, proof, t, rng):
     - refund: Refund for remaining credits
   Exceptions:
     - DoubleSpendError: raised when the nullifier has been used before
-    - InvalidSpendProof: raised when the spend proof verification fails
+    - IdentityPointError: raised when A' is the identity (see VerifySpendProof)
+    - InvalidClientSpendProof: raised when the spend proof verification fails
+    - ScalarOutOfRangeError: raised when s or a does not decode as a credit
+      amount (see ScalarToCredit)
     - InvalidAmount: raised when s or a is not a valid credit amount
       in [0, 3^D)
     - InvalidRefundAmount: raised when t > max(0, s - a)
@@ -781,8 +795,12 @@ VerifyAndRefund(sk, proof, t, rng):
     // Validate refund amount
     5. if t > max(0, s - a):
     6.     raise InvalidRefundAmount
-    // The following steps (7-12) MUST be performed atomically
-    // to prevent double-spending via race conditions.
+    // The following steps (7-15) MUST be performed as a single
+    // atomic transaction: the nullifier check, proof verification,
+    // nullifier recording, and refund issuance either all commit or
+    // all roll back. This prevents double-spending via race
+    // conditions and ensures a recorded nullifier always has a
+    // retrievable refund (see the State Management Requirements).
     7. // Check nullifier hasn't been used
     8. if k in used_nullifiers:
     9.     raise DoubleSpendError
@@ -946,7 +964,8 @@ VerifySpendProof(sk, proof):
    24. statement.append_equation(Com_total_var, terms)
 
     // Verify non-interactive proof
-   25. session_id = domain_separator + "spend" + Encode(k) + Encode(ctx)
+   25. session_id = domain_separator + "spend" + Encode(k) + Encode(s)
+         + Encode(a) + Encode(ctx)
    26. verifier = NISigmaProtocol(session_id, statement)
    27. if not verifier.verify(pok):
    28.     raise InvalidClientSpendProof
@@ -1038,7 +1057,7 @@ ScalarToCredit(s):
   Input:
     - s: Scalar value
   Output:
-    - amount: Integer credit amount or ERROR
+    - amount: Integer credit amount
   Exceptions:
     - ScalarOutOfRangeError: raised when the bytes 16..32 of the scalar value are nonzero
 
@@ -1047,10 +1066,15 @@ ScalarToCredit(s):
     2. // Check high bytes are zero
     3. For i = 16 to 31:
     4.     if bytes[i] != 0:
-    5.         return ScalarOutOfRangeError
+    5.         raise ScalarOutOfRangeError
     6. amount = bytes[0..15] as u128
     7. return amount
 ~~~
+
+Note that ScalarToCredit raises ScalarOutOfRangeError rather than
+returning it as a value; callers such as VerifyAndRefund rely on this
+control flow to reject out-of-range public amounts, which is required
+for soundness (see {{wraparound}}).
 
 All valid credit amounts satisfy `amount < 3^D <= 3^MAX_DIGITS < 2^127`,
 so they are representable in the 128-bit integer returned by
