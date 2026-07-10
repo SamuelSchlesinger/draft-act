@@ -33,8 +33,8 @@ author:
 normative:
   FIPS186: DOI.10.6028/NIST.FIPS.186-5
   FIPS202: DOI.10.6028/NIST.FIPS.202
-  SIGMA: I-D.irtf-cfrg-sigma-protocols-00
-  FIAT-SHAMIR: I-D.irtf-cfrg-fiat-shamir-00
+  SIGMA: I-D.irtf-cfrg-sigma-protocols-02
+  FIAT-SHAMIR: I-D.irtf-cfrg-fiat-shamir-02
 
 informative:
   FST: DOI.10.1007/3-540-47721-7_12
@@ -217,12 +217,12 @@ number generator with a `random_scalar() -> Scalar` method. The PRNG
 MUST be backed by a CSPRNG in accordance with {{FIPS186}}.
 See {{prng-appendix}} for the abstract interface definition.
 - **LinearRelation**: An interface for building an interactive sigma
-protocol as defined in {{Section 2.2.6 of SIGMA}}.
+protocol as defined in {{Section 2.2.3 of SIGMA}}.
 - **NISigmaProtocol**: An interface that implements the Fiat-Shamir
-transform as defined in {{Section 5 of FIAT-SHAMIR}}.
-This interface is parametrized with a Codec that
+transform as defined in {{Section 6 of FIAT-SHAMIR}}.
+This interface is parametrized with a SigmaProtocol, a Codec that
 encodes prover messages and verifier challenges, and
-a function used to compute challenges.
+a duplex sponge used to compute challenges.
 See {{FIAT-SHAMIR}} for requirements of these parameters.
 
 The specific parameters and implementations are defined in {{suites}}.
@@ -1360,10 +1360,21 @@ class Ristretto255Codec(ByteSchnorrCodec):
 class NISchnorrProofShake128Ris255(NISigmaProtocol):
     Protocol = SchnorrProof
     Codec = Ristretto255Codec
-    Hash = SHAKE128
+    DuplexSponge = SHAKE128
+
+    def get_protocol_id():
+        return b"ACT-v1_SchnorrProof_Shake128_Ristretto255"
+                 .ljust(64, b"\x00")
 ~~~
 
-where SHAKE128 is the extendable-output function defined in {{FIPS202}}.
+where SchnorrProof is defined in {{Section 2.2.7 of SIGMA}},
+ByteSchnorrCodec in {{Section 7 of FIAT-SHAMIR}}, and SHAKE128 is the
+duplex sponge specified in {{Section 8.1 of FIAT-SHAMIR}}, based on
+the extendable-output function defined in {{FIPS202}}. The protocol
+identifier (see {{Section 5 of SIGMA}}) is the ASCII string
+"ACT-v1_SchnorrProof_Shake128_Ristretto255" padded to 64 bytes with
+zero bytes. The session identifiers constructed throughout this
+document are passed as the `session` input of NISigmaProtocol.
 
 The PRNG is instantiated as defined in {{prng-appendix}}.
 
