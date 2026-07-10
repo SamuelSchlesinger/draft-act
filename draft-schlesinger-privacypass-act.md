@@ -211,7 +211,7 @@ A client managing an ACT credential progresses through the following states:
    |  Initial |  (Credential with N credits)
    +----+-----+
         |
-        | ProveSpend(credential, cost)
+        | ProveSpend(credential, cost, topup)
         v
    +----------+
    |   Spent  |  (Waiting for refund, credential invalid)
@@ -220,7 +220,7 @@ A client managing an ACT credential progresses through the following states:
         | ConstructRefundToken(refund)
         v
    +----------+
-   | Refunded |  (New credential with `N-c+t` credits)
+   | Refunded |  (New credential with `N-c+a+t` credits)
    +----------+
 ~~~
 
@@ -234,10 +234,12 @@ State transitions:
   blocked waiting for a refund response.
 
 - **Refunded**: Client has received a valid refund and constructed a new credential
-  with balance `m + t`, where `m = N - c` is the remaining balance after spending
-  `c` credits, and `t` is the partial return amount from the Origin (`0 <= t <= c`). If the
-  new balance is greater than 0, the client returns to the Initial state with the
-  new credential. If the balance is 0, the credential is exhausted.
+  with balance `v + t`, where `v = N - c + a` is the balance after spending `c`
+  credits and applying any Origin-authorized top-up of `a` credits declared in the
+  spend proof (`a = 0` for a plain spend), and `t` is the partial return amount
+  from the Origin (`0 <= t <= max(0, c - a)`). If the new balance is greater than
+  0, the client returns to the Initial state with the new credential. If the
+  balance is 0, the credential is exhausted.
 
 The transition from Spent to Refunded may fail if the origin does not provide a
 valid refund. Error handling for this case is described in {{error-handling}}.
@@ -575,11 +577,17 @@ way, as well as verifying a resulting token, is described in the following secti
 Given a TokenChallenge value as input, denoted `challenge`, a cost,
 denoted `cost`, and a previously obtained credential that is valid
 for the Issuer identifier in the challenge, denoted `credential`, containing at
-least `cost` credits, Clients compute a spend request as follows:
+least `max(0, cost - topup)` credits, Clients compute a spend request as follows:
 
 ~~~
-spend_proof, state = ProveSpend(credential, cost, rng)
+spend_proof, state = ProveSpend(credential, cost, topup, rng)
 ~~~
+
+The `topup` value is the top-up amount `a` defined in {{ACT}}: an
+Origin-authorized number of credits to add to the refunded credential,
+bound as a public value in the spend proof. Clients set `topup = 0`
+unless the application has authorized a top-up (e.g., through a
+purchase bound to the request context).
 
 Each credential instance MUST only ever be used for a single spend request. When the client
 receives the refunded credential from the server, the client uses that new credential instance
@@ -608,8 +616,8 @@ as defined in {{setup}}.
 
 - "encoded_spend_proof" is a variable-length field containing the serialized
 `spend_proof` value as specified in {{Section 4.1.3 of ACT}}. The spend proof contains
-the nullifier (field 1), spend amount (field 2), and request context (field 3),
-among other cryptographic values.
+the nullifier (field 1), spend amount (field 2), top-up amount (field 3), and
+request context (field 4), among other cryptographic values.
 
 ## Token Refund {#refund}
 
@@ -619,13 +627,20 @@ Origin then extracts the relevant fields from the spend proof:
 
 ~~~
 // Extract fields from SpendProofMsg (see Section 4.1.3 of ACT)
-nullifier = spend_proof.k        // Field 1: nullifier (32 bytes)
-spend_amount = spend_proof.s     // Field 2: spend amount (32 bytes)
-request_context = spend_proof.ctx // Field 3: request context (32 bytes)
+nullifier = spend_proof.k         // Field 1: nullifier (32 bytes)
+spend_amount = spend_proof.s      // Field 2: spend amount (32 bytes)
+topup_amount = spend_proof.a      // Field 3: top-up amount (32 bytes)
+request_context = spend_proof.ctx // Field 4: request context (32 bytes)
 ~~~
 
 The Origin SHOULD verify that the spend_amount matches the requested cost from
 TokenChallenge to ensure the client is spending the expected amount.
+
+The Origin MUST validate spend_amount and topup_amount as specified in
+{{Section 3.4.2 of ACT}}. A non-zero topup_amount adds credits to the client's
+refunded credential and MUST only be accepted when authorized by Origin policy
+(e.g., a purchase bound to the request context). Origins that do not support
+top-ups MUST reject spend proofs with a non-zero topup_amount.
 
 The Origin SHOULD also verify that the `request_context` revealed in the spend
 proof matches the expected context derived from the TokenChallenge:
@@ -644,7 +659,8 @@ To verify the Token and issue a refund, the Origin invokes VerifyAndRefund with
 the partial return amount `t`. The parameter `t` specifies how many of the spent
 credits to return to the client. Setting `t = 0` means no partial return (the
 Origin keeps the full spend amount), while `t > 0` returns that many credits back
-to the client. The value of `t` MUST satisfy `0 <= t <= spend_amount`:
+to the client. The value of `t` MUST satisfy
+`0 <= t <= max(0, spend_amount - topup_amount)`:
 
 ~~~
 refund = VerifyAndRefund(skI, spend_proof, t, rng)
@@ -679,8 +695,9 @@ so, clients invoke the `ConstructRefundToken` function from {{Section 3.4.4 of A
 credential = ConstructRefundToken(pkI, spend_proof, refund, state)
 ~~~
 
-The resulting credential has a balance of `new_balance = m + t`, where `m` is
-the remaining balance after the spend (i.e., `m = original_balance - cost`) and
+The resulting credential has a balance of `new_balance = v + t`, where `v` is
+the balance after the spend and any top-up
+(i.e., `v = original_balance - cost + topup_amount`) and
 `t` is the partial return amount specified by the Origin during `VerifyAndRefund`.
 When `t = 0` (the default), the new credential balance equals `m`, which is the
 original balance minus the full spend amount. When `t > 0`, the client receives
