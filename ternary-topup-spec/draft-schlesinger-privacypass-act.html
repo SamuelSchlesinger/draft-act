@@ -1570,8 +1570,8 @@ This enforces a strict serialization of operations per credential chain.<a href=
                 <text x="132" y="244">(New</text>
                 <text x="196" y="244">credential</text>
                 <text x="260" y="244">with</text>
-                <text x="320" y="244">`N-c+a+t`</text>
-                <text x="396" y="244">credits)</text>
+                <text x="312" y="244">`N-c+t`</text>
+                <text x="380" y="244">credits)</text>
               </g>
             </svg><a href="#section-5.2-2.1" class="pilcrow">¶</a>
 </div>
@@ -1589,14 +1589,15 @@ blocked waiting for a refund response.<a href="#section-5.2-4.2.1" class="pilcro
 </li>
           <li class="normal" id="section-5.2-4.3">
             <p id="section-5.2-4.3.1"><strong>Refunded</strong>: Client has received a valid refund and constructed a new credential
-with balance <code>v + t</code>, where <code>v = N - c + a</code> is the balance after spending <code>c</code>
-credits and applying any Origin-authorized top-up of <code>a</code> credits declared in the
-spend proof (<code>a = 0</code> for a plain spend), and <code>t</code> is the partial return amount
-from the Origin (<code>0 &lt;= t &lt;= max(0, c - a)</code>: the Origin returns at most the
-net amount removed by the spend, so the new balance stays below <code>3^D</code>). If
-the new balance is greater than
-0, the client returns to the Initial state with the new credential. If the
-balance is 0, the credential is exhausted.<a href="#section-5.2-4.3.1" class="pilcrow">¶</a></p>
+with balance <code>v1 + t</code>, where <code>v1 = N - c</code> is the post-spend balance and <code>t</code> is
+the return amount chosen by the Origin (<code>0 &lt;= t &lt;= c + a</code>, where <code>a</code> is the
+Origin-authorized top-up declared in the spend proof; <code>a = 0</code> for a plain
+spend). Setting <code>t = a</code> grants exactly the authorized top-up, <code>t &lt; a</code> claws
+part or all of it back, and <code>t &gt; a</code> also returns part of the spent
+amount. The spend proof shows <code>N - c &gt;= 0</code> and <code>N + a &lt; 3^D</code>, so every
+reachable balance is a valid credit amount. If the new balance is greater
+than 0, the client returns to the Initial state with the new credential. If
+the balance is 0, the credential is exhausted.<a href="#section-5.2-4.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-5.2-5">The transition from Spent to Refunded may fail if the origin does not provide a
@@ -2019,7 +2020,7 @@ way, as well as verifying a resulting token, is described in the following secti
 <p id="section-9.1-1">Given a TokenChallenge value as input, denoted <code>challenge</code>, a cost,
 denoted <code>cost</code>, and a previously obtained credential that is valid
 for the Issuer identifier in the challenge, denoted <code>credential</code>, containing at
-least <code>max(0, cost - topup)</code> credits, Clients compute a spend request as follows:<a href="#section-9.1-1" class="pilcrow">¶</a></p>
+least <code>cost</code> credits, Clients compute a spend request as follows:<a href="#section-9.1-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-9.1-2">
 <pre>
 spend_proof, state = ProveSpend(credential, cost, topup, rng)
@@ -2030,13 +2031,13 @@ Origin-authorized number of credits to add to the refunded credential,
 bound as a public value in the spend proof. Clients set <code>topup = 0</code>
 unless the application has authorized a top-up (e.g., through a
 purchase bound to the request context).<a href="#section-9.1-3" class="pilcrow">¶</a></p>
-<p id="section-9.1-4">The resulting balance <code>balance - cost + topup</code> <span class="bcp14">MUST</span> also be a valid credit
-amount in the range <code>[0, 3^D)</code> defined in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>. The range proof in the
-spend statement covers the new balance, so no valid spend proof exists for
-a balance outside this range; the check in <code>ProveSpend</code> raises the error
-before any proof is attempted. A client holding a nearly full credential
-therefore cannot apply a top-up that would push its balance to or beyond
-<code>3^D</code>.<a href="#section-9.1-4" class="pilcrow">¶</a></p>
+<p id="section-9.1-4">The spend statement carries two range proofs defined in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>: the
+post-spend balance <code>balance - cost</code> must lie in <code>[0, 3^D)</code>, and so must
+the topped-up balance <code>balance + topup</code>. No valid spend proof exists
+otherwise; the checks in <code>ProveSpend</code> raise the error before a proof is
+attempted. A client therefore cannot spend beyond its balance, and a
+client holding a nearly full credential cannot apply a top-up that would
+push its balance to or beyond <code>3^D</code>.<a href="#section-9.1-4" class="pilcrow">¶</a></p>
 <p id="section-9.1-5">Each credential instance <span class="bcp14">MUST</span> only ever be used for a single spend request. When the client
 receives the refunded credential from the server, the client uses that new credential instance
 for the next spend. If the same credential instance is used more than once, the privacy
@@ -2093,10 +2094,11 @@ request_context = spend_proof.ctx // Field 4: request context (32 bytes)
 <p id="section-9.2-3">The Origin <span class="bcp14">SHOULD</span> verify that the spend_amount matches the requested cost from
 TokenChallenge to ensure the client is spending the expected amount.<a href="#section-9.2-3" class="pilcrow">¶</a></p>
 <p id="section-9.2-4">The Origin <span class="bcp14">MUST</span> validate spend_amount and topup_amount as specified in
-<span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-3.4.2" class="relref">Section 3.4.2</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>. A non-zero topup_amount adds credits to the client's
-refunded credential and <span class="bcp14">MUST</span> only be accepted when authorized by Origin policy
-(e.g., a purchase bound to the request context). Origins that do not support
-top-ups <span class="bcp14">MUST</span> reject spend proofs with a non-zero topup_amount.<a href="#section-9.2-4" class="pilcrow">¶</a></p>
+<span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-3.4.2" class="relref">Section 3.4.2</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>. A non-zero topup_amount authorizes credits to be
+added to the client's refunded credential through the return amount and <span class="bcp14">MUST</span>
+only be accepted when authorized by Origin policy (e.g., a purchase bound to
+the request context). Origins that do not support top-ups <span class="bcp14">MUST</span> reject spend
+proofs with a non-zero topup_amount.<a href="#section-9.2-4" class="pilcrow">¶</a></p>
 <p id="section-9.2-5">The Origin <span class="bcp14">SHOULD</span> also verify that the <code>request_context</code> revealed in the spend
 proof matches the expected context derived from the TokenChallenge:<a href="#section-9.2-5" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-9.2-6">
@@ -2110,11 +2112,13 @@ expected_context = HashToScalar(context_input)
 </div>
 <p id="section-9.2-7">If <code>request_context != expected_context</code>, the Origin <span class="bcp14">MUST</span> reject the spend proof.<a href="#section-9.2-7" class="pilcrow">¶</a></p>
 <p id="section-9.2-8">To verify the Token and issue a refund, the Origin invokes VerifyAndRefund with
-the partial return amount <code>t</code>. The parameter <code>t</code> specifies how many of the spent
-credits to return to the client. Setting <code>t = 0</code> means no partial return (the
-Origin keeps the full spend amount), while <code>t &gt; 0</code> returns that many credits back
-to the client. The value of <code>t</code> <span class="bcp14">MUST</span> satisfy
-<code>0 &lt;= t &lt;= max(0, spend_amount - topup_amount)</code>:<a href="#section-9.2-8" class="pilcrow">¶</a></p>
+the return amount <code>t</code>, which is added to the client's post-spend balance. The
+value of <code>t</code> <span class="bcp14">MUST</span> satisfy <code>0 &lt;= t &lt;= spend_amount + topup_amount</code>. Setting
+<code>t = topup_amount</code> grants exactly the authorized top-up; smaller values claw
+part or all of the top-up back (e.g., when an associated out-of-band payment
+fails); larger values also return part of the spent amount. For a plain
+spend (<code>topup_amount = 0</code>), <code>t = 0</code> keeps the full spend amount and
+<code>t &gt; 0</code> returns that many credits:<a href="#section-9.2-8" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-9.2-9">
 <pre>
 refund = VerifyAndRefund(skI, spend_proof, t, rng)
@@ -2151,13 +2155,13 @@ so, clients invoke the <code>ConstructRefundToken</code> function from <span><a 
 credential = ConstructRefundToken(pkI, spend_proof, refund, state)
 </pre><a href="#section-9.3-2" class="pilcrow">¶</a>
 </div>
-<p id="section-9.3-3">The resulting credential has a balance of <code>new_balance = v + t</code>, where <code>v</code> is
-the balance after the spend and any top-up
-(i.e., <code>v = original_balance - cost + topup_amount</code>) and
-<code>t</code> is the partial return amount specified by the Origin during <code>VerifyAndRefund</code>.
-When <code>t = 0</code> (the default), the new credential balance equals <code>v</code>, the original
-balance less the spend amount plus any top-up. When <code>t &gt; 0</code>, the client receives
-<code>t</code> credits back, resulting in a higher balance on the new credential.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
+<p id="section-9.3-3">The resulting credential has a balance of <code>new_balance = v1 + t</code>, where
+<code>v1 = original_balance - cost</code> is the post-spend balance and <code>t</code> is the
+return amount chosen by the Origin during <code>VerifyAndRefund</code>. The reachable
+balances range from <code>original_balance - cost</code> (at <code>t = 0</code>) up to
+<code>original_balance + topup_amount</code> (at <code>t = cost + topup_amount</code>), so a
+single spend can move the balance down or up depending on the Origin's
+choice.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
 <p id="section-9.3-4">The client then uses this new credential instance for subsequent spend operations.<a href="#section-9.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>

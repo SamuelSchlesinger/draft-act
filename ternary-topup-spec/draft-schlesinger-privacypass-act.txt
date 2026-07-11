@@ -309,7 +309,7 @@ Table of Contents
            | ConstructRefundToken(refund)
            v
       +----------+
-      | Refunded |  (New credential with `N-c+a+t` credits)
+      | Refunded |  (New credential with `N-c+t` credits)
       +----------+
 
    State transitions:
@@ -322,15 +322,16 @@ Table of Contents
       used again.  The client is blocked waiting for a refund response.
 
    *  *Refunded*: Client has received a valid refund and constructed a
-      new credential with balance v + t, where v = N - c + a is the
-      balance after spending c credits and applying any Origin-
-      authorized top-up of a credits declared in the spend proof (a = 0
-      for a plain spend), and t is the partial return amount from the
-      Origin (0 <= t <= max(0, c - a): the Origin returns at most the
-      net amount removed by the spend, so the new balance stays below
-      3^D).  If the new balance is greater than 0, the client returns to
-      the Initial state with the new credential.  If the balance is 0,
-      the credential is exhausted.
+      new credential with balance v1 + t, where v1 = N - c is the post-
+      spend balance and t is the return amount chosen by the Origin (0
+      <= t <= c + a, where a is the Origin-authorized top-up declared in
+      the spend proof; a = 0 for a plain spend).  Setting t = a grants
+      exactly the authorized top-up, t < a claws part or all of it back,
+      and t > a also returns part of the spent amount.  The spend proof
+      shows N - c >= 0 and N + a < 3^D, so every reachable balance is a
+      valid credit amount.  If the new balance is greater than 0, the
+      client returns to the Initial state with the new credential.  If
+      the balance is 0, the credential is exhausted.
 
    The transition from Spent to Refunded may fail if the origin does not
    provide a valid refund.  Error handling for this case is described in
@@ -694,8 +695,8 @@ response = IssueResponse(skI, request, initial_credits, request_context, rng)
    Given a TokenChallenge value as input, denoted challenge, a cost,
    denoted cost, and a previously obtained credential that is valid for
    the Issuer identifier in the challenge, denoted credential,
-   containing at least max(0, cost - topup) credits, Clients compute a
-   spend request as follows:
+   containing at least cost credits, Clients compute a spend request as
+   follows:
 
    spend_proof, state = ProveSpend(credential, cost, topup, rng)
 
@@ -705,12 +706,12 @@ response = IssueResponse(skI, request, initial_credits, request_context, rng)
    the application has authorized a top-up (e.g., through a purchase
    bound to the request context).
 
-   The resulting balance balance - cost + topup MUST also be a valid
-   credit amount in the range [0, 3^D) defined in [ACT].  The range
-   proof in the spend statement covers the new balance, so no valid
-   spend proof exists for a balance outside this range; the check in
-   ProveSpend raises the error before any proof is attempted.  A client
-   holding a nearly full credential therefore cannot apply a top-up that
+   The spend statement carries two range proofs defined in [ACT]: the
+   post-spend balance balance - cost must lie in [0, 3^D), and so must
+   the topped-up balance balance + topup.  No valid spend proof exists
+   otherwise; the checks in ProveSpend raise the error before a proof is
+   attempted.  A client therefore cannot spend beyond its balance, and a
+   client holding a nearly full credential cannot apply a top-up that
    would push its balance to or beyond 3^D.
 
    Each credential instance MUST only ever be used for a single spend
@@ -764,11 +765,12 @@ request_context = spend_proof.ctx // Field 4: request context (32 bytes)
    expected amount.
 
    The Origin MUST validate spend_amount and topup_amount as specified
-   in Section 3.4.2 of [ACT].  A non-zero topup_amount adds credits to
-   the client's refunded credential and MUST only be accepted when
-   authorized by Origin policy (e.g., a purchase bound to the request
-   context).  Origins that do not support top-ups MUST reject spend
-   proofs with a non-zero topup_amount.
+   in Section 3.4.2 of [ACT].  A non-zero topup_amount authorizes
+   credits to be added to the client's refunded credential through the
+   return amount and MUST only be accepted when authorized by Origin
+   policy (e.g., a purchase bound to the request context).  Origins that
+   do not support top-ups MUST reject spend proofs with a non-zero
+   topup_amount.
 
    The Origin SHOULD also verify that the request_context revealed in
    the spend proof matches the expected context derived from the
@@ -784,12 +786,14 @@ request_context = spend_proof.ctx // Field 4: request context (32 bytes)
    spend proof.
 
    To verify the Token and issue a refund, the Origin invokes
-   VerifyAndRefund with the partial return amount t.  The parameter t
-   specifies how many of the spent credits to return to the client.
-   Setting t = 0 means no partial return (the Origin keeps the full
-   spend amount), while t > 0 returns that many credits back to the
-   client.  The value of t MUST satisfy 0 <= t <= max(0, spend_amount -
-   topup_amount):
+   VerifyAndRefund with the return amount t, which is added to the
+   client's post-spend balance.  The value of t MUST satisfy 0 <= t <=
+   spend_amount + topup_amount.  Setting t = topup_amount grants exactly
+   the authorized top-up; smaller values claw part or all of the top-up
+   back (e.g., when an associated out-of-band payment fails); larger
+   values also return part of the spent amount.  For a plain spend
+   (topup_amount = 0), t = 0 keeps the full spend amount and t > 0
+   returns that many credits:
 
    refund = VerifyAndRefund(skI, spend_proof, t, rng)
 
@@ -828,14 +832,13 @@ request_context = spend_proof.ctx // Field 4: request context (32 bytes)
 
    credential = ConstructRefundToken(pkI, spend_proof, refund, state)
 
-   The resulting credential has a balance of new_balance = v + t, where
-   v is the balance after the spend and any top-up (i.e., v =
-   original_balance - cost + topup_amount) and t is the partial return
-   amount specified by the Origin during VerifyAndRefund.  When t = 0
-   (the default), the new credential balance equals v, the original
-   balance less the spend amount plus any top-up.  When t > 0, the
-   client receives t credits back, resulting in a higher balance on the
-   new credential.
+   The resulting credential has a balance of new_balance = v1 + t, where
+   v1 = original_balance - cost is the post-spend balance and t is the
+   return amount chosen by the Origin during VerifyAndRefund.  The
+   reachable balances range from original_balance - cost (at t = 0) up
+   to original_balance + topup_amount (at t = cost + topup_amount), so a
+   single spend can move the balance down or up depending on the
+   Origin's choice.
 
    The client then uses this new credential instance for subsequent
    spend operations.

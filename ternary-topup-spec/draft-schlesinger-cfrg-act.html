@@ -1514,9 +1514,11 @@ previous or current balance, enabling flexible spending.<a href="#section-1.1-2.
           <li id="section-1.1-2.3">
             <p id="section-1.1-2.3.1"><strong>Balance Adjustments</strong>: Each spend returns a token with an
 updated balance. The client can include an issuer-authorized
-top-up in the spend itself, and the issuer can return part of
-the spent amount when issuing the refund; in neither case does
-the issuer learn anything about the original or updated balance.<a href="#section-1.1-2.3.1" class="pilcrow">¶</a></p>
+top-up in the spend itself, and at refund time the issuer can
+move the final balance anywhere between the post-spend balance
+and the topped-up balance, granting the top-up, clawing it back,
+or refunding part of the spent amount; the issuer never learns
+the original or updated balance.<a href="#section-1.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-1.1-2.4">
             <p id="section-1.1-2.4.1"><strong>Double-Spend Prevention</strong>: Cryptographic nullifiers ensure each
@@ -1591,9 +1593,9 @@ and proves possession of a valid token associated with that
 nullifier having sufficient balance. The issuer verifies the
 proof, checks the nullifier hasn't been used before, and issues a
 new token (which remains hidden from the issuer) for any remaining
-balance. The new token's balance may additionally include a
-client-requested top-up, as well as a partial refund of the
-spent amount chosen by the issuer.<a href="#section-1.3-2.3.1" class="pilcrow">¶</a></p>
+balance. The new token's balance also reflects an issuer-chosen
+return amount, which can grant a client-requested top-up, claw
+it back, or refund part of the spent amount.<a href="#section-1.3-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 </section>
@@ -1796,27 +1798,22 @@ decompositions in this framework (see <a href="#radix" class="auto internal xref
 <p id="section-2.2.3-2">For each digit <code>j</code>, the prover sends a digit commitment <code>Com[j]</code>
 and an auxiliary commitment <code>T[j]</code>. The verifier checks a proof
 of knowledge of scalars <code>d[j]</code>, <code>s[j]</code>, <code>rho[j]</code>, and <code>w[j]</code>
-(plus <code>kstar</code> and <code>k3</code> for digit 0, which carries the new
-nullifier) satisfying three linear equations per digit:<a href="#section-2.2.3-2" class="pilcrow">¶</a></p>
+satisfying three linear equations per digit:<a href="#section-2.2.3-2" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-2.2.3-3">
 <li id="section-2.2.3-3.1">
-              <p id="section-2.2.3-3.1.1"><strong>Opening</strong>: <code>Com[j] = d[j]*H1 + s[j]*H3</code> (for <code>j &gt;= 1</code>), or
-<code>Com[0] = d[0]*H1 + kstar*H2 + s[0]*H3</code> (for digit 0).<a href="#section-2.2.3-3.1.1" class="pilcrow">¶</a></p>
+              <p id="section-2.2.3-3.1.1"><strong>Opening</strong>: <code>Com[j] = d[j]*H1 + s[j]*H3</code>.<a href="#section-2.2.3-3.1.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-2.2.3-3.2">
               <p id="section-2.2.3-3.2.1"><strong>Auxiliary opening</strong>: <code>T[j] + Com[j] = d[j]*Com[j] + rho[j]*H3</code>.<a href="#section-2.2.3-3.2.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-2.2.3-3.3">
-              <p id="section-2.2.3-3.3.1"><strong>Zero constraint</strong>: <code>T[j]*2 = d[j]*T[j] + w[j]*H3</code>
-(for <code>j &gt;= 1</code>), or
-<code>T[0]*2 = d[0]*T[0] + k3*H2 + w[0]*H3</code> (for digit 0).<a href="#section-2.2.3-3.3.1" class="pilcrow">¶</a></p>
+              <p id="section-2.2.3-3.3.1"><strong>Zero constraint</strong>: <code>T[j]*2 = d[j]*T[j] + w[j]*H3</code>.<a href="#section-2.2.3-3.3.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
 <p id="section-2.2.3-4">An honest prover assigns the digit <code>d[j]</code>, samples the blinding
 scalars <code>s[j]</code> and <code>rho[j]</code>, computes
 <code>T[j] = (d[j]-1)*Com[j] + rho[j]*H3</code>, and sets the derived
-witnesses <code>w[j] = (2-d[j])*((d[j]-1)*s[j] + rho[j])</code> and
-<code>k3 = (2-d[0])*(d[0]-1)*kstar</code>.<a href="#section-2.2.3-4" class="pilcrow">¶</a></p>
+witness <code>w[j] = (2-d[j])*((d[j]-1)*s[j] + rho[j])</code>.<a href="#section-2.2.3-4" class="pilcrow">¶</a></p>
 <p id="section-2.2.3-5">Verifying these equations forces <code>d[j] in {0, 1, 2}</code>, as follows.
 Equation 1 opens <code>Com[j]</code> to the digit <code>d[j]</code>, so the
 <code>H1</code>-component of <code>Com[j]</code> is <code>d[j]</code>. Equation 2, rearranged,
@@ -1826,24 +1823,28 @@ rearranged, states that <code>(d[j]-2)*T[j]</code> has no <code>H1</code>-compon
 Together they imply <code>d[j]*(d[j]-1)*(d[j]-2) = 0</code> in the scalar
 field, which holds exactly when <code>d[j] in {0, 1, 2}</code>; satisfying
 the equations with any other digit value would require knowing a
-discrete-logarithm relation between <code>H1</code> and <code>H2</code> or <code>H3</code>.<a href="#section-2.2.3-5" class="pilcrow">¶</a></p>
+discrete-logarithm relation between <code>H1</code> and <code>H3</code>.<a href="#section-2.2.3-5" class="pilcrow">¶</a></p>
 <p id="section-2.2.3-6">This construction is a linear-relation encoding of a three-way OR
 proof that each committed digit is 0, 1, or 2. A disjunctive (OR)
 presentation would have the same proof size (see <a href="#radix" class="auto internal xref">Section 5.6.2</a>) but
 requires composition beyond the linear framework of <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> on
 which this document builds.<a href="#section-2.2.3-6" class="pilcrow">¶</a></p>
-<p id="section-2.2.3-7">The <a href="#append_range_proof" class="internal xref">append_range_proof</a> function appends linear
-relations to the statement to instantiate a range proof.<a href="#section-2.2.3-7" class="pilcrow">¶</a></p>
+<p id="section-2.2.3-7">The digit equations carry no other witnesses: in particular, the
+new token's nullifier is committed separately (see
+<a href="#token-spending" class="auto internal xref">Section 3.4</a>), so all D digits are treated uniformly.<a href="#section-2.2.3-7" class="pilcrow">¶</a></p>
+<p id="section-2.2.3-8">The <a href="#append_range_proof" class="internal xref">append_range_proof</a> function appends linear
+relations to the statement to instantiate a range proof. The caller
+supplies the element variables holding <code>H1</code> and <code>H3</code>, so that
+repeated invocations against the same statement share them.<a href="#section-2.2.3-8" class="pilcrow">¶</a></p>
 <div id="append_range_proof">
 <figure id="figure-3">
-            <div class="breakable lang-pseudocode sourcecode" id="section-2.2.3-8.1">
+            <div class="lang-pseudocode sourcecode" id="section-2.2.3-9.1">
 <pre>
-append_range_proof(statement, H1, H2, H3, Com, T, D):
+append_range_proof(statement, H1_var, H3_var, Com, T, D):
   Input:
     - statement: LinearRelation.
-    - H1: Group Element.
-    - H2: Group Element.
-    - H3: Group Element.
+    - H1_var: Element variable handle assigned the value H1.
+    - H3_var: Element variable handle assigned the value H3.
     - Com: Array of D Group Elements (digit commitments).
     - T: Array of D Group Elements (auxiliary commitments).
     - D: Integer (digit count).
@@ -1852,11 +1853,6 @@ append_range_proof(statement, H1, H2, H3, Com, T, D):
     - s_vars: Array of D scalar variable handles.
     - rho_vars: Array of D scalar variable handles.
     - w_vars: Array of D scalar variable handles.
-    - kstar_var: Scalar variable handle.
-    - k3_var: Scalar variable handle.
-    - H1_var, H2_var, H3_var: Element variable handles, returned so
-      that callers reuse them; each group element value MUST be
-      assigned to at most one element variable.
 
   Steps:
     // Allocate scalar variables
@@ -1864,64 +1860,43 @@ append_range_proof(statement, H1, H2, H3, Com, T, D):
     2. s_vars = statement.allocate_scalars(D)
     3. rho_vars = statement.allocate_scalars(D)
     4. w_vars = statement.allocate_scalars(D)
-    5. kstar_var, k3_var = statement.allocate_scalars(2)
 
     // Allocate element variables
-    6. H1_var, H2_var, H3_var = statement.allocate_elements(3)
-    7. Com_vars = statement.allocate_elements(D)
-    8. T_vars = statement.allocate_elements(D)
-    9. TC_vars = statement.allocate_elements(D)  // T[j] + Com[j]
-   10. T2_vars = statement.allocate_elements(D)  // T[j] * 2
+    5. Com_vars = statement.allocate_elements(D)
+    6. T_vars = statement.allocate_elements(D)
+    7. TC_vars = statement.allocate_elements(D)  // T[j] + Com[j]
+    8. T2_vars = statement.allocate_elements(D)  // T[j] * 2
 
     // Set element values
-   11. statement.set_elements([(H1_var, H1), (H2_var, H2),
-         (H3_var, H3)])
-   12. For j = 0 to D-1:
-   13.     statement.set_elements([(Com_vars[j], Com[j]),
+    9. For j = 0 to D-1:
+   10.     statement.set_elements([(Com_vars[j], Com[j]),
              (T_vars[j], T[j]), (TC_vars[j], T[j] + Com[j]),
              (T2_vars[j], T[j] * 2)])
 
-    // Digit 0: opening equation (carries the new nullifier)
-    // Com[0] = d[0]*H1 + kstar*H2 + s[0]*H3
-   14. statement.append_equation(Com_vars[0],
-         [(d_vars[0], H1_var), (kstar_var, H2_var), (s_vars[0], H3_var)])
-
-    // Digit 0: auxiliary opening equation
-    // T[0] + Com[0] = d[0]*Com[0] + rho[0]*H3
-   15. statement.append_equation(TC_vars[0],
-         [(d_vars[0], Com_vars[0]), (rho_vars[0], H3_var)])
-
-    // Digit 0: zero constraint equation
-    // T[0]*2 = d[0]*T[0] + k3*H2 + w[0]*H3
-   16. statement.append_equation(T2_vars[0],
-         [(d_vars[0], T_vars[0]), (k3_var, H2_var),
-          (w_vars[0], H3_var)])
-
-    // Digits 1 to D-1
-   17. For j = 1 to D-1:
+    // Per-digit equations
+   11. For j = 0 to D-1:
          // Opening equation: Com[j] = d[j]*H1 + s[j]*H3
-   18.     statement.append_equation(Com_vars[j],
+   12.     statement.append_equation(Com_vars[j],
              [(d_vars[j], H1_var), (s_vars[j], H3_var)])
          // Auxiliary opening: T[j] + Com[j] = d[j]*Com[j] + rho[j]*H3
-   19.     statement.append_equation(TC_vars[j],
+   13.     statement.append_equation(TC_vars[j],
              [(d_vars[j], Com_vars[j]), (rho_vars[j], H3_var)])
          // Zero constraint: T[j]*2 = d[j]*T[j] + w[j]*H3
-   20.     statement.append_equation(T2_vars[j],
+   14.     statement.append_equation(T2_vars[j],
              [(d_vars[j], T_vars[j]), (w_vars[j], H3_var)])
 
-   21. return (d_vars, s_vars, rho_vars, w_vars, kstar_var, k3_var,
-         H1_var, H2_var, H3_var)
+   15. return (d_vars, s_vars, rho_vars, w_vars)
 </pre>
 </div>
 <figcaption><a href="#figure-3" class="selfRef">Figure 3</a></figcaption></figure>
 </div>
-<p id="section-2.2.3-9">Implementations of the LinearRelation interface may require that each
+<p id="section-2.2.3-10">Implementations of the LinearRelation interface may require that each
 group element value is assigned to at most one element variable, since
 element variables are deduplicated or checked when the statement is
 put into canonical form. The pseudocode in this document therefore
-reuses the element variables returned by
-<a href="#append_range_proof" class="internal xref">append_range_proof</a> instead of assigning the same
-value to a second variable.<a href="#section-2.2.3-9" class="pilcrow">¶</a></p>
+allocates the element variables for <code>H1</code>, <code>H2</code>, <code>H3</code>, and the shared
+<code>3^j</code> coefficient elements once per statement and passes or reuses
+the handles instead of assigning the same value to a second variable.<a href="#section-2.2.3-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2208,25 +2183,44 @@ VerifyIssuance(pk, response, ctx, state):
 <a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-token-spending" class="section-name selfRef">Token Spending</a>
         </h3>
 <p id="section-3.4-1">The spending protocol allows a client to spend <code>s</code> credits from a
-token containing <code>c</code> credits, optionally adding an issuer-authorized
-top-up of <code>a</code> credits in the same operation. The new balance
-<code>v = c - s + a</code> must lie in <code>[0, 3^D)</code>; in particular, <code>s</code> may be
-as large as <code>c + a</code>. Plain spends set <code>a = 0</code>.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
-<p id="section-3.4-2">The top-up amount <code>a</code> is a public input bound by the spend proof: a
+token containing <code>c</code> credits (<code>0 &lt;= s &lt;= c</code>), optionally adding an
+issuer-authorized top-up of <code>a</code> credits in the same operation
+(<code>c + a &lt; 3^D</code>). The spend proof carries two range proofs over the
+hidden balance:<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.4-2.1">
+            <p id="section-3.4-2.1.1">the post-spend balance <code>v1 = c - s</code> lies in <code>[0, 3^D)</code>, so the
+token covers the spend on its own, and<a href="#section-3.4-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.4-2.2">
+            <p id="section-3.4-2.2.1">the topped-up balance <code>v2 = c + a</code> lies in <code>[0, 3^D)</code>, so the
+top-up fits under the credit ceiling.<a href="#section-3.4-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-3.4-3">The new balance is <code>v = c - s + a</code>. Plain spends set <code>a = 0</code>. The
+new token's nullifier is carried in a dedicated commitment <code>K_n</code>
+rather than inside a digit commitment, so the two range proofs stay
+uniform.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
+<p id="section-3.4-4">The top-up amount <code>a</code> is a public input bound by the spend proof: a
 proof generated for one value of <code>a</code> fails to verify under any
 other, so an issuer authorizes a top-up by verifying the spend proof
 with that value. How the client obtains authorization for a top-up
 (e.g., an out-of-band payment) is application-defined and <span class="bcp14">SHOULD</span> be
 bound to the request context <code>ctx</code>. Issuers that do not support
-top-ups <span class="bcp14">MUST</span> reject spend proofs with <code>a != 0</code>.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
-<p id="section-3.4-3">The top-up is distinct from the partial refund <code>t</code> of
-<a href="#refund-issuance" class="auto internal xref">Section 3.4.3</a>. A top-up is covered by the range proof, which
-shows that the new balance <code>v</code> remains in <code>[0, 3^D)</code>, so an
-addition of any size can be authorized. A refund is added
-homomorphically after verification, without a range proof, and is
-therefore bounded by <code>t &lt;= max(0, s - a)</code>: the issuer returns at
-most the net amount removed by the spend, so the resulting balance
-<code>v + t</code> is at most <code>max(c, v)</code> and remains below <code>3^D</code>.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
+top-ups <span class="bcp14">MUST</span> reject spend proofs with <code>a != 0</code>.<a href="#section-3.4-4" class="pilcrow">¶</a></p>
+<p id="section-3.4-5">The top-up is distinct from the return amount <code>t</code> of
+<a href="#refund-issuance" class="auto internal xref">Section 3.4.3</a>. A top-up is covered by the second range proof,
+so the issuer can authorize an addition of any size that fits under
+the ceiling. The return amount is added homomorphically to the
+post-spend balance <code>v1</code> after verification, without a range proof,
+and is therefore bounded by <code>0 &lt;= t &lt;= s + a</code>: the two range proofs
+certify exactly the endpoints of this window, since <code>t = 0</code> leaves
+the balance at <code>v1 = c - s &gt;= 0</code> and <code>t = s + a</code> raises it to
+<code>c + a &lt; 3^D</code>. The issuer thus retains full discretion at refund
+time to land the final balance <code>c - s + t</code> anywhere in
+<code>[c - s, c + a]</code>: <code>t = a</code> grants exactly the authorized top-up,
+<code>t &lt; a</code> claws back part or all of it, and <code>t &gt; a</code> also refunds
+part of the spent amount.<a href="#section-3.4-5" class="pilcrow">¶</a></p>
 <div id="client-spend-proof-generation">
 <section id="section-3.4.1">
           <h4 id="name-client-spend-proof-generati">
@@ -2237,118 +2231,155 @@ most the net amount removed by the spend, so the resulting balance
 ProveSpend(token, s, a, rng):
   Input:
     - token: Credit token (A, e, k, r, c, ctx)
-    - s: Amount to spend (0 &lt;= s &lt; 3^D and s &lt;= c + a)
-    - a: Top-up amount (0 &lt;= a &lt; 3^D); 0 for a plain spend
+    - s: Amount to spend (0 &lt;= s &lt;= c)
+    - a: Top-up amount (c + a &lt; 3^D); 0 for a plain spend
     - rng: PRNG.
   Output:
     - proof: Spend proof
     - state: Client state for receiving change
   Exceptions:
-    - InvalidAmount: raised when s or a is not in [0, 3^D), or when
-      the new balance c - s + a is not in [0, 3^D)
+    - InvalidAmount: raised when s or a is not in [0, 3^D), when
+      s &gt; c, or when c + a &gt;= 3^D
 
   Steps:
-    // Validate amounts and compute the new balance (as integers)
+    // Validate amounts and compute the proven values (as integers)
     1. if s &gt;= 3^D or a &gt;= 3^D:
     2.     raise InvalidAmount
-    3. v = c - s + a
-    4. if v &lt; 0 or v &gt;= 3^D:
+    3. v1 = c - s          // post-spend balance
+    4. if v1 &lt; 0:
     5.     raise InvalidAmount
+    6. v2 = c + a          // topped-up balance
+    7. if v2 &gt;= 3^D:
+    8.     raise InvalidAmount
 
     // Randomize the signature
-    6. r1, r2 &lt;- Zq
-    7. B = G.Generator() + H1 * c + H2 * k + H3 * r + H4 * ctx
-    8. A' = A * (r1 * r2)
-    9. B_bar = B * r1
-   10. r3 = 1/r1
+    9. r1, r2 &lt;- Zq
+   10. B = G.Generator() + H1 * c + H2 * k + H3 * r + H4 * ctx
+   11. A' = A * (r1 * r2)
+   12. B_bar = B * r1
+   13. r3 = 1/r1
 
-    // Decompose v into base-3 digits and create commitments
-   11. (d[0], ..., d[D-1]) = TritDecompose(v)
-   12. kstar &lt;- Zq
-   13. s_com[0] &lt;- Zq
-   14. Com[0] = H1 * d[0] + H2 * kstar + H3 * s_com[0]
-   15. For j = 1 to D-1:
-   16.     s_com[j] &lt;- Zq
-   17.     Com[j] = H1 * d[j] + H3 * s_com[j]
+    // Decompose v1 and v2 into base-3 digits and create commitments
+   14. (d1[0], ..., d1[D-1]) = TritDecompose(v1)
+   15. (d2[0], ..., d2[D-1]) = TritDecompose(v2)
+   16. For j = 0 to D-1:
+   17.     s1[j] &lt;- Zq
+   18.     Com1[j] = H1 * d1[j] + H3 * s1[j]
+   19.     s2[j] &lt;- Zq
+   20.     Com2[j] = H1 * d2[j] + H3 * s2[j]
 
-    // Create auxiliary commitments for the range proof
-   18. For j = 0 to D-1:
-   19.     rho[j] &lt;- Zq
-   20.     T[j] = Com[j] * (d[j] - 1) + H3 * rho[j]
+    // Create auxiliary commitments for the range proofs
+   21. For j = 0 to D-1:
+   22.     rho1[j] &lt;- Zq
+   23.     T1[j] = Com1[j] * (d1[j] - 1) + H3 * rho1[j]
+   24.     rho2[j] &lt;- Zq
+   25.     T2[j] = Com2[j] * (d2[j] - 1) + H3 * rho2[j]
+
+    // Commit to the new token's nullifier
+   26. kstar, rn &lt;- Zq
+   27. K_n = H2 * kstar + H3 * rn
 
     // Compute derived public values
-   21. A_bar = B_bar * r2 - A' * e  // Equivalent to A' * sk
-   22. H1_prime = G.Generator() + H2 * k + H4 * ctx
+   28. A_bar = B_bar * r2 - A' * e  // Equivalent to A' * sk
+   29. H1_prime = G.Generator() + H2 * k + H4 * ctx
 
     // Build LinearRelation statement
-   23. statement = LinearRelation(group)
+   30. statement = LinearRelation(group)
 
     // Eq 1: A_bar = e*(-A') + r2*B_bar
     // (Rearranged BBS signature validity)
-   24. e_var, r2_var = statement.allocate_scalars(2)
-   25. negA_var, B_bar_var, A_bar_var = statement.allocate_elements(3)
-   26. statement.append_equation(A_bar_var,
+   31. e_var, r2_var = statement.allocate_scalars(2)
+   32. negA_var, B_bar_var, A_bar_var = statement.allocate_elements(3)
+   33. statement.append_equation(A_bar_var,
          [(e_var, negA_var), (r2_var, B_bar_var)])
-   27. statement.set_elements([(negA_var, -A'),
+   34. statement.set_elements([(negA_var, -A'),
          (B_bar_var, B_bar), (A_bar_var, A_bar)])
 
     // Eq 2: H1_prime = r3*B_bar + c*(-H1) + r*(-H3)
     // (Credential structure)
-   28. r3_var, c_var, r_var = statement.allocate_scalars(3)
-   29. negH1_var, negH3_var, H1p_var = statement.allocate_elements(3)
-   30. statement.append_equation(H1p_var,
+   35. r3_var, c_var, r_var = statement.allocate_scalars(3)
+   36. negH1_var, negH3_var, H1p_var = statement.allocate_elements(3)
+   37. statement.append_equation(H1p_var,
          [(r3_var, B_bar_var), (c_var, negH1_var), (r_var, negH3_var)])
-   31. statement.set_elements([(negH1_var, -H1),
+   38. statement.set_elements([(negH1_var, -H1),
          (negH3_var, -H3), (H1p_var, H1_prime)])
 
-    // Eqs 3..2+3D: Range proof (3D equations)
-   32. (d_vars, s_com_vars, rho_vars, w_vars, kstar_var, k3_var,
-         H1_var, H2_var, H3_var) =
-         append_range_proof(statement, H1, H2, H3, Com, T, D)
+    // Shared generator element variables
+   39. H1_var, H2_var, H3_var = statement.allocate_elements(3)
+   40. statement.set_elements([(H1_var, H1), (H2_var, H2),
+         (H3_var, H3)])
 
-    // Eq 3D+3: Commitment consistency
-    // Com_total = c*H1 + kstar*H2 + sum(s_com[j]*3^j*H3)
-    // Element variables from the range proof are reused; the
-    // 3^0 = 1 coefficient element for j = 0 is H3_var itself.
-   33. Com_total = H1 * (s - a) + Sum(Com[j] * 3^j for j in [D])
-   34. Com_total_var = statement.allocate_elements(1)
-   35. statement.set_elements([(Com_total_var, Com_total)])
-   36. terms = [(c_var, H1_var), (kstar_var, H2_var),
-         (s_com_vars[0], H3_var)]
-   37. For j = 1 to D-1:
-   38.     coeff_H3_var = statement.allocate_elements(1)
-   39.     statement.set_elements([(coeff_H3_var, H3 * (3^j))])
-   40.     terms.append((s_com_vars[j], coeff_H3_var))
-   41. statement.append_equation(Com_total_var, terms)
+    // Eqs 3..2+3D: Range proof over v1 (3D equations)
+   41. (d1_vars, s1_vars, rho1_vars, w1_vars) =
+         append_range_proof(statement, H1_var, H3_var, Com1, T1, D)
+
+    // Eqs 3+3D..2+6D: Range proof over v2 (3D equations)
+   42. (d2_vars, s2_vars, rho2_vars, w2_vars) =
+         append_range_proof(statement, H1_var, H3_var, Com2, T2, D)
+
+    // Eq 6D+3: Nullifier commitment opening
+    // K_n = kstar*H2 + rn*H3
+   43. kstar_var, rn_var = statement.allocate_scalars(2)
+   44. Kn_var = statement.allocate_elements(1)
+   45. statement.set_elements([(Kn_var, K_n)])
+   46. statement.append_equation(Kn_var,
+         [(kstar_var, H2_var), (rn_var, H3_var)])
+
+    // Eqs 6D+4, 6D+5: Commitment consistency, tying both
+    // decompositions to the same hidden balance c:
+    //   Com_total1 = c*H1 + sum(s1[j]*3^j*H3)   (v1 = c - s)
+    //   Com_total2 = c*H1 + sum(s2[j]*3^j*H3)   (v2 = c + a)
+    // The 3^j coefficient elements are shared between the two
+    // equations; the 3^0 = 1 coefficient element is H3_var itself.
+   47. Com_total1 = H1 * s + Sum(Com1[j] * 3^j for j in [D])
+   48. Com_total2 = H1 * (-a) + Sum(Com2[j] * 3^j for j in [D])
+   49. CT1_var, CT2_var = statement.allocate_elements(2)
+   50. statement.set_elements([(CT1_var, Com_total1),
+         (CT2_var, Com_total2)])
+   51. coeff_vars[0] = H3_var
+   52. For j = 1 to D-1:
+   53.     coeff_vars[j] = statement.allocate_elements(1)
+   54.     statement.set_elements([(coeff_vars[j], H3 * (3^j))])
+   55. statement.append_equation(CT1_var, [(c_var, H1_var)]
+         + [(s1_vars[j], coeff_vars[j]) for j in [D]])
+   56. statement.append_equation(CT2_var, [(c_var, H1_var)]
+         + [(s2_vars[j], coeff_vars[j]) for j in [D]])
 
     // Assemble witness (indexed by allocated scalar variables)
-   42. witness[e_var] = e
-   43. witness[r2_var] = r2
-   44. witness[r3_var] = r3
-   45. witness[c_var] = c
-   46. witness[r_var] = r
-   47. For j = 0 to D-1:
-   48.     witness[d_vars[j]] = d[j]
-   49.     witness[s_com_vars[j]] = s_com[j]
-   50.     witness[rho_vars[j]] = rho[j]
-   51.     witness[w_vars[j]] = (2 - d[j]) * ((d[j] - 1) * s_com[j] + rho[j])
-   52. witness[kstar_var] = kstar
-   53. witness[k3_var] = (2 - d[0]) * (d[0] - 1) * kstar
+   57. witness[e_var] = e
+   58. witness[r2_var] = r2
+   59. witness[r3_var] = r3
+   60. witness[c_var] = c
+   61. witness[r_var] = r
+   62. For j = 0 to D-1:
+   63.     witness[d1_vars[j]] = d1[j]
+   64.     witness[s1_vars[j]] = s1[j]
+   65.     witness[rho1_vars[j]] = rho1[j]
+   66.     witness[w1_vars[j]] = (2 - d1[j]) * ((d1[j] - 1) * s1[j] + rho1[j])
+   67. For j = 0 to D-1:
+   68.     witness[d2_vars[j]] = d2[j]
+   69.     witness[s2_vars[j]] = s2[j]
+   70.     witness[rho2_vars[j]] = rho2[j]
+   71.     witness[w2_vars[j]] = (2 - d2[j]) * ((d2[j] - 1) * s2[j] + rho2[j])
+   72. witness[kstar_var] = kstar
+   73. witness[rn_var] = rn
 
     // Generate non-interactive proof.
-    // The public amounts s and a are bound into the session identifier so
-    // that the proof authenticates them individually; the statement alone
-    // constrains only their difference s - a through Com_total.
-   54. session_id = domain_separator + "spend" + Encode(k) + Encode(s)
+    // The public amounts s and a are each constrained by their own
+    // consistency equation and also bound into the session
+    // identifier.
+   74. session_id = domain_separator + "spend" + Encode(k) + Encode(s)
          + Encode(a) + Encode(ctx)
-   55. prover = NISigmaProtocol(session_id, statement)
-   56. pok = prover.prove(witness, rng)
+   75. prover = NISigmaProtocol(session_id, statement)
+   76. pok = prover.prove(witness, rng)
 
-    // Construct output
-   57. r_star = sum(s_com[j] * 3^j for j in [D])
-   58. proof = (k, s, a, ctx, A', B_bar, Com, T, pok)
-   59. state = (kstar, r_star, v, ctx)
-   60. return (proof, state)
+    // Construct output. The state carries the post-spend balance
+    // v1; the return amount t added at refund time (which includes
+    // any top-up grant) completes the new balance v1 + t.
+   77. r_star = rn + sum(s1[j] * 3^j for j in [D])
+   78. proof = (k, s, a, ctx, A', B_bar, Com1, T1, Com2, T2, K_n, pok)
+   79. state = (kstar, r_star, v1, ctx)
+   80. return (proof, state)
 </pre><a href="#section-3.4.1-1" class="pilcrow">¶</a>
 </div>
 </section>
@@ -2364,7 +2395,9 @@ VerifyAndRefund(sk, proof, t, rng):
   Input:
     - sk: Issuer's private key
     - proof: Client's spend proof
-    - t: Partial refund amount (0 &lt;= t &lt;= max(0, s - a))
+    - t: Return amount (0 &lt;= t &lt;= s + a); t = a grants exactly the
+      authorized top-up, t &lt; a claws part of it back, t &gt; a also
+      refunds part of the spent amount
     - rng: PRNG.
   Output:
     - refund: Refund for remaining credits
@@ -2376,7 +2409,7 @@ VerifyAndRefund(sk, proof, t, rng):
       amount (see ScalarToCredit)
     - InvalidAmount: raised when s or a is not a valid credit amount
       in [0, 3^D)
-    - InvalidRefundAmount: raised when t &gt; max(0, s - a)
+    - InvalidRefundAmount: raised when t &gt; s + a
 
   Steps:
     1. Parse proof and extract nullifier k, spend amount s,
@@ -2390,8 +2423,8 @@ VerifyAndRefund(sk, proof, t, rng):
     4.     raise InvalidAmount
     // Apply application policy to authorize the top-up; issuers
     // that do not support top-ups MUST reject proofs with a != 0.
-    // Validate refund amount
-    5. if t &gt; max(0, s - a):
+    // Validate the return amount
+    5. if t &gt; s + a:
     6.     raise InvalidRefundAmount
     // The following steps (7-15) MUST be performed as a single
     // atomic transaction: the nullifier check, proof verification,
@@ -2407,8 +2440,8 @@ VerifyAndRefund(sk, proof, t, rng):
    10. VerifySpendProof(sk, proof)
    11. // Record nullifier
    12. used_nullifiers.add(k)
-   13. // Issue refund for remaining balance
-   14. K' = Sum(Com[j] * 3^j for j in [D])
+   13. // Issue refund for the post-spend balance plus the return
+   14. K' = K_n + Sum(Com1[j] * 3^j for j in [D])
    15. refund = IssueRefund(sk, K', t, ctx, rng)
    16. return refund
 </pre><a href="#section-3.4.2-1" class="pilcrow">¶</a>
@@ -2421,23 +2454,25 @@ VerifyAndRefund(sk, proof, t, rng):
 <a href="#section-3.4.3" class="section-number selfRef">3.4.3. </a><a href="#name-refund-issuance" class="section-name selfRef">Refund Issuance</a>
           </h4>
 <p id="section-3.4.3-1">After verifying a spend proof, the issuer creates a refund token for
-the remaining balance. The commitment <code>K'</code> already incorporates any
-top-up <code>a</code> (it commits to <code>v = c - s + a</code>), and the issuer adds the
-partial refund <code>t</code> homomorphically:<a href="#section-3.4.3-1" class="pilcrow">¶</a></p>
+the remaining balance. The commitment <code>K'</code> commits to the post-spend
+balance <code>v1 = c - s</code> and the new nullifier; the issuer adds the
+return amount <code>t</code> homomorphically. The addition is safe without a
+range proof over the result because <code>v1 + t &lt;= c + a</code>, which the
+spend proof showed is below <code>3^D</code>:<a href="#section-3.4.3-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3.4.3-2">
 <pre>
 IssueRefund(sk, K', t, ctx, rng):
   Input:
     - sk: Issuer's private key
-    - K': Commitment to remaining balance and new nullifier
-    - t: Partial refund amount
+    - K': Commitment to the post-spend balance and new nullifier
+    - t: Return amount
     - ctx: Request context scalar
     - rng: PRNG.
   Output:
     - refund: Refund response
 
   Steps:
-    // Create new BBS signature on remaining balance
+    // Create new BBS signature on the new balance
     1. e &lt;- Zq
     2. X_A = G.Generator() + K' + H1 * t + H4 * ctx
     3. A = X_A * (1/(e + sk))
@@ -2469,30 +2504,33 @@ ConstructRefundToken(pk, spend_proof, refund, state):
     - pk: Issuer's public key
     - spend_proof: The spend proof sent to issuer
     - refund: Issuer's refund response
-    - state: Client state (k*, r*, v, ctx)
+    - state: Client state (k*, r*, v1, ctx)
   Output:
     - token: New credit token or INVALID
   Exceptions:
     - InvalidRefundProof: When the refund proof verification fails
-    - InvalidRefundAmount: When t or v+t is not in [0, 3^D)
+    - InvalidRefundAmount: When t &gt; s + a or v1 + t is not in
+      [0, 3^D)
 
   Steps:
     1. Parse refund as (A, e, t, pok)
-    2. Parse state as (k*, r*, v, ctx)
+    2. Parse state as (k*, r*, v1, ctx)
 
-    // Validate t is a valid credit amount
-    3. if t &gt;= 3^D:
+    // Validate the return amount against the spend proof's public
+    // amounts
+    3. if t &gt; spend_proof.s + spend_proof.a:
     4.     raise InvalidRefundAmount
 
     // Compute new balance
-    5. new_balance = v + t
+    5. new_balance = v1 + t
 
     // Validate new balance is a valid credit amount
     6. if new_balance &gt;= 3^D:
     7.     raise InvalidRefundAmount
 
     // Reconstruct commitment
-    8. K' = Sum(spend_proof.Com[j] * 3^j for j in [D])
+    8. K' = spend_proof.K_n
+         + Sum(spend_proof.Com1[j] * 3^j for j in [D])
     9. X_A = G.Generator() + K' + H1 * t + H4 * ctx
    10. X_G = G.Generator() * e + pk
 
@@ -2528,7 +2566,8 @@ VerifySpendProof(sk, proof):
     - InvalidClientSpendProof: raised when the proof verification fails
 
   Steps:
-    1. Parse proof as (k, s, a, ctx, A', B_bar, Com, T, pok)
+    1. Parse proof as (k, s, a, ctx, A', B_bar, Com1, T1, Com2, T2,
+       K_n, pok)
 
     // Check A' is not identity
     2. if A' == Identity:
@@ -2537,51 +2576,69 @@ VerifySpendProof(sk, proof):
     // Compute issuer's view
     4. A_bar = A' * sk
     5. H1_prime = G.Generator() + H2 * k + H4 * ctx
-    6. Com_total = H1 * (s - a) + Sum(Com[j] * 3^j for j in [D])
+    6. Com_total1 = H1 * s + Sum(Com1[j] * 3^j for j in [D])
+    7. Com_total2 = H1 * (-a) + Sum(Com2[j] * 3^j for j in [D])
 
     // Build the same LinearRelation as ProveSpend
-    7. statement = LinearRelation(group)
+    8. statement = LinearRelation(group)
 
     // Eq 1: A_bar = e*(-A') + r2*B_bar
-    8. e_var, r2_var = statement.allocate_scalars(2)
-    9. negA_var, B_bar_var, A_bar_var = statement.allocate_elements(3)
-   10. statement.append_equation(A_bar_var,
+    9. e_var, r2_var = statement.allocate_scalars(2)
+   10. negA_var, B_bar_var, A_bar_var = statement.allocate_elements(3)
+   11. statement.append_equation(A_bar_var,
          [(e_var, negA_var), (r2_var, B_bar_var)])
-   11. statement.set_elements([(negA_var, -A'),
+   12. statement.set_elements([(negA_var, -A'),
          (B_bar_var, B_bar), (A_bar_var, A_bar)])
 
     // Eq 2: H1_prime = r3*B_bar + c*(-H1) + r*(-H3)
-   12. r3_var, c_var, r_var = statement.allocate_scalars(3)
-   13. negH1_var, negH3_var, H1p_var = statement.allocate_elements(3)
-   14. statement.append_equation(H1p_var,
+   13. r3_var, c_var, r_var = statement.allocate_scalars(3)
+   14. negH1_var, negH3_var, H1p_var = statement.allocate_elements(3)
+   15. statement.append_equation(H1p_var,
          [(r3_var, B_bar_var), (c_var, negH1_var), (r_var, negH3_var)])
-   15. statement.set_elements([(negH1_var, -H1),
+   16. statement.set_elements([(negH1_var, -H1),
          (negH3_var, -H3), (H1p_var, H1_prime)])
 
-    // Eqs 3..2+3D: Range proof (3D equations)
-   16. (d_vars, s_com_vars, rho_vars, w_vars, kstar_var, k3_var,
-         H1_var, H2_var, H3_var) =
-         append_range_proof(statement, H1, H2, H3, Com, T, D)
+    // Shared generator element variables
+   17. H1_var, H2_var, H3_var = statement.allocate_elements(3)
+   18. statement.set_elements([(H1_var, H1), (H2_var, H2),
+         (H3_var, H3)])
 
-    // Eq 3D+3: Commitment consistency
-    // Element variables from the range proof are reused; the
-    // 3^0 = 1 coefficient element for j = 0 is H3_var itself.
-   17. Com_total_var = statement.allocate_elements(1)
-   18. statement.set_elements([(Com_total_var, Com_total)])
-   19. terms = [(c_var, H1_var), (kstar_var, H2_var),
-         (s_com_vars[0], H3_var)]
-   20. For j = 1 to D-1:
-   21.     coeff_H3_var = statement.allocate_elements(1)
-   22.     statement.set_elements([(coeff_H3_var, H3 * (3^j))])
-   23.     terms.append((s_com_vars[j], coeff_H3_var))
-   24. statement.append_equation(Com_total_var, terms)
+    // Eqs 3..2+3D: Range proof over v1 (3D equations)
+   19. (d1_vars, s1_vars, rho1_vars, w1_vars) =
+         append_range_proof(statement, H1_var, H3_var, Com1, T1, D)
+
+    // Eqs 3+3D..2+6D: Range proof over v2 (3D equations)
+   20. (d2_vars, s2_vars, rho2_vars, w2_vars) =
+         append_range_proof(statement, H1_var, H3_var, Com2, T2, D)
+
+    // Eq 6D+3: Nullifier commitment opening
+   21. kstar_var, rn_var = statement.allocate_scalars(2)
+   22. Kn_var = statement.allocate_elements(1)
+   23. statement.set_elements([(Kn_var, K_n)])
+   24. statement.append_equation(Kn_var,
+         [(kstar_var, H2_var), (rn_var, H3_var)])
+
+    // Eqs 6D+4, 6D+5: Commitment consistency
+    // The 3^j coefficient elements are shared between the two
+    // equations; the 3^0 = 1 coefficient element is H3_var itself.
+   25. CT1_var, CT2_var = statement.allocate_elements(2)
+   26. statement.set_elements([(CT1_var, Com_total1),
+         (CT2_var, Com_total2)])
+   27. coeff_vars[0] = H3_var
+   28. For j = 1 to D-1:
+   29.     coeff_vars[j] = statement.allocate_elements(1)
+   30.     statement.set_elements([(coeff_vars[j], H3 * (3^j))])
+   31. statement.append_equation(CT1_var, [(c_var, H1_var)]
+         + [(s1_vars[j], coeff_vars[j]) for j in [D]])
+   32. statement.append_equation(CT2_var, [(c_var, H1_var)]
+         + [(s2_vars[j], coeff_vars[j]) for j in [D]])
 
     // Verify non-interactive proof
-   25. session_id = domain_separator + "spend" + Encode(k) + Encode(s)
+   33. session_id = domain_separator + "spend" + Encode(k) + Encode(s)
          + Encode(a) + Encode(ctx)
-   26. verifier = NISigmaProtocol(session_id, statement)
-   27. if not verifier.verify(pok):
-   28.     raise InvalidClientSpendProof
+   34. verifier = NISigmaProtocol(session_id, statement)
+   35. if not verifier.verify(pok):
+   36.     raise InvalidClientSpendProof
 </pre><a href="#section-3.4.5-2" class="pilcrow">¶</a>
 </div>
 </section>
@@ -2773,8 +2830,11 @@ struct {
     opaque ctx[Ns];         /* Request context scalar, Ns bytes */
     opaque A_prime[Ne];     /* Compressed Ristretto point, Ne bytes */
     opaque B_bar[Ne];       /* Compressed Ristretto point, Ne bytes */
-    opaque Com[D][Ne];      /* D compressed Ristretto points, D*Ne bytes */
-    opaque T[D][Ne];        /* D compressed Ristretto points, D*Ne bytes */
+    opaque Com1[D][Ne];     /* D compressed Ristretto points, D*Ne bytes */
+    opaque T1[D][Ne];       /* D compressed Ristretto points, D*Ne bytes */
+    opaque Com2[D][Ne];     /* D compressed Ristretto points, D*Ne bytes */
+    opaque T2[D][Ne];       /* D compressed Ristretto points, D*Ne bytes */
+    opaque K_n[Ne];         /* Compressed Ristretto point, Ne bytes */
     opaque pok&lt;1..2^16-1&gt;; /* NISigmaProtocol proof */
 } SpendProofMsg;
 </pre><a href="#section-4.1.3-1" class="pilcrow">¶</a>
@@ -2791,7 +2851,7 @@ struct {
 struct {
     opaque A_star[Ne];    /* Compressed Ristretto point, Ne bytes */
     opaque e_star[Ns];    /* Scalar, Ns bytes */
-    opaque t[Ns];         /* Partial refund amount scalar, Ns bytes */
+    opaque t[Ns];         /* Return amount scalar, Ns bytes */
     opaque pok&lt;1..2^16-1&gt;; /* NISigmaProtocol proof */
 } RefundMsg;
 </pre><a href="#section-4.1.4-1" class="pilcrow">¶</a>
@@ -2898,7 +2958,8 @@ binds the credit amount, nullifier, and blinding factor) and returns it<a href="
               </ul>
 </li>
             <li id="section-4.2.1-2.4">
-              <p id="section-4.2.1-2.4.1"><strong>Top-Up</strong>: Alice's balance runs low, so she buys 500 more credits<a href="#section-4.2.1-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-4.2.1-2.4.1"><strong>Top-Up</strong>: Alice's balance is down to 60, so she buys 500 more
+credits<a href="#section-4.2.1-2.4.1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-4.2.1-2.4.2.1">
                   <p id="section-4.2.1-2.4.2.1.1">Alice pays out-of-band; the purchase is bound to the request
@@ -2906,16 +2967,18 @@ context ctx<a href="#section-4.2.1-2.4.2.1.1" class="pilcrow">¶</a></p>
 </li>
                 <li class="normal" id="section-4.2.1-2.4.2.2">
                   <p id="section-4.2.1-2.4.2.2.1">Her next spend proof declares a top-up amount a = 500 alongside
-the spend amount s = 50<a href="#section-4.2.1-2.4.2.2.1" class="pilcrow">¶</a></p>
+the spend amount s = 50 (which her balance of 60 covers)<a href="#section-4.2.1-2.4.2.2.1" class="pilcrow">¶</a></p>
 </li>
                 <li class="normal" id="section-4.2.1-2.4.2.3">
                   <p id="section-4.2.1-2.4.2.3.1">The service authorizes the top-up by verifying the proof with
-a = 500<a href="#section-4.2.1-2.4.2.3.1" class="pilcrow">¶</a></p>
+a = 500 and setting the return amount t = 500<a href="#section-4.2.1-2.4.2.3.1" class="pilcrow">¶</a></p>
 </li>
                 <li class="normal" id="section-4.2.1-2.4.2.4">
                   <p id="section-4.2.1-2.4.2.4.1">The refund token contains her previous balance plus 450 credits
 (500 purchased minus 50 spent); the service does not learn the
-resulting balance<a href="#section-4.2.1-2.4.2.4.1" class="pilcrow">¶</a></p>
+resulting balance. Had the out-of-band payment failed, the
+service could instead have set any t down to 0, clawing back
+the top-up while keeping the charge<a href="#section-4.2.1-2.4.2.4.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 </li>
@@ -3018,7 +3081,8 @@ ValidatePoint(P):
             <p id="section-5.4-6.3.1">When receiving <code>A'</code> and <code>B_bar</code> in spend proof<a href="#section-5.4-6.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.4-6.4">
-            <p id="section-5.4-6.4.1">When receiving <code>Com[j]</code> and <code>T[j]</code> commitments in spend proof<a href="#section-5.4-6.4.1" class="pilcrow">¶</a></p>
+            <p id="section-5.4-6.4.1">When receiving <code>Com1[j]</code>, <code>T1[j]</code>, <code>Com2[j]</code>, <code>T2[j]</code>, and <code>K_n</code>
+commitments in spend proof<a href="#section-5.4-6.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.4-6.5">
             <p id="section-5.4-6.5.1">When receiving <code>A*</code> in refund response<a href="#section-5.4-6.5.1" class="pilcrow">¶</a></p>
@@ -3074,8 +3138,8 @@ values but increases proof size and verification time linearly.<a href="#section
           <h4 id="name-performance-characteristics">
 <a href="#section-5.6.1" class="section-number selfRef">5.6.1. </a><a href="#name-performance-characteristics" class="section-name selfRef">Performance Characteristics</a>
           </h4>
-<p id="section-5.6.1-1">The spending proof uses a single <code>LinearRelation</code> with <code>3D + 3</code> equations
-and a witness of <code>4D + 7</code> scalars. The <code>NISigmaProtocol</code> interface
+<p id="section-5.6.1-1">The spending proof uses a single <code>LinearRelation</code> with <code>6D + 5</code> equations
+and a witness of <code>8D + 7</code> scalars. The <code>NISigmaProtocol</code> interface
 handles all proof generation and verification.<a href="#section-5.6.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-5.6.1-2.1">
@@ -3104,8 +3168,8 @@ handles all proof generation and verification.<a href="#section-5.6.1-1" class="
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">Spend proof</td>
-                <td class="text-left" rowspan="1" colspan="1">(2D+2)*Ne + (4D+12)*Ns + 2</td>
-                <td class="text-left" rowspan="1" colspan="1">192D + 450 bytes</td>
+                <td class="text-left" rowspan="1" colspan="1">(4D+3)*Ne + (8D+12)*Ns + 2</td>
+                <td class="text-left" rowspan="1" colspan="1">384D + 482 bytes</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">Refund</td>
@@ -3128,7 +3192,7 @@ handles all proof generation and verification.<a href="#section-5.6.1-1" class="
 from <code>NISigmaProtocol</code>, prefixed by a 2-byte length field.
 The issuance request proof has 2 witness scalars (3*Ns),
 the issuance response and refund proofs have 1 witness scalar (2*Ns),
-and the spend proof has <code>4D + 7</code> witness scalars ((4D+8)*Ns).<a href="#section-5.6.1-4" class="pilcrow">¶</a></p>
+and the spend proof has <code>8D + 7</code> witness scalars ((8D+8)*Ns).<a href="#section-5.6.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="radix">
@@ -3319,30 +3383,37 @@ below the group order, as required by <a href="#wraparound" class="auto internal
         <h3 id="name-amount-validation-and-modul">
 <a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-amount-validation-and-modul" class="section-name selfRef">Amount Validation and Modular Wraparound</a>
         </h3>
-<p id="section-7.3-1">The spend proof constrains the new balance <code>v = c - s + a</code> only
-modulo the group order q: the range proof shows that v, interpreted
-as an integer, lies in <code>[0, 3^D)</code>, but the relation among c, s, a,
-and v holds in the scalar field. If the issuer accepted arbitrary
-scalars as the public amounts s or a, a malicious client could
-exploit wraparound to inflate its balance. For example, with
-<code>s = q - 1</code> (that is, <code>s = -1 mod q</code>), a token holding c credits
-yields a "remainder" of <code>c + 1</code> that passes the range proof.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<p id="section-7.3-1">The spend proof constrains the proven values <code>v1 = c - s</code> and
+<code>v2 = c + a</code> only modulo the group order q: the range proofs show
+that each value, interpreted as an integer, lies in <code>[0, 3^D)</code>, but
+the relations among c, s, a, v1, and v2 hold in the scalar field.
+If the issuer accepted arbitrary scalars as the public amounts s or
+a, a malicious client could exploit wraparound to inflate its
+balance. For example, with <code>s = q - 1</code> (that is, <code>s = -1 mod q</code>), a
+token holding c credits yields a "post-spend balance" of <code>c + 1</code>
+that passes the first range proof.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
 <p id="section-7.3-2">Issuers <span class="bcp14">MUST</span> therefore validate the public amounts before verifying
-a spend proof: both s and a <span class="bcp14">MUST</span> decode successfully via
-ScalarToCredit and <span class="bcp14">MUST</span> be less than <code>3^D</code>, as specified in
-VerifyAndRefund. In addition, suites <span class="bcp14">MUST</span> choose MAX_DIGITS such
-that:<a href="#section-7.3-2" class="pilcrow">¶</a></p>
+a spend proof: s and a <span class="bcp14">MUST</span> decode successfully via ScalarToCredit
+and <span class="bcp14">MUST</span> be less than <code>3^D</code>, and the return amount <span class="bcp14">MUST</span> satisfy
+<code>t &lt;= s + a</code>, as specified in VerifyAndRefund. In addition, suites
+<span class="bcp14">MUST</span> choose MAX_DIGITS such that:<a href="#section-7.3-2" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-7.3-3">
 <pre>
 3^MAX_DIGITS + 2^128 &lt;= Order()
 </pre><a href="#section-7.3-3" class="pilcrow">¶</a>
 </div>
 <p id="section-7.3-4">where <code>2^128</code> is the upper bound enforced by ScalarToCredit. Under
-these checks, wraparound is impossible: token balances satisfy
-<code>c &lt; 3^D</code> by induction (issuance amounts, top-ups, and refunds are
-all validated against <code>3^D</code>), so any claimed <code>s &gt; c + a</code> forces the
-reduced value <code>v = c + a - s + q &gt;= q - 2^128 &gt;= 3^D</code>, which the
-range proof rejects.<a href="#section-7.3-4" class="pilcrow">¶</a></p>
+these checks, wraparound is impossible. Token balances satisfy
+<code>c &lt; 3^D</code> by induction: issuance amounts are validated against
+<code>3^D</code>, and each refund produces a balance
+<code>v1 + t &lt;= v1 + s + a = c + a</code>, which the second range proof shows
+is below <code>3^D</code>. Given <code>c &lt; 3^D</code> and a validated <code>s &lt; 3^D</code>, the
+field value <code>c - s</code> either equals the integer <code>c - s</code> or, when
+<code>s &gt; c</code>, wraps to <code>c - s + q &gt;= q - 3^D &gt; 3^D</code>, which the first
+range proof rejects; the proof therefore enforces <code>s &lt;= c</code> over
+the integers. The field value <code>c + a</code> is at most <code>2*3^D - 2 &lt; q</code>
+and cannot wrap, so the second range proof enforces <code>c + a &lt; 3^D</code>
+over the integers.<a href="#section-7.3-4" class="pilcrow">¶</a></p>
 <p id="section-7.3-5">Parameterizations whose range bound approaches the group order
 violate this condition. For example, a 252-bit range with amounts
 validated only against <code>2^128</code> admits a balance-inflation attack
@@ -3574,8 +3645,8 @@ and no division instructions)<a href="#section-7.5.1-1.2.4.4.2.2.1" class="pilcr
           <h4 id="name-2-balance-inflation-attack">
 <a href="#section-7.6.2" class="section-number selfRef">7.6.2. </a><a href="#name-2-balance-inflation-attack" class="section-name selfRef">2. Balance Inflation Attack</a>
           </h4>
-<p id="section-7.6.2-1"><strong>Scenario</strong>: An attacker attempts to create a proof claiming to have more credits than actually issued by manipulating the range proof, or by submitting spend or top-up amounts that wrap around the group order.<a href="#section-7.6.2-1" class="pilcrow">¶</a></p>
-<p id="section-7.6.2-2"><strong>Prevention</strong>: The cryptographic soundness of the range proof, combined with the mandatory amount validation described in <a href="#wraparound" class="auto internal xref">Section 7.3</a>, prevents this attack.<a href="#section-7.6.2-2" class="pilcrow">¶</a></p>
+<p id="section-7.6.2-1"><strong>Scenario</strong>: An attacker attempts to create a proof claiming to have more credits than actually issued by manipulating the range proofs, or by submitting spend or top-up amounts that wrap around the group order.<a href="#section-7.6.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.6.2-2"><strong>Prevention</strong>: The cryptographic soundness of the range proofs, combined with the mandatory amount validation described in <a href="#wraparound" class="auto internal xref">Section 7.3</a>, prevents this attack.<a href="#section-7.6.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="token-linking-attack">
@@ -3835,7 +3906,7 @@ and is based on a proposal described in RFC 7942.<a href="#appendix-C-1" class="
 <p id="appendix-D-1">This glossary provides quick definitions of key terms used throughout this document:<a href="#appendix-D-1" class="pilcrow">¶</a></p>
 <p id="appendix-D-2"><strong>ACT (Anonymous Credit Tokens)</strong>: The privacy-preserving authentication protocol specified in this document.<a href="#appendix-D-2" class="pilcrow">¶</a></p>
 <p id="appendix-D-3"><strong>Blind Signature</strong>: A cryptographic signature where the signer signs a message without seeing its content.<a href="#appendix-D-3" class="pilcrow">¶</a></p>
-<p id="appendix-D-4"><strong>Refund</strong>: The refund issued for the remaining balance after a spend, including any issuer-chosen partial refund of the spent amount.<a href="#appendix-D-4" class="pilcrow">¶</a></p>
+<p id="appendix-D-4"><strong>Refund</strong>: The response issued for the remaining balance after a spend, including the issuer-chosen return amount added to the post-spend balance.<a href="#appendix-D-4" class="pilcrow">¶</a></p>
 <p id="appendix-D-5"><strong>Credit</strong>: A numerical unit of authorization that can be spent by clients.<a href="#appendix-D-5" class="pilcrow">¶</a></p>
 <p id="appendix-D-6"><strong>Domain Separator</strong>: A unique string used to ensure cryptographic isolation between different deployments.<a href="#appendix-D-6" class="pilcrow">¶</a></p>
 <p id="appendix-D-7"><strong>Element</strong>: A point in the Ristretto255 elliptic curve group.<a href="#appendix-D-7" class="pilcrow">¶</a></p>
