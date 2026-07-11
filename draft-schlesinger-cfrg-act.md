@@ -110,10 +110,11 @@ The protocol provides the following properties:
    balance and receive anonymous change without revealing their
    previous or current balance, enabling flexible spending.
 
-3. **Balance Adjustments**: A spend can carry an issuer-authorized
-   top-up that adds credits to the returned token, and the issuer
-   can return part of the spent amount when issuing the refund,
-   without learning the resulting balance in either case.
+3. **Balance Adjustments**: Each spend returns a token with an
+   updated balance. The client can include an issuer-authorized
+   top-up in the spend itself, and the issuer can return part of
+   the spent amount when issuing the refund; in neither case does
+   the issuer learn anything about the original or updated balance.
 
 4. **Double-Spend Prevention**: Cryptographic nullifiers ensure each
    token is used only once, without linking it to issuance.
@@ -161,8 +162,8 @@ interaction follows three main phases:
    proof, checks the nullifier hasn't been used before, and issues a
    new token (which remains hidden from the issuer) for any remaining
    balance. The new token's balance may additionally include a
-   client-requested top-up bound into the spend proof, as well as a
-   partial refund of the spent amount chosen by the issuer.
+   client-requested top-up, as well as a partial refund of the
+   spent amount chosen by the issuer.
 
 ## Relation to Existing Work
 
@@ -302,26 +303,40 @@ digit is in {0, 1, 2}. Base 3 minimizes proof size among digit
 decompositions in this framework (see {{radix}}).
 
 For each digit `j`, the prover sends a digit commitment `Com[j]`
-and an auxiliary commitment `T[j]`, and three linear equations
-enforce that `d[j] in {0, 1, 2}`:
+and an auxiliary commitment `T[j]`. The verifier checks a proof
+of knowledge of scalars `d[j]`, `s[j]`, `rho[j]`, and `w[j]`
+(plus `kstar` and `k3` for digit 0, which carries the new
+nullifier) satisfying three linear equations per digit:
 
-- **Opening**: `Com[j] = d[j]*H1 + s[j]*H3` (for `j >= 1`), or
-  `Com[0] = d[0]*H1 + kstar*H2 + s[0]*H3` (for digit 0, which
-  carries the new nullifier).
-- **Auxiliary opening**: `T[j] + Com[j] = d[j]*Com[j] + rho[j]*H3`,
-  which forces `T[j] = (d[j]-1)*Com[j] + rho[j]*H3`, so the
-  `H1`-component of `T[j]` is `d[j]*(d[j]-1)`.
-- **Zero constraint**: `T[j]*2 = d[j]*T[j] + w[j]*H3`
-  (for `j >= 1`), or
-  `T[0]*2 = d[0]*T[0] + k3*H2 + w[0]*H3` (for digit 0),
-  where `w[j] = (2-d[j])*((d[j]-1)*s[j] + rho[j])` and
-  `k3 = (2-d[0])*(d[0]-1)*kstar`.
+1. **Opening**: `Com[j] = d[j]*H1 + s[j]*H3` (for `j >= 1`), or
+   `Com[0] = d[0]*H1 + kstar*H2 + s[0]*H3` (for digit 0).
+2. **Auxiliary opening**: `T[j] + Com[j] = d[j]*Com[j] + rho[j]*H3`.
+3. **Zero constraint**: `T[j]*2 = d[j]*T[j] + w[j]*H3`
+   (for `j >= 1`), or
+   `T[0]*2 = d[0]*T[0] + k3*H2 + w[0]*H3` (for digit 0).
 
-The zero constraint states that `(d[j]-2)*T[j]` has no
-`H1`-component, so the three equations together enforce
-`d[j]*(d[j]-1)*(d[j]-2) = 0`, i.e., `d[j] in {0, 1, 2}`, because
-satisfying them with any other digit value would require knowing a
+An honest prover assigns the digit `d[j]`, samples the blinding
+scalars `s[j]` and `rho[j]`, computes
+`T[j] = (d[j]-1)*Com[j] + rho[j]*H3`, and sets the derived
+witnesses `w[j] = (2-d[j])*((d[j]-1)*s[j] + rho[j])` and
+`k3 = (2-d[0])*(d[0]-1)*kstar`.
+
+Verifying these equations forces `d[j] in {0, 1, 2}`, as follows.
+Equation 1 opens `Com[j]` to the digit `d[j]`, so the
+`H1`-component of `Com[j]` is `d[j]`. Equation 2, rearranged,
+states `T[j] = (d[j]-1)*Com[j] + rho[j]*H3`, so the
+`H1`-component of `T[j]` is `d[j]*(d[j]-1)`. Equation 3,
+rearranged, states that `(d[j]-2)*T[j]` has no `H1`-component.
+Together they imply `d[j]*(d[j]-1)*(d[j]-2) = 0` in the scalar
+field, which holds exactly when `d[j] in {0, 1, 2}`; satisfying
+the equations with any other digit value would require knowing a
 discrete-logarithm relation between `H1` and `H2` or `H3`.
+
+This construction is a linear-relation encoding of a three-way OR
+proof that each committed digit is 0, 1, or 2. A disjunctive (OR)
+presentation would have the same proof size (see {{radix}}) but
+requires composition beyond the linear framework of {{SIGMA}} on
+which this document builds.
 
 The {{append_range_proof}}{:format="title"} function appends linear
 relations to the statement to instantiate a range proof.
@@ -627,9 +642,8 @@ VerifyIssuance(pk, response, ctx, state):
 The spending protocol allows a client to spend `s` credits from a
 token containing `c` credits, optionally adding an issuer-authorized
 top-up of `a` credits in the same operation. The new balance
-`v = c - s + a` must lie in `[0, 3^D)`; in particular, `s` may
-exceed `c` when the top-up covers the difference. Plain spends set
-`a = 0`.
+`v = c - s + a` must lie in `[0, 3^D)`; in particular, `s` may be
+as large as `c + a`. Plain spends set `a = 0`.
 
 The top-up amount `a` is a public input bound by the spend proof: a
 proof generated for one value of `a` fails to verify under any
@@ -639,13 +653,22 @@ with that value. How the client obtains authorization for a top-up
 bound to the request context `ctx`. Issuers that do not support
 top-ups MUST reject spend proofs with `a != 0`.
 
+The top-up is distinct from the partial refund `t` of
+{{refund-issuance}}. A top-up is covered by the range proof, which
+shows that the new balance `v` remains in `[0, 3^D)`, so an
+addition of any size can be authorized. A refund is added
+homomorphically after verification, without a range proof, and is
+therefore bounded by `t <= max(0, s - a)`: the issuer returns at
+most the net amount removed by the spend, so the resulting balance
+`v + t` is at most `max(c, v)` and remains below `3^D`.
+
 ### Client: Spend Proof Generation
 
 ~~~
 ProveSpend(token, s, a, rng):
   Input:
     - token: Credit token (A, e, k, r, c, ctx)
-    - s: Amount to spend (0 <= s < 3^D)
+    - s: Amount to spend (0 <= s < 3^D and s <= c + a)
     - a: Top-up amount (0 <= a < 3^D); 0 for a plain spend
     - rng: PRNG.
   Output:
@@ -1319,6 +1342,13 @@ proof is approximately 5% smaller than the equivalent binary one.
 This specification therefore uses base-3 digits. See
 {{ternary-decomposition}} for a constant-time decomposition
 algorithm.
+
+A compact B-way OR proof of the digit relation has the same
+marginal cost: one instance element plus `2*B - 1` proof scalars
+per digit, or `32 + 32*(2*B - 1) = 64*B` bytes. The choice between
+the linear encoding used here and a disjunctive presentation
+therefore does not affect proof size, and base 3 remains optimal
+under either.
 
 # Suites for ACT {#suites}
 

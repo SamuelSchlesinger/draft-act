@@ -237,7 +237,9 @@ State transitions:
   with balance `v + t`, where `v = N - c + a` is the balance after spending `c`
   credits and applying any Origin-authorized top-up of `a` credits declared in the
   spend proof (`a = 0` for a plain spend), and `t` is the partial return amount
-  from the Origin (`0 <= t <= max(0, c - a)`). If the new balance is greater than
+  from the Origin (`0 <= t <= max(0, c - a)`: the Origin returns at most the
+  net amount removed by the spend, so the new balance stays below `3^D`). If
+  the new balance is greater than
   0, the client returns to the Initial state with the new credential. If the
   balance is 0, the credential is exhausted.
 
@@ -590,9 +592,12 @@ unless the application has authorized a top-up (e.g., through a
 purchase bound to the request context).
 
 The resulting balance `balance - cost + topup` MUST also be a valid credit
-amount in the range `[0, 3^D)` defined in {{ACT}}; otherwise `ProveSpend`
-raises an error. A client holding a nearly full credential therefore cannot
-apply a top-up that would push its balance to or beyond `3^D`.
+amount in the range `[0, 3^D)` defined in {{ACT}}. The range proof in the
+spend statement covers the new balance, so no valid spend proof exists for
+a balance outside this range; the check in `ProveSpend` raises the error
+before any proof is attempted. A client holding a nearly full credential
+therefore cannot apply a top-up that would push its balance to or beyond
+`3^D`.
 
 Each credential instance MUST only ever be used for a single spend request. When the client
 receives the refunded credential from the server, the client uses that new credential instance
