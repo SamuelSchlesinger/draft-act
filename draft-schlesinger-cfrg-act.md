@@ -74,9 +74,6 @@ requiring rate limiting, usage-based billing, or resource allocation
 while respecting user privacy. Example applications include rate
 limiting and API credits.
 
-This document is a product of the Crypto Forum Research Group (CFRG)
-in the IRTF.
-
 --- middle
 
 # Introduction
