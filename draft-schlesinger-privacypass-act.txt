@@ -5,8 +5,8 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                    Google
 Intended status: Standards Track                              T. Meunier
-Expires: 26 August 2026                                  Cloudflare Inc.
-                                                        22 February 2026
+Expires: 12 January 2027                                 Cloudflare Inc.
+                                                            11 July 2026
 
 
        Privacy Pass Issuance Protocol for Anonymous Credit Tokens
@@ -50,7 +50,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 26 August 2026.
+   This Internet-Draft will expire on 12 January 2027.
 
 Copyright Notice
 
@@ -80,8 +80,7 @@ Table of Contents
      5.5.  Error Handling
        5.5.1.  Delayed or Missing Refunds
    6.  Configuration
-     6.1.  Ciphersuites
-     6.2.  Request Context Extension
+     6.1.  Request Context
    7.  Token Challenge Requirements
    8.  Credential Issuance Protocol
      8.1.  Client-to-Issuer Request
@@ -98,7 +97,9 @@ Table of Contents
      10.4.  Issuer Key Identification
      10.5.  Dynamic Revocation and Origin Control
    11. IANA Considerations
-   12. Normative References
+   12. References
+     12.1.  Normative References
+     12.2.  Informative References
    Acknowledgments
    Authors' Addresses
 
@@ -131,31 +132,31 @@ Table of Contents
    To demonstrate how ACT is useful, one can use a similar example to
    the one presented in Section 2 of [ARC_PP]: a client that wishes to
    keep its IP address private while accessing a service.  [ARC_PP]
-   offers the origin to limit the number of requests a client can make
+   allows the origin to limit the number of requests a client can make
    to N.  This is enforced by each origin getting its own presentation
    context, and limiting the number of presentations per context to N.
    This means that, from a single credential, a client can produce N
-   presentations and access the system N times, unlinkably.  These
+   presentations to access the system N times, unlinkably.  These
    presentations can be generated in parallel.
 
-   ACT takes a different approach.  Consider a credential initially
-   holding N credits.  A client redeeming all N credits individually has
-   to spend 1, receive a refunded credential with N-1 credits, spend 1
-   from that credential, receive a refunded credential with N-2 credits,
-   and so on.  Because the client cannot spend from a credential until
-   they receive the refunded credential from their previous spend, a
-   single live session is enforced per initial credential.  This
-   provides concurrency control.  A client is also able to spend more
-   than 1 credit at once, allowing for more efficient redemption of
-   multiple credits.  Finally, as each new presentation requires
-   obtaining a refunded credential from the previous spend, the origin
-   gains the ability to invalidate a session by declining to issue a
-   refunded credential.  This creates the ability to shed harmful future
-   traffic or redirect it in a favorable way.
+   On the other hand, consider a credential initially holding N credits.
+   A client redeeming all N credits individually has to spend 1, receive
+   a refunded credential with N-1 credits, spend 1 from that credential,
+   receive a refunded credential with N-2 credits, and so on.  Because
+   the client cannot spend from a credential until they receive the
+   refunded credential from their previous spend, a single live session
+   is enforced per initial credential.  This provides concurrency
+   control.  A client is also able to spend more than 1 credit at once,
+   allowing for more efficient redemption of multiple credits.  Finally,
+   as each new presentation requires obtaining a refunded credential
+   from the previous spend, the origin gains the ability to invalidate a
+   session by declining to issue a refunded credential.  This creates
+   the ability to shed harmful future traffic or redirect it in a
+   favorable way.
 
-   Example use cases include privacy proxies, privately accessing web
-   APIs such as artificial intelligence models, and zero trust networks
-   that act as forward proxies for their user traffic.
+   Use cases include privacy proxies, privately accessing web APIs such
+   as AI models, and zero trust networks acting as forward proxies for
+   user traffic.
 
    Therefore, ACT provides the following properties:
 
@@ -185,17 +186,40 @@ Table of Contents
    additional terms are used throughout this document.
 
    *  Issuer Public Key: The public key (from a private-public key pair)
-      used by the Issuer for issuing and verifying Tokens.
+      used by the Issuer for issuing and verifying Tokens.  See [ACT]
+      for details.
 
    *  Issuer Private Key: The private key (from a private-public key
-      pair) used by the Issuer for issuing and verifying Tokens.
-
-   The following terms are used as defined in [ACT]: Credit, Token,
-   Nullifier, Scalar, Element, and Domain Separator.
+      pair) used by the Issuer for issuing and verifying Tokens.  See
+      [ACT] for details.
 
    Unless otherwise specified, this document encodes protocol messages
    in TLS notation from Section 3 of [TLS13].  Moreover, all constants
    are in network byte order.
+
+   The following constants are used throughout this document:
+
+   *  Nid: The size of the Issuer Public Key ID in bytes.  Nid = 32.
+
+   *  Ne: The size of a serialized group element in bytes.  Ne = 32.
+
+   *  Ns: The size of a serialized scalar in bytes.  Ns = 32.
+
+   The concat(a, b, ...) function denotes length-prefixed concatenation,
+   where each input is prefixed with a 2-byte big-endian length.  This
+   ensures unambiguous parsing of the concatenated result.
+
+   The HashToScalar(msg) function hashes a variable-length byte string
+   msg to a Scalar using the suite's extendable-output function
+   (SHAKE128 for the ristretto255 suite): squeeze 64 bytes of output
+   from SHAKE128(msg) and reduce modulo the group order q.  This matches
+   the scalar derivation used by the SeededPRNG construction in [ACT].
+
+   Note: This document uses the term "credential" to refer to what the
+   ACT specification [ACT] calls a "token" (the cryptographic object
+   containing a BBS signature and associated data).  The term "Token" in
+   this document refers to the Privacy Pass Token structure presented to
+   Origins.
 
 4.  Protocol Overview
 
@@ -285,7 +309,7 @@ Table of Contents
            | ConstructRefundToken(refund)
            v
       +----------+
-      | Refunded |  (New credential with N-cost credits)
+      | Refunded |  (New credential with `N-c+t` credits)
       +----------+
 
    State transitions:
@@ -298,9 +322,12 @@ Table of Contents
       used again.  The client is blocked waiting for a refund response.
 
    *  *Refunded*: Client has received a valid refund and constructed a
-      new credential with the remaining balance.  If the new balance is
-      greater than 0, the client returns to the Initial state with the
-      new credential.  If the balance is 0, the credential is exhausted.
+      new credential with balance m + t, where m = N - c is the
+      remaining balance after spending c credits, and t is the partial
+      return amount from the Origin (0 <= t <= c).  If the new balance
+      is greater than 0, the client returns to the Initial state with
+      the new credential.  If the balance is 0, the credential is
+      exhausted.
 
    The transition from Spent to Refunded may fail if the origin does not
    provide a valid refund.  Error handling for this case is described in
@@ -390,43 +417,16 @@ Table of Contents
    from [ACT] to produce a private and public key, denoted skI and pkI,
    respectively.
 
-   skI, pkI = KeyGen()
+   skI, pkI = KeyGen(G, rng)
+
+   where G is the Group and rng is the PRNG as defined in [ACT].
 
    The Issuer Public Key ID, denoted issuer_key_id, is computed as the
    SHA-256 hash of the Issuer Public Key, i.e., issuer_key_id = SHA-
    256(pkI_serialized), where pkI_serialized is the serialized version
-   of pkI as described in Section 4.1 of [ACT].
+   of pkI using SerializeElement as described in Section 6.1 of [ACT].
 
-   Protocol messages are encoded using CBOR as specified in Section 4 of
-   [ACT].
-
-6.1.  Ciphersuites
-
-   This document defines five token types corresponding to the five
-   ciphersuites specified in [ACT]:
-
-       +============+===================+=========================+
-       | Token Type | Name              | Ciphersuite             |
-       +============+===================+=========================+
-       | 0xE5AD     | ACT(Ristretto255) | ACT-Ristretto255-BLAKE3 |
-       +------------+-------------------+-------------------------+
-       | 0xE5AE     | ACT(P-256)        | ACT-P256-BLAKE3         |
-       +------------+-------------------+-------------------------+
-       | 0xE5AF     | ACT(secp256k1)    | ACT-secp256k1-BLAKE3    |
-       +------------+-------------------+-------------------------+
-       | 0xE5B0     | ACT(P-384)        | ACT-P384-BLAKE3         |
-       +------------+-------------------+-------------------------+
-       | 0xE5B1     | ACT(P-521)        | ACT-P521-BLAKE3         |
-       +------------+-------------------+-------------------------+
-
-                                 Table 1
-
-   All ciphersuites use SHA-256 for key identification, so Nid = 32 for
-   all.  The remaining size parameters (Nrequest, Nresponse,
-   Nspend_proof, Nrefund) are determined by the ciphersuite's
-   serialization format as described in Section 4.1 of [ACT].
-
-6.2.  Request Context Extension
+6.1.  Request Context
 
    This Privacy Pass integration binds credentials to application-
    specific contexts using a request_context parameter.  This approach
@@ -434,35 +434,34 @@ Table of Contents
    [ARC_PP], which threads a similar context parameter through its
    cryptographic operations for domain separation.
 
-   The CFRG ACT specification [ACT] includes request_context (ctx) as a
-   parameter in its cryptographic functions.  Specifically:
+   The ACT specification [ACT] includes request_context as a first-class
+   parameter (ctx) in the following cryptographic functions:
 
    1.  *IssueRequest*: No changes needed - the client generates a
        blinded commitment without knowledge of the final context
        binding.
 
-   2.  *IssueResponse*: Takes request_context as an input parameter
+   2.  *IssueResponse*: Takes request_context as the ctx input parameter
        alongside the credit amount c.  The issuer determines the
        appropriate context based on its policy (e.g., derived from
-       TokenChallenge fields) and binds the credential to this context
-       via an additional generator H4.  The context scalar is included
-       in the BBS signature as H4 * ctx.
+       TokenChallenge fields), hashes it to a scalar using HashToScalar,
+       and binds the credential to this context via the BBS signature.
 
-   3.  *VerifyAndRefund*: The request_context is included in the spend
-       proof and used to verify that the proof is bound to the correct
-       application context.  The issuer reconstructs the context from
-       the TokenChallenge and uses it during verification and refund
-       issuance.
+   3.  *VerifyAndRefund*: The request_context is revealed in the clear
+       as part of the SpendProof structure.  The verifier extracts it
+       from the spend proof and checks that it matches the expected
+       application context reconstructed from the TokenChallenge.
 
-   4.  *Credential Structure*: The Anonymous Credit Token includes the
-       context-bound component within the BBS signature via the H4
-       generator.
+   4.  *Credential Structure*: The Anonymous Credit Token structure
+       includes the context-bound component (ctx) within the BBS
+       signature.
 
    The key insight is that request_context is determined by the issuer
    (like the credit amount), not by the client.  The issuer sets the
    context during IssueResponse based on the TokenChallenge
-   requirements, and both parties reconstruct it from TokenChallenge
-   fields during spending.
+   requirements.  During spending, the context is revealed in the spend
+   proof, allowing the verifier to confirm that the credential was bound
+   to the correct application context.
 
    For reference on how request context threading works in practice, see
    Section 3 of [ARC_PP], which demonstrates the pattern of binding
@@ -475,16 +474,16 @@ Table of Contents
    one specified in [AUTHSCHEME].  In particular, the updated
    TokenChallenge structure is as follows:
 
-struct {
-    uint16_t token_type; /* 0xE5AD, 0xE5AE, 0xE5AF, 0xE5B0, or 0xE5B1 */
-    opaque issuer_name<1..2^16-1>;
-    opaque redemption_context<0..32>;
-    opaque origin_info<0..2^16-1>;
-    opaque credential_context<0..32>;
-} TokenChallenge;
+   struct {
+       uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
+       opaque issuer_name<1..2^16-1>;
+       opaque redemption_context<0..32>;
+       opaque origin_info<0..2^16-1>;
+       opaque credential_context<0..32>;
+   } TokenChallenge;
 
-   Note: The token type values 0xE5AD, 0xE5AE, 0xE5AF, 0xE5B0, and
-   0xE5B1 are provisional pending IANA assignment.
+   TODO: The token type value 0xE5AD is a placeholder and MUST be
+   coordinated with IANA registry assignments before publication.
 
    With the exception of credential_context, all fields are exactly as
    specified in Section 2.1.1 of [AUTHSCHEME].  The credential_context
@@ -505,13 +504,22 @@ struct {
    equivalent to the Origin asking the Client for a token from a
    credential that is bound to "current time window."
 
-   Origins SHOULD construct credential_context using time-based epochs
-   (e.g., F(current time window) where F is a pseudorandom function) to
-   enforce credential expiration, or per-application binding values to
-   isolate credential usage across different services.  The
-   redemption_context SHOULD be set to a fresh random value for each
-   TokenChallenge to ensure token freshness, or left empty when
-   freshness is not required.
+   When constructing credential_context, Origins SHOULD consider the
+   following guidance:
+
+   *  *Session binding*: Use a unique session identifier to bind
+      credentials to a specific session.
+
+   *  *Time-bounded access*: Use F(current_time_window) where F is a
+      pseudorandom function, to enforce periodic credential renewal.
+
+   *  *Service differentiation*: Include a service identifier to prevent
+      cross-service credential reuse.
+
+   The redemption_context SHOULD be a fresh random value for each
+   challenge when per-request uniqueness is desired, or a deterministic
+   value derived from session state when correlation within a session is
+   acceptable.
 
    In addition to this updated TokenChallenge, the HTTP authentication
    challenge also SHOULD contain the following additional attribute:
@@ -519,13 +527,11 @@ struct {
    *  "cost", which contains a JSON number indicating the amount of
       credits to spend out of the ACT credential.
 
-   Implementation-specific steps: the client should store the Origin-
-   provided input tokenChallenge so that when they receive a new
-   tokenChallenge value, they can check if it has changed and which
-   fields are different.  This will inform the client's behavior - for
-   example, if credential_context is being used to enforce an expiration
-   on the credential, then if the credential_context has changed, this
-   can prompt the client to request a new credential.
+   Clients SHOULD store the Origin-provided tokenChallenge and compare
+   it against subsequent challenges to detect changes.  If the
+   credential_context has changed (e.g., due to time window expiration),
+   the client SHOULD request a new credential through the issuance
+   protocol.
 
 8.  Credential Issuance Protocol
 
@@ -561,21 +567,19 @@ struct {
    ID issuer_key_id, the Client first creates a credential request
    message using the IssueRequest function from [ACT] as follows:
 
-   (clientSecrets, request) = IssueRequest()
+   (request, state) = IssueRequest(rng)
 
    The Client then creates a TokenRequest structure as follows:
 
-  struct {
-    uint16_t token_type; /* 0xE5AD, 0xE5AE, 0xE5AF, 0xE5B0, or 0xE5B1 */
-    uint8_t truncated_issuer_key_id;
-    uint8_t encoded_request[Nrequest];
-  } TokenRequest;
+   struct {
+     uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
+     uint8_t truncated_issuer_key_id;
+     opaque encoded_request<1..2^16-1>;
+   } TokenRequest;
 
    The structure fields are defined as follows:
 
-   *  "token_type" is a 2-octet integer, set to 0xE5AD for
-      ACT(Ristretto255), 0xE5AE for ACT(P-256), 0xE5AF for
-      ACT(secp256k1), 0xE5B0 for ACT(P-384), or 0xE5B1 for ACT(P-521).
+   *  "token_type" is a 2-octet integer.
 
    *  "truncated_issuer_key_id" is the least significant byte of the
       issuer_key_id (Section 6) in network byte order (in other words,
@@ -584,7 +588,7 @@ struct {
       identifying Clients; see Section 10 and referenced information for
       more details.
 
-   *  "encoded_request" is the Nrequest-octet request, computed as the
+   *  "encoded_request" is a variable-length field containing the
       serialization of the request value as defined in Section 4.1.1 of
       [ACT].
 
@@ -607,15 +611,15 @@ struct {
    Upon receipt of the request, the Issuer validates the following
    conditions:
 
-   *  The TokenRequest contains a supported token_type (one of 0xE5AD,
-      0xE5AE, 0xE5AF, 0xE5B0, or 0xE5B1).
+   *  The TokenRequest contains a supported token_type equal to value
+      0xE5AD.
 
    *  The TokenRequest.truncated_token_key_id corresponds to the
       truncated key ID of an Issuer Public Key, with corresponding
       secret key skI, owned by the Issuer.
 
-   *  The TokenRequest.encoded_request is of the correct size
-      (Nrequest).
+   *  The TokenRequest.encoded_request is well-formed and of a valid
+      size.
 
    If any of these conditions is not met, the Issuer MUST return an HTTP
    422 (Unprocessable Content) error to the client.
@@ -625,28 +629,28 @@ struct {
    yielding request.  If this fails, the Issuer MUST return an HTTP 422
    (Unprocessable Content) error to the client.  Otherwise, if the
    Issuer is willing to produce a credential for the Client, the Issuer
-   determines both the number of initial credits and the request_context
-   based on its policy (e.g., based on attestation results, payment
-   verification, or TokenChallenge requirements).  The request_context
-   binds the credential to the specific application context:
+   determines the number of initial credits based on its policy (e.g.,
+   based on attestation results, payment verification, or TokenChallenge
+   requirements).  The request_context is derived from the
+   TokenChallenge fields and hashed to a scalar for the ctx parameter:
 
-request_context = concat(tokenChallenge.issuer_name,
+context_input = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
-response = IssueResponse(skI, request, initial_credits, request_context)
+request_context = HashToScalar(context_input)
+response = IssueResponse(skI, request, initial_credits, request_context, rng)
 
    The Issuer then creates a TokenResponse structured as follows:
 
    struct {
-      uint8_t encoded_response[Nresponse];
+      opaque encoded_response<1..2^16-1>;
    } TokenResponse;
 
    The structure fields are defined as follows:
 
-   *  "encoded_response" is the Nresponse-octet encoded issuance
-      response message, computed as the serialization of response as
-      specified in Section 4.1.2 of [ACT].
+   *  "encoded_response" is a variable-length field containing the
+      serialization of response as specified in Section 4.1.2 of [ACT].
 
    The Issuer generates an HTTP response with status code 200 whose
    content consists of TokenResponse, with the content type set as
@@ -666,7 +670,7 @@ response = IssueResponse(skI, request, initial_credits, request_context)
    deserialization fails, the Client aborts the protocol.  Otherwise,
    the Client processes the response as follows:
 
-   credential = VerifyIssuance(pkI, request, response, clientSecrets)
+   credential = VerifyIssuance(pkI, response, request_context, state)
 
    The Client then saves the credential structure, associated with the
    given Issuer Name, to use when producing Token values in response to
@@ -690,7 +694,7 @@ response = IssueResponse(skI, request, initial_credits, request_context)
    containing at least cost credits, Clients compute a spend request as
    follows:
 
-   spend_proof, state = ProveSpend(credential, cost)
+   spend_proof, state = ProveSpend(credential, cost, rng)
 
    Each credential instance MUST only ever be used for a single spend
    request.  When the client receives the refunded credential from the
@@ -701,18 +705,17 @@ response = IssueResponse(skI, request, initial_credits, request_context)
 
    The resulting Token value is then constructed as follows:
 
-struct {
-    uint16_t token_type; /* 0xE5AD, 0xE5AE, 0xE5AF, 0xE5B0, or 0xE5B1 */
-    uint8_t challenge_digest[32];
-    uint8_t issuer_key_id[Nid];
-    uint8_t encoded_spend_proof[Nspend_proof];
-} Token;
+   struct {
+       uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
+       uint8_t challenge_digest[32];
+       uint8_t issuer_key_id[Nid];    /* Nid = 32 bytes */
+       opaque encoded_spend_proof<1..2^16-1>;
+   } Token;
 
    The structure fields are defined as follows:
 
-   *  "token_type" is a 2-octet integer, in network byte order, set to
-      0xE5AD for ACT(Ristretto255), 0xE5AE for ACT(P-256), 0xE5AF for
-      ACT(secp256k1), 0xE5B0 for ACT(P-384), or 0xE5B1 for ACT(P-521).
+   *  "token_type" is a 2-octet integer, in network byte order, equal to
+      0xE5AD.
 
    *  "challenge_digest" is a 32-octet value containing the hash of the
       original TokenChallenge, SHA-256(TokenChallenge).
@@ -720,11 +723,11 @@ struct {
    *  "issuer_key_id" is a Nid-octet identifier for the Issuer Public
       Key, computed as defined in Section 6.
 
-   *  "encoded_spend_proof" is a Nspend_proof-octet encoded spend proof,
-      set to the serialized spend_proof value as specified in
-      Section 4.1.3 of [ACT].  The spend proof contains the nullifier
-      (field 1) and spend amount (field 2), among other cryptographic
-      values.
+   *  "encoded_spend_proof" is a variable-length field containing the
+      serialized spend_proof value as specified in Section 4.1.3 of
+      [ACT].  The spend proof contains the nullifier (field 1), spend
+      amount (field 2), and request context (field 3), among other
+      cryptographic values.
 
 9.2.  Token Refund
 
@@ -733,50 +736,63 @@ struct {
    SpendProofMsg structure.  The Origin then extracts the relevant
    fields from the spend proof:
 
-   // Extract fields from SpendProofMsg (see Section 4.1.3 of ACT)
-   nullifier = spend_proof.k      // Field 1: nullifier (32 bytes)
-   spend_amount = spend_proof.s   // Field 2: spend amount (32 bytes)
+// Extract fields from SpendProofMsg (see Section 4.1.3 of ACT)
+nullifier = spend_proof.k        // Field 1: nullifier (32 bytes)
+spend_amount = spend_proof.s     // Field 2: spend amount (32 bytes)
+request_context = spend_proof.ctx // Field 3: request context (32 bytes)
 
    The Origin SHOULD verify that the spend_amount matches the requested
    cost from TokenChallenge to ensure the client is spending the
    expected amount.
 
-   To verify the Token and issue a refund, the Origin constructs the
-   request_context and invokes VerifyAndRefund:
+   The Origin SHOULD also verify that the request_context revealed in
+   the spend proof matches the expected context derived from the
+   TokenChallenge:
 
-   request_context = concat(tokenChallenge.issuer_name,
+   context_input = concat(tokenChallenge.issuer_name,
      tokenChallenge.origin_info,
      tokenChallenge.credential_context,
      issuer_key_id)
-   t = <Origin-configured credits to return to the client>
-   refund = VerifyAndRefund(skI, spend_proof, t)
+   expected_context = HashToScalar(context_input)
 
-   The parameter t controls how many of the spent credits are returned
-   to the client (0 <= t <= cost).  Setting t = 0 consumes the full
-   spend amount; setting t > 0 enables pre-authorization patterns where
-   the origin holds credits temporarily and returns unused ones.  The
-   origin determines t based on its own policy (e.g., from the
-   TokenChallenge or application logic).
+   If request_context != expected_context, the Origin MUST reject the
+   spend proof.
+
+   To verify the Token and issue a refund, the Origin invokes
+   VerifyAndRefund with the partial return amount t.  The parameter t
+   specifies how many of the spent credits to return to the client.
+   Setting t = 0 means no partial return (the Origin keeps the full
+   spend amount), while t > 0 returns that many credits back to the
+   client.  The value of t MUST satisfy 0 <= t <= spend_amount:
+
+   refund = VerifyAndRefund(skI, spend_proof, t, rng)
 
    This function returns the refund serialized according to
    Section 4.1.4 of [ACT] if the spend proof is valid, and nil
-   otherwise.
+   otherwise.  The request_context is extracted directly from the spend
+   proof during verification, so the Origin does not need to pass it
+   separately.
 
-   As mentioned in Section 2.2.2 of [AUTHSCHEME], Origins MUST implement
-   double-spend prevention that prevents a token with the same nonce
-   from being redeemed twice.  With ACT, the Origin MUST check that the
-   nullifier has not previously been seen before calling
-   VerifyAndRefund.  It then stores the nullifier for use in future
-   double-spending checks.  To reduce the overhead of performing double
-   spend checks, the Origin MAY store and look up the nullifiers
-   corresponding to the associated request_context value.
+   As mentioned in Section 2.2.2 of [AUTHSCHEME], Origins SHOULD
+   implement some form of double-spend prevention that prevents a token
+   with the same nonce (nullifier in ACT) from being redeemed twice.
+   With ACT, the Origin SHOULD check that the nullifier has not
+   previously been seen before calling VerifyAndRefund.  It then stores
+   the nullifier for use in future double-spending checks.  To reduce
+   the overhead of performing double spend checks, the Origin MAY store
+   and look up the nullifiers corresponding to the associated
+   request_context value (which is extracted from the spend proof).
 
    struct {
-       uint8_t refund[Nrefund];
+       opaque refund<1..2^16-1>;
    } Refund;
 
    The Origin sends the refund back to the client encoded as the above
    Refund struct.
+
+   In practice, it encodes Refund as base64url and set PrivacyPass-
+   Reverse header to that value, as defined in Section 6 of
+   [REVERSE-FLOW].
 
 9.3.  New Credential from Refund
 
@@ -785,6 +801,14 @@ struct {
    ConstructRefundToken function from Section 3.4.4 of [ACT] as follows:
 
    credential = ConstructRefundToken(pkI, spend_proof, refund, state)
+
+   The resulting credential has a balance of new_balance = m + t, where
+   m is the remaining balance after the spend (i.e., m =
+   original_balance - cost) and t is the partial return amount specified
+   by the Origin during VerifyAndRefund.  When t = 0 (the default), the
+   new credential balance equals m, which is the original balance minus
+   the full spend amount.  When t > 0, the client receives t credits
+   back, resulting in a higher balance on the new credential.
 
    The client then uses this new credential instance for subsequent
    spend operations.
@@ -809,11 +833,11 @@ struct {
 10.2.  Double-Spend Prevention
 
    Section 2.2.2 of [AUTHSCHEME] specifies double spending requirements
-   that Origin MUST follow.
+   that Origin SHOULD follow.
 
    For ACT, the double-spend prevention mechanism relies on Origins
    maintaining state to track nullifiers.  As described in Section 9.2,
-   Origins MUST check that a nullifier has not been previously seen
+   Origins SHOULD check that a nullifier has not been previously seen
    before accepting a spend proof.  This check is critical for
    preventing credential reuse attacks.
 
@@ -922,107 +946,9 @@ struct {
 
    *  Notes: None
 
-   *  Value: 0xE5AE
+12.  References
 
-   *  Name: ACT (P-256)
-
-   *  Token Structure: As defined in Section 2.2 of [AUTHSCHEME]
-
-   *  Token Key Encoding: Serialized as described in Section 6
-
-   *  TokenChallenge Structure: As defined in Section 2.1 of
-      [AUTHSCHEME]
-
-   *  Public Verifiability: N
-
-   *  Public Metadata: N
-
-   *  Private Metadata: N
-
-   *  Nk: 0 (not applicable)
-
-   *  Nid: 32
-
-   *  Reference: This document
-
-   *  Notes: None
-
-   *  Value: 0xE5AF
-
-   *  Name: ACT (secp256k1)
-
-   *  Token Structure: As defined in Section 2.2 of [AUTHSCHEME]
-
-   *  Token Key Encoding: Serialized as described in Section 6
-
-   *  TokenChallenge Structure: As defined in Section 2.1 of
-      [AUTHSCHEME]
-
-   *  Public Verifiability: N
-
-   *  Public Metadata: N
-
-   *  Private Metadata: N
-
-   *  Nk: 0 (not applicable)
-
-   *  Nid: 32
-
-   *  Reference: This document
-
-   *  Notes: None
-
-   *  Value: 0xE5B0
-
-   *  Name: ACT (P-384)
-
-   *  Token Structure: As defined in Section 2.2 of [AUTHSCHEME]
-
-   *  Token Key Encoding: Serialized as described in Section 6
-
-   *  TokenChallenge Structure: As defined in Section 2.1 of
-      [AUTHSCHEME]
-
-   *  Public Verifiability: N
-
-   *  Public Metadata: N
-
-   *  Private Metadata: N
-
-   *  Nk: 0 (not applicable)
-
-   *  Nid: 32
-
-   *  Reference: This document
-
-   *  Notes: None
-
-   *  Value: 0xE5B1
-
-   *  Name: ACT (P-521)
-
-   *  Token Structure: As defined in Section 2.2 of [AUTHSCHEME]
-
-   *  Token Key Encoding: Serialized as described in Section 6
-
-   *  TokenChallenge Structure: As defined in Section 2.1 of
-      [AUTHSCHEME]
-
-   *  Public Verifiability: N
-
-   *  Public Metadata: N
-
-   *  Private Metadata: N
-
-   *  Nk: 0 (not applicable)
-
-   *  Nid: 32
-
-   *  Reference: This document
-
-   *  Notes: None
-
-12.  Normative References
+12.1.  Normative References
 
    [ACT]      Schlesinger, S. and J. Katz, "Anonymous Credit Tokens",
               Work in Progress, Internet-Draft, draft-schlesinger-cfrg-
@@ -1030,22 +956,23 @@ struct {
               <https://datatracker.ietf.org/doc/html/draft-schlesinger-
               cfrg-act-01>.
 
-   [ARC]      Yun, C. and C. A. Wood, "Privacy Pass Issuance Protocol
-              for Anonymous Rate-Limited Credentials", Work in Progress,
-              Internet-Draft, draft-yun-privacypass-arc-02, 20 October
-              2025, <https://datatracker.ietf.org/doc/html/draft-yun-
-              privacypass-arc-02>.
+   [ARC]      Yun, C., Wood, C. A., and A. F. Faz-Hernandez, "Privacy
+              Pass Issuance Protocol for Anonymous Rate-Limited
+              Credentials", Work in Progress, Internet-Draft, draft-
+              ietf-privacypass-arc-protocol-01, 2 March 2026,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-
+              privacypass-arc-protocol-01>.
 
    [ARCHITECTURE]
               Davidson, A., Iyengar, J., and C. A. Wood, "The Privacy
               Pass Architecture", RFC 9576, DOI 10.17487/RFC9576, June
               2024, <https://www.rfc-editor.org/rfc/rfc9576>.
 
-   [ARC_PP]   Yun, C. and C. A. Wood, "Anonymous Rate-Limited
-              Credentials", Work in Progress, Internet-Draft, draft-yun-
-              cfrg-arc-01, 6 August 2025,
-              <https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-
-              01>.
+   [ARC_PP]   Yun, C., Wood, C. A., and A. F. Faz-Hernandez, "Anonymous
+              Rate-Limited Credentials Cryptography", Work in Progress,
+              Internet-Draft, draft-ietf-privacypass-arc-crypto-01, 2
+              March 2026, <https://datatracker.ietf.org/doc/html/draft-
+              ietf-privacypass-arc-crypto-01>.
 
    [AUTHSCHEME]
               Pauly, T., Valdez, S., and C. A. Wood, "The Privacy Pass
@@ -1070,6 +997,15 @@ struct {
    [TLS13]    Rescorla, E., "The Transport Layer Security (TLS) Protocol
               Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018,
               <https://www.rfc-editor.org/rfc/rfc8446>.
+
+12.2.  Informative References
+
+   [REVERSE-FLOW]
+              Meunier, T., "Privacy Pass Reverse Flow", Work in
+              Progress, Internet-Draft, draft-meunier-privacypass-
+              reverse-flow-06, 6 July 2026,
+              <https://datatracker.ietf.org/doc/html/draft-meunier-
+              privacypass-reverse-flow-06>.
 
 Acknowledgments
 

@@ -11,21 +11,22 @@
        This document specifies the issuance and redemption protocols for
 tokens based on the Anonymous Credit Tokens (ACT) protocol. 
     " name="description">
-<meta content="xml2rfc 3.31.0" name="generator">
+<meta content="xml2rfc 3.34.0" name="generator">
 <meta content="draft-schlesinger-privacypass-act-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.31.0
-    Python 3.12.12
-    ConfigArgParse 1.7
+  xml2rfc 3.34.0
+    Python 3.14.5
+    ConfigArgParse 1.7.5
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
-    lxml 6.0.2
-    platformdirs 4.5.1
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.10.0
     pycountry 24.6.1
     PyYAML 6.0.3
-    requests 2.32.5
-    wcwidth 0.3.0
+    requests 2.33.1
+    wcwidth 0.8.2
 -->
 <link href="draft-schlesinger-privacypass-act.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -292,16 +293,19 @@ h1, h2, h3, h4, h5, h6 {
   font-size-adjust: 0.5;
   color: var(--title-color);
 }
-h1#title {
-  font-size: 32px;
-  line-height: 40px;
-  clear: both;
-}
-h1#title, h1#rfcnum {
-  margin: 1.5em 0 0.2em;
-}
-h1#rfcnum + h1#title {
-  margin: 0.2em 0;
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
 }
 
 h1, h2, h3 {
@@ -321,10 +325,10 @@ h4, h5, h6 {
 #abstract+p {
   font-size: 18px;
   line-height: 24px;
-}
-#abstract+p code, #abstract+p samp, #abstract+p tt {
-  font-size: 16px;
-  line-height: 0;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
 }
 
 p {
@@ -335,59 +339,59 @@ p {
 div {
   margin: 0;
 }
-.alignRight.art-text {
-  background-color: var(--highlight-color);
-  border: 1px solid var(--line-color);
-  border-radius: 3px;
-  padding: 0.5em 1em 0;
-  margin-bottom: 0.5em;
-}
-.alignRight.art-text pre {
-  padding: 0;
-  width: auto;
-}
 .alignRight {
   margin: 1em 0;
-}
-.alignRight > *:first-child {
-  border: none;
-  margin: 0;
-  float: right;
-  clear: both;
-}
-.alignRight > *:nth-child(2) {
-  clear: both;
-  display: block;
-  border: none;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
 }
 svg {
   display: block;
-}
-/* font-family isn't space-separated, but =~ will have to do */
-svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
-  font-family: var(--font-mono);
-}
-.alignCenter.art-text {
-  background-color: var(--highlight-color);
-  border: 1px solid var(--line-color);
-  border-radius: 3px;
-  padding: 0.5em 1em 0;
-  margin-bottom: 0.5em;
-}
-.alignCenter.art-text pre {
-  padding: 0;
-  width: auto;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
 }
 .alignCenter {
   margin: 1em 0;
-}
-.alignCenter > *:first-child {
-  border: none;
-  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
-     support flexbox yet.
-  */
-  display: table;
-  margin: 0 auto;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
 }
 
 /* lists */
@@ -425,26 +429,25 @@ dl {
     --indent: 5ch;
     & > dt {
       min-width: calc(var(--indent) - 2ch);
+      float: none;
     }
-  }
-  &.olPercent > dt {
-    float: none;
   }
 
   dl > dd > & {
     margin-top: 0.5em;
     margin-bottom: 0;
   }
-}
-dl:not(.dlNewline) > dt {
-  float: left;
-  margin-right: 2ch;
-  min-width: 8ch;
-}
-dl > dd {
-  margin-bottom: .8em;
-  margin-left: var(--indent) !important; /* stupid element overrides */
-  min-height: 2ex;
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
 }
 :is(dl.compact, .dlCompact) > dd {
   margin-bottom: 0;
@@ -460,20 +463,22 @@ dl > dd {
 }
 
 /* links */
-a, a[href].selfRef:hover {
+a {
   text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
 }
-a[href] {
-  color: var(--link-color);
-}
-a[href].selfRef, .iref + a[href].internal {
+.iref + a[href].internal {
   color: var(--text-color);
-}
-a[href]:hover {
-  text-decoration: underline;
-}
-a[href].selfRef:hover {
-  background-color: var(--highlight-color);
 }
 a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
   white-space: nowrap;
@@ -509,9 +514,9 @@ img {
 figure {
   margin: 0.5em 0;
   padding: 0;
-}
-figure blockquote {
-  margin: 0.8em 0.4em 0.4em;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
 }
 figcaption, caption {
   font-style: italic;
@@ -521,17 +526,19 @@ figcaption, caption {
 }
 @media screen {
   /* Auto-collapse boilerplate. */
-  :is(#status-of-memo, #copyright) p {
-    margin: -2px 0;
-    max-height: 0;
-    transition: max-height 2s ease, margin 0.5s ease 0.5s;
-    overflow: hidden;
-  }
-  :is(#status-of-memo, #copyright):hover p,
-  :is(#status-of-memo, #copyright) h2:target ~ p {
-    margin: 0.5em 0;
-    max-height: 500px;
-    overflow: auto;
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
   }
   pre, svg {
     display: inline-block;
@@ -581,25 +588,17 @@ table {
   max-width: 100%;
   margin: 0 0 1em;
   border-collapse: collapse;
-}
-table.right {
-  margin-left: auto;
-}
-table.center {
-  margin-left: auto;
-  margin-right: auto;
-}
-table.left {
-  margin-right: auto;
-}
-table .text-left {
-  text-align: left;
-}
-table .text-center {
-  text-align: center;
-}
-table .text-right {
-  text-align: right;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
 }
 
 thead, tbody {
@@ -619,13 +618,6 @@ th {
 :is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
   background-color: var(--highlight-color);
 }
-table caption {
-  margin: 0;
-  padding: 3px 0 3px 1em;
-}
-table p {
-  margin: 0;
-}
 
 /* pilcrow */
 a.pilcrow {
@@ -636,18 +628,16 @@ a.pilcrow {
     color: var(--pilcrow-weak);
     &:hover { text-decoration: none; }
   }
-}
-@media not print {
-  :hover > a.pilcrow, a.pilcrow:focus {
-    opacity: 1;
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
   }
-  a.pilcrow[href]:hover {
-    color: var(--pilcrow-strong);
-    background-color: transparent;
-  }
-}
-@media print {
-  a.pilcrow {
+  @media print {
     display: none;
   }
 }
@@ -706,9 +696,9 @@ sub, sup {
   font-size: 0.9em;
   font-style: italic;
   margin-top: 2em;
-}
-.docInfo .prepared {
-  float: right;
+  & .prepared {
+    float: right;
+  }
 }
 
 /* table of contents */
@@ -798,23 +788,27 @@ hr.addr {
   max-width: calc(100% - 16px);
 }
 @media (min-width: 500px) {
-  #authors-addresses > section {
-    column-count: 2;
-    column-gap: 20px;
-  }
-  #authors-addresses > section > h2 {
-    column-span: all;
-  }
-  /* hack for break-inside: avoid-column */
-  #authors-addresses address {
-    display: inline-block;
-    break-inside: avoid-column;
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
   }
 }
 
 /* Comments */
-.rfcEditorRemove p:first-of-type {
-  font-style: italic;
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
 }
 .cref {
   background-color: rgba(249, 232, 105, 0.3);
@@ -825,19 +819,21 @@ hr.addr {
 }
 
 @media screen {
-  #toc nav {
-    font-family: var(--font-title);
-    font-weight: 360;
-    & > ul { margin-bottom: 2em; }
-    & ul {
-      margin: 0 0 0 4px;
-      & :is(p, li) {
-        margin: 2px 0;
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
       }
     }
-  }
-  #toc a.toplink {
-    float: right;
+    & a.toplink {
+      float: right;
+    }
   }
 }
 @media not screen {
@@ -858,54 +854,54 @@ hr.addr {
     margin: 0;
     border-bottom: 1px solid #ccc;
     opacity: 0.6;
-  }
-  #toc h2 {
-    margin: 0;
-    padding: 2px 0 2px 6px;
-    padding-right: 1em;
-    font-size: 18px;
-    line-height: 24px;
-    min-width: 190px;
-    text-align: right;
-    background-color: #444;
-    color: white;
-    cursor: pointer;
-    &::before { /* css hamburger */
-      float: right;
-      position: relative;
-      width: 1em;
-      height: 1px;
-      left: -164px;
-      margin: 8px 0 0 0;
-      background: white none repeat scroll 0 0;
-      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
-      content: "";
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
     }
-  }
-  #toc nav {
-    display: none;
-    background-color: var(--background-color);
-    padding: 0.5em 1em 1em;
-    overflow: auto;
-    overscroll-behavior: contain;
-    height: calc(100vh - 48px);
-    border-left: 1px solid #ddd;
-  }
-  #toc.active {
-    opacity: 1;
-    & nav { display: block; }
-  }
-  /* Make the collapsed ToC header render white on gray also when it's a link */
-  #toc h2 a,
-  #toc h2 a:is(:link, :focus, :hover),
-  #toc a.toplink,
-  #toc a.toplink:hover {
-    color: white;
-    background-color: #444;
-    text-decoration: none;
-  }
-  #toc a.toplink {
-    margin: 2px 0.5em 0;
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
   }
 }
 
@@ -924,26 +920,26 @@ hr.addr {
     margin: 0;
     padding: 0;
     z-index: 1;
-  }
-  #toc h2 {
-    margin: 0;
-    padding: 0.25em 1em 1em 0;
-  }
-  #toc nav {
-    display: block;
-    height: calc(90vh - 84px);
-    bottom: 0;
-    padding: 0.5em 0 2em;
-    overflow: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
   }
   img { /* future proofing */
     max-width: 100%;
     height: auto;
-  }
-  #toc a.toplink {
-    margin: 8px 0.5em 0;
   }
 }
 
@@ -959,12 +955,13 @@ hr.addr {
   #n-copyright-notice {
     border-bottom: none;
   }
-  #toc, #n-introduction {
-    page-break-before: always;
-  }
   #toc {
+    page-break-before: always;
     border-top: none;
     padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
   }
   figure, pre, .vcard {
     page-break-inside: avoid;
@@ -1026,17 +1023,19 @@ hr.addr {
 }
 
 /* SVG Trick: a prefix match works because only black and white are allowed */
-svg :is([stroke="black"], [stroke^="#000"]) {
-  stroke: var(--text-color);
-}
-svg :is([stroke="white"], [stroke^="#fff"]) {
-  stroke: var(--background-color);
-}
-svg :is([fill="black"], [fill^="#000"], :not([fill])) {
-  fill: var(--text-color);
-}
-svg :is([fill="white"], [fill^="#fff"]) {
-  fill: var(--background-color);
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
 }
 </style>
 
@@ -1046,11 +1045,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">Privacy Pass Issuance Protocol for ACT</td>
-<td class="right">February 2026</td>
+<td class="right">July 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger &amp; Meunier</td>
-<td class="center">Expires 26 August 2026</td>
+<td class="center">Expires 12 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1063,12 +1062,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-schlesinger-privacypass-act-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-02-22" class="published">22 February 2026</time>
+<time datetime="2026-07-11" class="published">11 July 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-08-26">26 August 2026</time></dd>
+<dd class="expires"><time datetime="2027-01-12">12 January 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1123,7 +1122,7 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.<a href="#section-abs
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 26 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 12 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1193,10 +1192,7 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.<a href="#section-abs
             <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-configuration" class="internal xref">Configuration</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
-                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-ciphersuites" class="internal xref">Ciphersuites</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
-                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-request-context-extension" class="internal xref">Request Context Extension</a></p>
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-request-context" class="internal xref">Request Context</a></p>
 </li>
             </ul>
 </li>
@@ -1255,7 +1251,15 @@ tokens based on the Anonymous Credit Tokens (ACT) protocol.<a href="#section-abs
             <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
-            <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+            <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.1">
+                <p id="section-toc.1-1.12.2.1.1"><a href="#section-12.1" class="auto internal xref">12.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.2">
+                <p id="section-toc.1-1.12.2.2.1"><a href="#section-12.2" class="auto internal xref">12.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
             <p id="section-toc.1-1.13.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
@@ -1294,29 +1298,22 @@ of the protocols, and the remainder of the document specifies the protocols them
 <a href="#section-2" class="section-number selfRef">2. </a><a href="#name-motivation" class="section-name selfRef">Motivation</a>
       </h2>
 <p id="section-2-1">To demonstrate how ACT is useful, one can use a similar example to
-the one presented in <span><a href="https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-01#section-2" class="relref">Section 2</a> of [<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>: a client that wishes to keep its
-IP address private while accessing a service. <span>[<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span> offers the origin to
-limit the number of requests a client can make to N. This is enforced by each
-origin getting its own presentation context, and limiting the number of
-presentations per context to N. This means that, from a single credential, a
-client can produce N presentations and access the system N times, unlinkably.
-These presentations can be generated in parallel.<a href="#section-2-1" class="pilcrow">¶</a></p>
-<p id="section-2-2">ACT takes a different approach. Consider a credential initially holding N
-credits. A client redeeming all N credits individually has to spend <code>1</code>,
-receive a refunded credential with N-1 credits, spend <code>1</code> from that
-credential, receive a refunded credential with N-2 credits, and so on.
-Because the client cannot spend from a credential until they receive the
-refunded credential from their previous spend, a single live session is
-enforced per initial credential. This provides concurrency control. A client
-is also able to spend more than <code>1</code> credit at once, allowing for more
-efficient redemption of multiple credits. Finally, as each new presentation
-requires obtaining a refunded credential from the previous spend, the origin
-gains the ability to invalidate a session by declining to issue a refunded
-credential. This creates the ability to shed harmful future traffic or
-redirect it in a favorable way.<a href="#section-2-2" class="pilcrow">¶</a></p>
-<p id="section-2-3">Example use cases include privacy proxies, privately accessing web APIs such
-as artificial intelligence models, and zero trust networks that act as forward
-proxies for their user traffic.<a href="#section-2-3" class="pilcrow">¶</a></p>
+the one presented in <span><a href="https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-arc-crypto-01#section-2" class="relref">Section 2</a> of [<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>: a client that wishes to keep its IP address private while accessing a service. <span>[<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span> allows the origin to limit the number of requests a client can make to N. This is enforced by each origin getting its own presentation context, and limiting the number of presentations per context to N. This means that, from a single credential, a client
+can produce N presentations to access the system N times,
+unlinkably. These presentations can be generated in parallel.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">On the other hand, consider a credential initially holding N credits. A client redeeming
+all N credits individually has to spend <code>1</code>, receive a refunded credential with N-1 credits,
+spend <code>1</code> from that credential, receive a refunded credential with N-2 credits, and so on.
+Because the client cannot spend from a credential until they receive the refunded credential
+from their previous spend, a single live session is enforced per initial credential.
+This provides concurrency control. A client is also able to spend more than <code>1</code> credit at once,
+allowing for more efficient redemption of multiple credits.
+Finally, as each new presentation requires obtaining a refunded credential from the previous spend,
+the origin gains the ability to invalidate a session by declining to issue a refunded credential.
+This creates the
+ability to shed harmful future traffic or redirect it in a favorable way.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-3">Use cases include privacy proxies, privately accessing web APIs such as AI
+models, and zero trust networks acting as forward proxies for user traffic.<a href="#section-2-3" class="pilcrow">¶</a></p>
 <p id="section-2-4">Therefore, ACT provides the following properties:<a href="#section-2-4" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-2-5">
 <li id="section-2-5.1">
@@ -1350,18 +1347,40 @@ used throughout this document.<a href="#section-3-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-3-3.1">
           <p id="section-3-3.1.1">Issuer Public Key: The public key (from a private-public key pair) used by
-the Issuer for issuing and verifying Tokens.<a href="#section-3-3.1.1" class="pilcrow">¶</a></p>
+the Issuer for issuing and verifying Tokens. See <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> for details.<a href="#section-3-3.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-3-3.2">
           <p id="section-3-3.2.1">Issuer Private Key: The private key (from a private-public key pair) used by
-the Issuer for issuing and verifying Tokens.<a href="#section-3-3.2.1" class="pilcrow">¶</a></p>
+the Issuer for issuing and verifying Tokens. See <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> for details.<a href="#section-3-3.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-3-4">The following terms are used as defined in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>: Credit, Token, Nullifier,
-Scalar, Element, and Domain Separator.<a href="#section-3-4" class="pilcrow">¶</a></p>
-<p id="section-3-5">Unless otherwise specified, this document encodes protocol messages in TLS
+<p id="section-3-4">Unless otherwise specified, this document encodes protocol messages in TLS
 notation from <span><a href="https://rfc-editor.org/rfc/rfc8446#section-3" class="relref">Section 3</a> of [<a href="#TLS13" class="cite xref">TLS13</a>]</span>. Moreover, all constants are in
-network byte order.<a href="#section-3-5" class="pilcrow">¶</a></p>
+network byte order.<a href="#section-3-4" class="pilcrow">¶</a></p>
+<p id="section-3-5">The following constants are used throughout this document:<a href="#section-3-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3-6.1">
+          <p id="section-3-6.1.1"><code>Nid</code>: The size of the Issuer Public Key ID in bytes. Nid = 32.<a href="#section-3-6.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-6.2">
+          <p id="section-3-6.2.1"><code>Ne</code>: The size of a serialized group element in bytes. Ne = 32.<a href="#section-3-6.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-6.3">
+          <p id="section-3-6.3.1"><code>Ns</code>: The size of a serialized scalar in bytes. Ns = 32.<a href="#section-3-6.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-3-7">The <code>concat(a, b, ...)</code> function denotes length-prefixed concatenation,
+where each input is prefixed with a 2-byte big-endian length. This ensures
+unambiguous parsing of the concatenated result.<a href="#section-3-7" class="pilcrow">¶</a></p>
+<p id="section-3-8">The <code>HashToScalar(msg)</code> function hashes a variable-length byte string <code>msg</code>
+to a Scalar using the suite's extendable-output function (SHAKE128 for the
+ristretto255 suite): squeeze 64 bytes of output from <code>SHAKE128(msg)</code> and
+reduce modulo the group order <code>q</code>. This matches the scalar derivation used
+by the <code>SeededPRNG</code> construction in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-3-8" class="pilcrow">¶</a></p>
+<p id="section-3-9">Note: This document uses the term "credential" to refer to what the ACT
+specification <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> calls a "token" (the cryptographic object containing a
+BBS signature and associated data). The term "Token" in this document refers
+to the Privacy Pass Token structure presented to Origins.<a href="#section-3-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="overview">
@@ -1550,8 +1569,8 @@ This enforces a strict serialization of operations per credential chain.<a href=
                 <text x="132" y="244">(New</text>
                 <text x="196" y="244">credential</text>
                 <text x="260" y="244">with</text>
-                <text x="308" y="244">N-cost</text>
-                <text x="372" y="244">credits)</text>
+                <text x="312" y="244">`N-c+t`</text>
+                <text x="380" y="244">credits)</text>
               </g>
             </svg><a href="#section-5.2-2.1" class="pilcrow">¶</a>
 </div>
@@ -1569,9 +1588,10 @@ blocked waiting for a refund response.<a href="#section-5.2-4.2.1" class="pilcro
 </li>
           <li class="normal" id="section-5.2-4.3">
             <p id="section-5.2-4.3.1"><strong>Refunded</strong>: Client has received a valid refund and constructed a new credential
-with the remaining balance. If the new balance is greater than 0, the client
-returns to the Initial state with the new credential. If the balance is 0, the
-credential is exhausted.<a href="#section-5.2-4.3.1" class="pilcrow">¶</a></p>
+with balance <code>m + t</code>, where <code>m = N - c</code> is the remaining balance after spending
+<code>c</code> credits, and <code>t</code> is the partial return amount from the Origin (<code>0 &lt;= t &lt;= c</code>). If the
+new balance is greater than 0, the client returns to the Initial state with the
+new credential. If the balance is 0, the credential is exhausted.<a href="#section-5.2-4.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-5.2-5">The transition from Spent to Refunded may fail if the origin does not provide a
@@ -1675,104 +1695,55 @@ verification. Concretely, Issuers run the <code>KeyGen</code> function from <spa
 to produce a private and public key, denoted skI and pkI, respectively.<a href="#section-6-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-6-2">
 <pre>
-skI, pkI = KeyGen()
+skI, pkI = KeyGen(G, rng)
 </pre><a href="#section-6-2" class="pilcrow">¶</a>
 </div>
-<p id="section-6-3">The Issuer Public Key ID, denoted <code>issuer_key_id</code>, is computed as the
+<p id="section-6-3">where <code>G</code> is the Group and <code>rng</code> is the PRNG as defined in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6-3" class="pilcrow">¶</a></p>
+<p id="section-6-4">The Issuer Public Key ID, denoted <code>issuer_key_id</code>, is computed as the
 SHA-256 hash of the Issuer Public Key, i.e., <code>issuer_key_id = SHA-256(pkI_serialized)</code>,
-where <code>pkI_serialized</code> is the serialized version of <code>pkI</code> as described in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1" class="relref">Section 4.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6-3" class="pilcrow">¶</a></p>
-<p id="section-6-4">Protocol messages are encoded using CBOR as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4" class="relref">Section 4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6-4" class="pilcrow">¶</a></p>
-<div id="ciphersuites">
+where <code>pkI_serialized</code> is the serialized version of <code>pkI</code> using <code>SerializeElement</code>
+as described in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-6.1" class="relref">Section 6.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6-4" class="pilcrow">¶</a></p>
+<div id="request-context">
 <section id="section-6.1">
-        <h3 id="name-ciphersuites">
-<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-ciphersuites" class="section-name selfRef">Ciphersuites</a>
+        <h3 id="name-request-context">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-request-context" class="section-name selfRef">Request Context</a>
         </h3>
-<p id="section-6.1-1">This document defines five token types corresponding to the five ciphersuites
-specified in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>:<a href="#section-6.1-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-1">
-          <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
-<thead>
-            <tr>
-              <th class="text-left" rowspan="1" colspan="1">Token Type</th>
-              <th class="text-left" rowspan="1" colspan="1">Name</th>
-              <th class="text-left" rowspan="1" colspan="1">Ciphersuite</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">0xE5AD</td>
-              <td class="text-left" rowspan="1" colspan="1">ACT(Ristretto255)</td>
-              <td class="text-left" rowspan="1" colspan="1">ACT-Ristretto255-BLAKE3</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">0xE5AE</td>
-              <td class="text-left" rowspan="1" colspan="1">ACT(P-256)</td>
-              <td class="text-left" rowspan="1" colspan="1">ACT-P256-BLAKE3</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">0xE5AF</td>
-              <td class="text-left" rowspan="1" colspan="1">ACT(secp256k1)</td>
-              <td class="text-left" rowspan="1" colspan="1">ACT-secp256k1-BLAKE3</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">0xE5B0</td>
-              <td class="text-left" rowspan="1" colspan="1">ACT(P-384)</td>
-              <td class="text-left" rowspan="1" colspan="1">ACT-P384-BLAKE3</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">0xE5B1</td>
-              <td class="text-left" rowspan="1" colspan="1">ACT(P-521)</td>
-              <td class="text-left" rowspan="1" colspan="1">ACT-P521-BLAKE3</td>
-            </tr>
-          </tbody>
-        </table>
-<p id="section-6.1-3">All ciphersuites use SHA-256 for key identification, so Nid = 32 for all.
-The remaining size parameters (Nrequest, Nresponse, Nspend_proof, Nrefund) are
-determined by the ciphersuite's serialization format as described in
-<span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1" class="relref">Section 4.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="request-context-extension">
-<section id="section-6.2">
-        <h3 id="name-request-context-extension">
-<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-request-context-extension" class="section-name selfRef">Request Context Extension</a>
-        </h3>
-<p id="section-6.2-1">This Privacy Pass integration binds credentials to application-specific contexts
+<p id="section-6.1-1">This Privacy Pass integration binds credentials to application-specific contexts
 using a <code>request_context</code> parameter. This approach is inspired by the Anonymous
 Rate-Limited Credentials (ARC) protocol <span>[<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>, which threads a similar
-context parameter through its cryptographic operations for domain separation.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
-<p id="section-6.2-2">The CFRG ACT specification <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> includes <code>request_context</code> (ctx) as a
-parameter in its cryptographic functions. Specifically:<a href="#section-6.2-2" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-6.2-3">
-<li id="section-6.2-3.1">
-            <p id="section-6.2-3.1.1"><strong>IssueRequest</strong>: No changes needed - the client generates a blinded commitment
-without knowledge of the final context binding.<a href="#section-6.2-3.1.1" class="pilcrow">¶</a></p>
+context parameter through its cryptographic operations for domain separation.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.1-2">The ACT specification <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> includes <code>request_context</code> as a first-class parameter
+(<code>ctx</code>) in the following cryptographic functions:<a href="#section-6.1-2" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-6.1-3">
+<li id="section-6.1-3.1">
+            <p id="section-6.1-3.1.1"><strong>IssueRequest</strong>: No changes needed - the client generates a blinded commitment
+without knowledge of the final context binding.<a href="#section-6.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-6.2-3.2">
-            <p id="section-6.2-3.2.1"><strong>IssueResponse</strong>: Takes <code>request_context</code> as an input parameter alongside the
-credit amount <code>c</code>. The issuer determines the appropriate context based on its
-policy (e.g., derived from TokenChallenge fields) and binds the credential to
-this context via an additional generator H4. The context scalar is included in
-the BBS signature as <code>H4 * ctx</code>.<a href="#section-6.2-3.2.1" class="pilcrow">¶</a></p>
+          <li id="section-6.1-3.2">
+            <p id="section-6.1-3.2.1"><strong>IssueResponse</strong>: Takes <code>request_context</code> as the <code>ctx</code> input parameter alongside
+the credit amount <code>c</code>. The issuer determines the appropriate context based on its
+policy (e.g., derived from TokenChallenge fields), hashes it to a scalar using
+<code>HashToScalar</code>, and binds the credential to this context via the BBS signature.<a href="#section-6.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-6.2-3.3">
-            <p id="section-6.2-3.3.1"><strong>VerifyAndRefund</strong>: The <code>request_context</code> is included in the spend proof and
-used to verify that the proof is bound to the correct application context. The
-issuer reconstructs the context from the TokenChallenge and uses it during
-verification and refund issuance.<a href="#section-6.2-3.3.1" class="pilcrow">¶</a></p>
+          <li id="section-6.1-3.3">
+            <p id="section-6.1-3.3.1"><strong>VerifyAndRefund</strong>: The <code>request_context</code> is revealed in the clear as part of
+the <code>SpendProof</code> structure. The verifier extracts it from the spend proof and
+checks that it matches the expected application context reconstructed from the
+TokenChallenge.<a href="#section-6.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-6.2-3.4">
-            <p id="section-6.2-3.4.1"><strong>Credential Structure</strong>: The Anonymous Credit Token includes the context-bound
-component within the BBS signature via the H4 generator.<a href="#section-6.2-3.4.1" class="pilcrow">¶</a></p>
+          <li id="section-6.1-3.4">
+            <p id="section-6.1-3.4.1"><strong>Credential Structure</strong>: The Anonymous Credit Token structure includes the
+context-bound component (<code>ctx</code>) within the BBS signature.<a href="#section-6.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-6.2-4">The key insight is that <code>request_context</code> is determined by the issuer (like the
+<p id="section-6.1-4">The key insight is that <code>request_context</code> is determined by the issuer (like the
 credit amount), not by the client. The issuer sets the context during IssueResponse
-based on the TokenChallenge requirements, and both parties reconstruct it from
-TokenChallenge fields during spending.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
-<p id="section-6.2-5">For reference on how request context threading works in practice, see
-<span><a href="https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-01#section-3" class="relref">Section 3</a> of [<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>, which demonstrates the pattern of binding credentials
-to application-specific contexts through cryptographic commitments.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
+based on the TokenChallenge requirements. During spending, the context is revealed
+in the spend proof, allowing the verifier to confirm that the credential was bound
+to the correct application context.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
+<p id="section-6.1-5">For reference on how request context threading works in practice, see
+<span><a href="https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-arc-crypto-01#section-3" class="relref">Section 3</a> of [<a href="#ARC_PP" class="cite xref">ARC_PP</a>]</span>, which demonstrates the pattern of binding credentials
+to application-specific contexts through cryptographic commitments.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1788,7 +1759,7 @@ structure is as follows:<a href="#section-7-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-7-2">
 <pre>
 struct {
-    uint16_t token_type; /* 0xE5AD, 0xE5AE, 0xE5AF, 0xE5B0, or 0xE5B1 */
+    uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
     opaque issuer_name&lt;1..2^16-1&gt;;
     opaque redemption_context&lt;0..32&gt;;
     opaque origin_info&lt;0..2^16-1&gt;;
@@ -1796,8 +1767,8 @@ struct {
 } TokenChallenge;
 </pre><a href="#section-7-2" class="pilcrow">¶</a>
 </div>
-<p id="section-7-3">Note: The token type values 0xE5AD, 0xE5AE, 0xE5AF, 0xE5B0, and 0xE5B1 are
-provisional pending IANA assignment.<a href="#section-7-3" class="pilcrow">¶</a></p>
+<p id="section-7-3">TODO: The token type value 0xE5AD is a placeholder and <span class="bcp14">MUST</span> be coordinated
+with IANA registry assignments before publication.<a href="#section-7-3" class="pilcrow">¶</a></p>
 <p id="section-7-4">With the exception of <code>credential_context</code>, all fields are exactly as specified
 in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.1.1" class="relref">Section 2.1.1</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span>. The <code>credential_context</code> field is defined as
 follows:<a href="#section-7-4" class="pilcrow">¶</a></p>
@@ -1816,21 +1787,37 @@ expiration on the credential. Origins might do this by constructing <code>creden
 as F(current time window), where F is a pseudorandom function. Semantically, this is
 equivalent to the Origin asking the Client for a token from a credential that is
 bound to "current time window."<a href="#section-7-6" class="pilcrow">¶</a></p>
-<p id="section-7-7">Origins <span class="bcp14">SHOULD</span> construct <code>credential_context</code> using time-based epochs (e.g.,
-<code>F(current time window)</code> where F is a pseudorandom function) to enforce
-credential expiration, or per-application binding values to isolate credential
-usage across different services. The <code>redemption_context</code> <span class="bcp14">SHOULD</span> be set to a
-fresh random value for each TokenChallenge to ensure token freshness, or left
-empty when freshness is not required.<a href="#section-7-7" class="pilcrow">¶</a></p>
-<p id="section-7-8">In addition to this updated TokenChallenge, the HTTP authentication challenge
-also <span class="bcp14">SHOULD</span> contain the following additional attribute:<a href="#section-7-8" class="pilcrow">¶</a></p>
+<p id="section-7-7">When constructing <code>credential_context</code>, Origins <span class="bcp14">SHOULD</span> consider the following
+guidance:<a href="#section-7-7" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7-9.1">
-          <p id="section-7-9.1.1">"cost", which contains a JSON number indicating the amount of credits to
-spend out of the ACT credential.<a href="#section-7-9.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-7-8.1">
+          <p id="section-7-8.1.1"><strong>Session binding</strong>: Use a unique session identifier to bind credentials
+to a specific session.<a href="#section-7-8.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-7-8.2">
+          <p id="section-7-8.2.1"><strong>Time-bounded access</strong>: Use <code>F(current_time_window)</code> where <code>F</code> is a
+pseudorandom function, to enforce periodic credential renewal.<a href="#section-7-8.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-7-8.3">
+          <p id="section-7-8.3.1"><strong>Service differentiation</strong>: Include a service identifier to prevent
+cross-service credential reuse.<a href="#section-7-8.3.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-7-10">Implementation-specific steps: the client should store the Origin-provided input <code>tokenChallenge</code> so that when they receive a new <code>tokenChallenge</code> value, they can check if it has changed and which fields are different. This will inform the client's behavior - for example, if <code>credential_context</code> is being used to enforce an expiration on the credential, then if the <code>credential_context</code> has changed, this can prompt the client to request a new credential.<a href="#section-7-10" class="pilcrow">¶</a></p>
+<p id="section-7-9">The <code>redemption_context</code> <span class="bcp14">SHOULD</span> be a fresh random value for each challenge
+when per-request uniqueness is desired, or a deterministic value derived
+from session state when correlation within a session is acceptable.<a href="#section-7-9" class="pilcrow">¶</a></p>
+<p id="section-7-10">In addition to this updated TokenChallenge, the HTTP authentication challenge
+also <span class="bcp14">SHOULD</span> contain the following additional attribute:<a href="#section-7-10" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-7-11.1">
+          <p id="section-7-11.1.1">"cost", which contains a JSON number indicating the amount of credits to
+spend out of the ACT credential.<a href="#section-7-11.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-7-12">Clients <span class="bcp14">SHOULD</span> store the Origin-provided <code>tokenChallenge</code> and compare it
+against subsequent challenges to detect changes. If the <code>credential_context</code>
+has changed (e.g., due to time window expiration), the client <span class="bcp14">SHOULD</span> request
+a new credential through the issuance protocol.<a href="#section-7-12" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="credential-issuance-protocol">
@@ -1873,25 +1860,23 @@ the Client first creates a credential request message using the <code>IssueReque
 function from <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> as follows:<a href="#section-8.1-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.1-2">
 <pre>
-(clientSecrets, request) = IssueRequest()
+(request, state) = IssueRequest(rng)
 </pre><a href="#section-8.1-2" class="pilcrow">¶</a>
 </div>
 <p id="section-8.1-3">The Client then creates a TokenRequest structure as follows:<a href="#section-8.1-3" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.1-4">
 <pre>
 struct {
-  uint16_t token_type; /* 0xE5AD, 0xE5AE, 0xE5AF, 0xE5B0, or 0xE5B1 */
+  uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
   uint8_t truncated_issuer_key_id;
-  uint8_t encoded_request[Nrequest];
+  opaque encoded_request&lt;1..2^16-1&gt;;
 } TokenRequest;
 </pre><a href="#section-8.1-4" class="pilcrow">¶</a>
 </div>
 <p id="section-8.1-5">The structure fields are defined as follows:<a href="#section-8.1-5" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.1-6.1">
-            <p id="section-8.1-6.1.1">"token_type" is a 2-octet integer, set to 0xE5AD for ACT(Ristretto255),
-0xE5AE for ACT(P-256), 0xE5AF for ACT(secp256k1), 0xE5B0 for ACT(P-384),
-or 0xE5B1 for ACT(P-521).<a href="#section-8.1-6.1.1" class="pilcrow">¶</a></p>
+            <p id="section-8.1-6.1.1">"token_type" is a 2-octet integer.<a href="#section-8.1-6.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-6.2">
             <p id="section-8.1-6.2.1">"truncated_issuer_key_id" is the least significant byte of the <code>issuer_key_id</code>
@@ -1901,7 +1886,7 @@ bits of <code>issuer_key_id</code>). This value is truncated so that Issuers can
 and referenced information for more details.<a href="#section-8.1-6.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-6.3">
-            <p id="section-8.1-6.3.1">"encoded_request" is the Nrequest-octet request, computed as the serialization
+            <p id="section-8.1-6.3.1">"encoded_request" is a variable-length field containing the serialization
 of the <code>request</code> value as defined in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.1" class="relref">Section 4.1.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-8.1-6.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -1930,8 +1915,7 @@ Content-Length: &lt;Length of TokenRequest&gt;
 <p id="section-8.2-1">Upon receipt of the request, the Issuer validates the following conditions:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.2-2.1">
-            <p id="section-8.2-2.1.1">The TokenRequest contains a supported token_type (one of 0xE5AD, 0xE5AE,
-0xE5AF, 0xE5B0, or 0xE5B1).<a href="#section-8.2-2.1.1" class="pilcrow">¶</a></p>
+            <p id="section-8.2-2.1.1">The TokenRequest contains a supported token_type equal to value 0xE5AD.<a href="#section-8.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.2-2.2">
             <p id="section-8.2-2.2.1">The TokenRequest.truncated_token_key_id corresponds to the truncated key ID
@@ -1939,7 +1923,7 @@ of an Issuer Public Key, with corresponding secret key <code>skI</code>, owned b
 the Issuer.<a href="#section-8.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.2-2.3">
-            <p id="section-8.2-2.3.1">The TokenRequest.encoded_request is of the correct size (<code>Nrequest</code>).<a href="#section-8.2-2.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.2-2.3.1">The TokenRequest.encoded_request is well-formed and of a valid size.<a href="#section-8.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.2-3">If any of these conditions is not met, the Issuer <span class="bcp14">MUST</span> return an HTTP 422
@@ -1948,32 +1932,33 @@ the Issuer.<a href="#section-8.2-2.2.1" class="pilcrow">¶</a></p>
 TokenRequest.encoded_request according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.1" class="relref">Section 4.1.1</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>, yielding <code>request</code>.
 If this fails, the Issuer <span class="bcp14">MUST</span> return an HTTP 422 (Unprocessable Content)
 error to the client. Otherwise, if the Issuer is willing to produce a credential
-for the Client, the Issuer determines both the number of initial credits and the
-request_context based on its policy (e.g., based on attestation results, payment
-verification, or TokenChallenge requirements). The request_context binds the
-credential to the specific application context:<a href="#section-8.2-4" class="pilcrow">¶</a></p>
+for the Client, the Issuer determines the number of initial credits based on its
+policy (e.g., based on attestation results, payment verification, or
+TokenChallenge requirements). The request_context is derived from the
+TokenChallenge fields and hashed to a scalar for the <code>ctx</code> parameter:<a href="#section-8.2-4" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.2-5">
 <pre>
-request_context = concat(tokenChallenge.issuer_name,
+context_input = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
-response = IssueResponse(skI, request, initial_credits, request_context)
+request_context = HashToScalar(context_input)
+response = IssueResponse(skI, request, initial_credits, request_context, rng)
 </pre><a href="#section-8.2-5" class="pilcrow">¶</a>
 </div>
 <p id="section-8.2-6">The Issuer then creates a TokenResponse structured as follows:<a href="#section-8.2-6" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.2-7">
 <pre>
 struct {
-   uint8_t encoded_response[Nresponse];
+   opaque encoded_response&lt;1..2^16-1&gt;;
 } TokenResponse;
 </pre><a href="#section-8.2-7" class="pilcrow">¶</a>
 </div>
 <p id="section-8.2-8">The structure fields are defined as follows:<a href="#section-8.2-8" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.2-9.1">
-            <p id="section-8.2-9.1.1">"encoded_response" is the Nresponse-octet encoded issuance response message, computed
-as the serialization of <code>response</code> as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.2" class="relref">Section 4.1.2</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-8.2-9.1.1" class="pilcrow">¶</a></p>
+            <p id="section-8.2-9.1.1">"encoded_response" is a variable-length field containing the serialization
+of <code>response</code> as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.2" class="relref">Section 4.1.2</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>.<a href="#section-8.2-9.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.2-10">The Issuer generates an HTTP response with status code 200 whose content
@@ -2001,7 +1986,7 @@ yielding <code>response</code>. If deserialization fails, the Client aborts the 
 Otherwise, the Client processes the response as follows:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-8.3-2">
 <pre>
-credential = VerifyIssuance(pkI, request, response, clientSecrets)
+credential = VerifyIssuance(pkI, response, request_context, state)
 </pre><a href="#section-8.3-2" class="pilcrow">¶</a>
 </div>
 <p id="section-8.3-3">The Client then saves the credential structure, associated with the given Issuer
@@ -2032,7 +2017,7 @@ for the Issuer identifier in the challenge, denoted <code>credential</code>, con
 least <code>cost</code> credits, Clients compute a spend request as follows:<a href="#section-9.1-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-9.1-2">
 <pre>
-spend_proof, state = ProveSpend(credential, cost)
+spend_proof, state = ProveSpend(credential, cost, rng)
 </pre><a href="#section-9.1-2" class="pilcrow">¶</a>
 </div>
 <p id="section-9.1-3">Each credential instance <span class="bcp14">MUST</span> only ever be used for a single spend request. When the client
@@ -2043,19 +2028,17 @@ assumptions of ACT are violated by presenting the same nullifier twice.<a href="
 <div class="alignLeft art-text artwork" id="section-9.1-5">
 <pre>
 struct {
-    uint16_t token_type; /* 0xE5AD, 0xE5AE, 0xE5AF, 0xE5B0, or 0xE5B1 */
+    uint16_t token_type = 0xE5AD; /* Type ACT(Ristretto255) */
     uint8_t challenge_digest[32];
-    uint8_t issuer_key_id[Nid];
-    uint8_t encoded_spend_proof[Nspend_proof];
+    uint8_t issuer_key_id[Nid];    /* Nid = 32 bytes */
+    opaque encoded_spend_proof&lt;1..2^16-1&gt;;
 } Token;
 </pre><a href="#section-9.1-5" class="pilcrow">¶</a>
 </div>
 <p id="section-9.1-6">The structure fields are defined as follows:<a href="#section-9.1-6" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-9.1-7.1">
-            <p id="section-9.1-7.1.1">"token_type" is a 2-octet integer, in network byte order, set to 0xE5AD
-for ACT(Ristretto255), 0xE5AE for ACT(P-256), 0xE5AF for ACT(secp256k1),
-0xE5B0 for ACT(P-384), or 0xE5B1 for ACT(P-521).<a href="#section-9.1-7.1.1" class="pilcrow">¶</a></p>
+            <p id="section-9.1-7.1.1">"token_type" is a 2-octet integer, in network byte order, equal to 0xE5AD.<a href="#section-9.1-7.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.1-7.2">
             <p id="section-9.1-7.2.1">"challenge_digest" is a 32-octet value containing the hash of the original TokenChallenge, SHA-256(TokenChallenge).<a href="#section-9.1-7.2.1" class="pilcrow">¶</a></p>
@@ -2065,9 +2048,10 @@ for ACT(Ristretto255), 0xE5AE for ACT(P-256), 0xE5AF for ACT(secp256k1),
 as defined in <a href="#setup" class="auto internal xref">Section 6</a>.<a href="#section-9.1-7.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.1-7.4">
-            <p id="section-9.1-7.4.1">"encoded_spend_proof" is a Nspend_proof-octet encoded spend proof, set to the serialized
+            <p id="section-9.1-7.4.1">"encoded_spend_proof" is a variable-length field containing the serialized
 <code>spend_proof</code> value as specified in <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.3" class="relref">Section 4.1.3</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span>. The spend proof contains
-the nullifier (field 1) and spend amount (field 2), among other cryptographic values.<a href="#section-9.1-7.4.1" class="pilcrow">¶</a></p>
+the nullifier (field 1), spend amount (field 2), and request context (field 3),
+among other cryptographic values.<a href="#section-9.1-7.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2083,44 +2067,52 @@ Origin then extracts the relevant fields from the spend proof:<a href="#section-
 <div class="alignLeft art-text artwork" id="section-9.2-2">
 <pre>
 // Extract fields from SpendProofMsg (see Section 4.1.3 of ACT)
-nullifier = spend_proof.k      // Field 1: nullifier (32 bytes)
-spend_amount = spend_proof.s   // Field 2: spend amount (32 bytes)
+nullifier = spend_proof.k        // Field 1: nullifier (32 bytes)
+spend_amount = spend_proof.s     // Field 2: spend amount (32 bytes)
+request_context = spend_proof.ctx // Field 3: request context (32 bytes)
 </pre><a href="#section-9.2-2" class="pilcrow">¶</a>
 </div>
 <p id="section-9.2-3">The Origin <span class="bcp14">SHOULD</span> verify that the spend_amount matches the requested cost from
 TokenChallenge to ensure the client is spending the expected amount.<a href="#section-9.2-3" class="pilcrow">¶</a></p>
-<p id="section-9.2-4">To verify the Token and issue a refund, the Origin constructs the request_context
-and invokes VerifyAndRefund:<a href="#section-9.2-4" class="pilcrow">¶</a></p>
+<p id="section-9.2-4">The Origin <span class="bcp14">SHOULD</span> also verify that the <code>request_context</code> revealed in the spend
+proof matches the expected context derived from the TokenChallenge:<a href="#section-9.2-4" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-9.2-5">
 <pre>
-request_context = concat(tokenChallenge.issuer_name,
+context_input = concat(tokenChallenge.issuer_name,
   tokenChallenge.origin_info,
   tokenChallenge.credential_context,
   issuer_key_id)
-t = &lt;Origin-configured credits to return to the client&gt;
-refund = VerifyAndRefund(skI, spend_proof, t)
+expected_context = HashToScalar(context_input)
 </pre><a href="#section-9.2-5" class="pilcrow">¶</a>
 </div>
-<p id="section-9.2-6">The parameter <code>t</code> controls how many of the spent credits are returned to
-the client (0 &lt;= t &lt;= cost). Setting t = 0 consumes the full spend amount;
-setting t &gt; 0 enables pre-authorization patterns where the origin holds
-credits temporarily and returns unused ones. The origin determines <code>t</code>
-based on its own policy (e.g., from the TokenChallenge or application
-logic).<a href="#section-9.2-6" class="pilcrow">¶</a></p>
-<p id="section-9.2-7">This function returns the <code>refund</code> serialized according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.4" class="relref">Section 4.1.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> if the spend proof is valid, and nil otherwise.<a href="#section-9.2-7" class="pilcrow">¶</a></p>
-<p id="section-9.2-8">As mentioned in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2.2" class="relref">Section 2.2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span>, Origins <span class="bcp14">MUST</span> implement double-spend prevention that prevents a token with the same nonce from being redeemed twice.
-With ACT, the Origin <span class="bcp14">MUST</span> check that the nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier
+<p id="section-9.2-6">If <code>request_context != expected_context</code>, the Origin <span class="bcp14">MUST</span> reject the spend proof.<a href="#section-9.2-6" class="pilcrow">¶</a></p>
+<p id="section-9.2-7">To verify the Token and issue a refund, the Origin invokes VerifyAndRefund with
+the partial return amount <code>t</code>. The parameter <code>t</code> specifies how many of the spent
+credits to return to the client. Setting <code>t = 0</code> means no partial return (the
+Origin keeps the full spend amount), while <code>t &gt; 0</code> returns that many credits back
+to the client. The value of <code>t</code> <span class="bcp14">MUST</span> satisfy <code>0 &lt;= t &lt;= spend_amount</code>:<a href="#section-9.2-7" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-9.2-8">
+<pre>
+refund = VerifyAndRefund(skI, spend_proof, t, rng)
+</pre><a href="#section-9.2-8" class="pilcrow">¶</a>
+</div>
+<p id="section-9.2-9">This function returns the <code>refund</code> serialized according to <span><a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01#section-4.1.4" class="relref">Section 4.1.4</a> of [<a href="#ACT" class="cite xref">ACT</a>]</span> if the spend proof is valid, and nil otherwise. The request_context is extracted directly from the spend proof during verification, so the Origin does not need to pass it separately.<a href="#section-9.2-9" class="pilcrow">¶</a></p>
+<p id="section-9.2-10">As mentioned in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2.2" class="relref">Section 2.2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span>, Origins <span class="bcp14">SHOULD</span> implement some form of double-spend prevention that prevents a token with the same nonce (nullifier in ACT) from being redeemed twice.
+With ACT, the Origin <span class="bcp14">SHOULD</span> check that the nullifier has not previously been seen before calling VerifyAndRefund. It then stores the nullifier
 for use in future double-spending checks.
 To reduce the overhead of performing double spend checks, the Origin <span class="bcp14">MAY</span> store and
-look up the nullifiers corresponding to the associated request_context value.<a href="#section-9.2-8" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-9.2-9">
+look up the nullifiers corresponding to the associated request_context value
+(which is extracted from the spend proof).<a href="#section-9.2-10" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-9.2-11">
 <pre>
 struct {
-    uint8_t refund[Nrefund];
+    opaque refund&lt;1..2^16-1&gt;;
 } Refund;
-</pre><a href="#section-9.2-9" class="pilcrow">¶</a>
+</pre><a href="#section-9.2-11" class="pilcrow">¶</a>
 </div>
-<p id="section-9.2-10">The Origin sends the refund back to the client encoded as the above <code>Refund</code> struct.<a href="#section-9.2-10" class="pilcrow">¶</a></p>
+<p id="section-9.2-12">The Origin sends the refund back to the client encoded as the above <code>Refund</code> struct.<a href="#section-9.2-12" class="pilcrow">¶</a></p>
+<p id="section-9.2-13">In practice, it encodes <code>Refund</code> as base64url and set <code>PrivacyPass-Reverse</code> header to that value,
+as defined in <span><a href="https://datatracker.ietf.org/doc/html/draft-meunier-privacypass-reverse-flow-06#section-6" class="relref">Section 6</a> of [<a href="#REVERSE-FLOW" class="cite xref">REVERSE-FLOW</a>]</span>.<a href="#section-9.2-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="new-credential-from-refund">
@@ -2135,7 +2127,13 @@ so, clients invoke the <code>ConstructRefundToken</code> function from <span><a 
 credential = ConstructRefundToken(pkI, spend_proof, refund, state)
 </pre><a href="#section-9.3-2" class="pilcrow">¶</a>
 </div>
-<p id="section-9.3-3">The client then uses this new credential instance for subsequent spend operations.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
+<p id="section-9.3-3">The resulting credential has a balance of <code>new_balance = m + t</code>, where <code>m</code> is
+the remaining balance after the spend (i.e., <code>m = original_balance - cost</code>) and
+<code>t</code> is the partial return amount specified by the Origin during <code>VerifyAndRefund</code>.
+When <code>t = 0</code> (the default), the new credential balance equals <code>m</code>, which is the
+original balance minus the full spend amount. When <code>t &gt; 0</code>, the client receives
+<code>t</code> credits back, resulting in a higher balance on the new credential.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
+<p id="section-9.3-4">The client then uses this new credential instance for subsequent spend operations.<a href="#section-9.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2165,10 +2163,10 @@ and unlinkability guarantees, are analyzed in <span>[<a href="#ACT" class="cite 
         <h3 id="name-double-spend-prevention">
 <a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-double-spend-prevention" class="section-name selfRef">Double-Spend Prevention</a>
         </h3>
-<p id="section-10.2-1"><span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2.2" class="relref">Section 2.2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span> specifies double spending requirements that Origin <span class="bcp14">MUST</span>
+<p id="section-10.2-1"><span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2.2" class="relref">Section 2.2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span> specifies double spending requirements that Origin <span class="bcp14">SHOULD</span>
 follow.<a href="#section-10.2-1" class="pilcrow">¶</a></p>
 <p id="section-10.2-2">For ACT, the double-spend prevention mechanism relies on Origins maintaining
-state to track nullifiers. As described in <a href="#refund" class="auto internal xref">Section 9.2</a>, Origins <span class="bcp14">MUST</span> check that a nullifier
+state to track nullifiers. As described in <a href="#refund" class="auto internal xref">Section 9.2</a>, Origins <span class="bcp14">SHOULD</span> check that a nullifier
 has not been previously seen before accepting a spend proof. This check is critical for
 preventing credential reuse attacks.<a href="#section-10.2-2" class="pilcrow">¶</a></p>
 <p id="section-10.2-3">The nullifier space is large (32 bytes), making random collisions computationally
@@ -2284,196 +2282,72 @@ following entries.<a href="#section-11-1" class="pilcrow">¶</a></p>
         <li class="normal" id="section-11-2.12">
           <p id="section-11-2.12.1">Notes: None<a href="#section-11-2.12.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-11-2.13">
-          <p id="section-11-2.13.1">Value: 0xE5AE<a href="#section-11-2.13.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.14">
-          <p id="section-11-2.14.1">Name: ACT (P-256)<a href="#section-11-2.14.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.15">
-          <p id="section-11-2.15.1">Token Structure: As defined in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2" class="relref">Section 2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span><a href="#section-11-2.15.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.16">
-          <p id="section-11-2.16.1">Token Key Encoding: Serialized as described in <a href="#setup" class="auto internal xref">Section 6</a><a href="#section-11-2.16.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.17">
-          <p id="section-11-2.17.1">TokenChallenge Structure: As defined in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.1" class="relref">Section 2.1</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span><a href="#section-11-2.17.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.18">
-          <p id="section-11-2.18.1">Public Verifiability: N<a href="#section-11-2.18.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.19">
-          <p id="section-11-2.19.1">Public Metadata: N<a href="#section-11-2.19.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.20">
-          <p id="section-11-2.20.1">Private Metadata: N<a href="#section-11-2.20.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.21">
-          <p id="section-11-2.21.1">Nk: 0 (not applicable)<a href="#section-11-2.21.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.22">
-          <p id="section-11-2.22.1">Nid: 32<a href="#section-11-2.22.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.23">
-          <p id="section-11-2.23.1">Reference: This document<a href="#section-11-2.23.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.24">
-          <p id="section-11-2.24.1">Notes: None<a href="#section-11-2.24.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.25">
-          <p id="section-11-2.25.1">Value: 0xE5AF<a href="#section-11-2.25.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.26">
-          <p id="section-11-2.26.1">Name: ACT (secp256k1)<a href="#section-11-2.26.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.27">
-          <p id="section-11-2.27.1">Token Structure: As defined in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2" class="relref">Section 2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span><a href="#section-11-2.27.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.28">
-          <p id="section-11-2.28.1">Token Key Encoding: Serialized as described in <a href="#setup" class="auto internal xref">Section 6</a><a href="#section-11-2.28.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.29">
-          <p id="section-11-2.29.1">TokenChallenge Structure: As defined in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.1" class="relref">Section 2.1</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span><a href="#section-11-2.29.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.30">
-          <p id="section-11-2.30.1">Public Verifiability: N<a href="#section-11-2.30.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.31">
-          <p id="section-11-2.31.1">Public Metadata: N<a href="#section-11-2.31.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.32">
-          <p id="section-11-2.32.1">Private Metadata: N<a href="#section-11-2.32.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.33">
-          <p id="section-11-2.33.1">Nk: 0 (not applicable)<a href="#section-11-2.33.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.34">
-          <p id="section-11-2.34.1">Nid: 32<a href="#section-11-2.34.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.35">
-          <p id="section-11-2.35.1">Reference: This document<a href="#section-11-2.35.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.36">
-          <p id="section-11-2.36.1">Notes: None<a href="#section-11-2.36.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.37">
-          <p id="section-11-2.37.1">Value: 0xE5B0<a href="#section-11-2.37.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.38">
-          <p id="section-11-2.38.1">Name: ACT (P-384)<a href="#section-11-2.38.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.39">
-          <p id="section-11-2.39.1">Token Structure: As defined in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2" class="relref">Section 2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span><a href="#section-11-2.39.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.40">
-          <p id="section-11-2.40.1">Token Key Encoding: Serialized as described in <a href="#setup" class="auto internal xref">Section 6</a><a href="#section-11-2.40.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.41">
-          <p id="section-11-2.41.1">TokenChallenge Structure: As defined in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.1" class="relref">Section 2.1</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span><a href="#section-11-2.41.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.42">
-          <p id="section-11-2.42.1">Public Verifiability: N<a href="#section-11-2.42.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.43">
-          <p id="section-11-2.43.1">Public Metadata: N<a href="#section-11-2.43.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.44">
-          <p id="section-11-2.44.1">Private Metadata: N<a href="#section-11-2.44.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.45">
-          <p id="section-11-2.45.1">Nk: 0 (not applicable)<a href="#section-11-2.45.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.46">
-          <p id="section-11-2.46.1">Nid: 32<a href="#section-11-2.46.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.47">
-          <p id="section-11-2.47.1">Reference: This document<a href="#section-11-2.47.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.48">
-          <p id="section-11-2.48.1">Notes: None<a href="#section-11-2.48.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.49">
-          <p id="section-11-2.49.1">Value: 0xE5B1<a href="#section-11-2.49.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.50">
-          <p id="section-11-2.50.1">Name: ACT (P-521)<a href="#section-11-2.50.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.51">
-          <p id="section-11-2.51.1">Token Structure: As defined in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.2" class="relref">Section 2.2</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span><a href="#section-11-2.51.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.52">
-          <p id="section-11-2.52.1">Token Key Encoding: Serialized as described in <a href="#setup" class="auto internal xref">Section 6</a><a href="#section-11-2.52.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.53">
-          <p id="section-11-2.53.1">TokenChallenge Structure: As defined in <span><a href="https://rfc-editor.org/rfc/rfc9577#section-2.1" class="relref">Section 2.1</a> of [<a href="#AUTHSCHEME" class="cite xref">AUTHSCHEME</a>]</span><a href="#section-11-2.53.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.54">
-          <p id="section-11-2.54.1">Public Verifiability: N<a href="#section-11-2.54.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.55">
-          <p id="section-11-2.55.1">Public Metadata: N<a href="#section-11-2.55.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.56">
-          <p id="section-11-2.56.1">Private Metadata: N<a href="#section-11-2.56.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.57">
-          <p id="section-11-2.57.1">Nk: 0 (not applicable)<a href="#section-11-2.57.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.58">
-          <p id="section-11-2.58.1">Nid: 32<a href="#section-11-2.58.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.59">
-          <p id="section-11-2.59.1">Reference: This document<a href="#section-11-2.59.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.60">
-          <p id="section-11-2.60.1">Notes: None<a href="#section-11-2.60.1" class="pilcrow">¶</a></p>
-</li>
       </ul>
 </section>
 </div>
-<div id="sec-normative-references">
+<div id="sec-combined-references">
 <section id="section-12">
-      <h2 id="name-normative-references">
-<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+      <h2 id="name-references">
+<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-references" class="section-name selfRef">References</a>
       </h2>
+<div id="sec-normative-references">
+<section id="section-12.1">
+        <h3 id="name-normative-references">
+<a href="#section-12.1" class="section-number selfRef">12.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
 <dl class="references">
 <dt id="ACT">[ACT]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Schlesinger, S.</span> and <span class="refAuthor">J. Katz</span>, <span class="refTitle">"Anonymous Credit Tokens"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-schlesinger-cfrg-act-01</span>, <time datetime="2026-02-13" class="refDate">13 February 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01">https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="ARC">[ARC]</dt>
-      <dd>
-<span class="refAuthor">Yun, C.</span> and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Privacy Pass Issuance Protocol for Anonymous Rate-Limited Credentials"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-yun-privacypass-arc-02</span>, <time datetime="2025-10-20" class="refDate">20 October 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-yun-privacypass-arc-02">https://datatracker.ietf.org/doc/html/draft-yun-privacypass-arc-02</a>&gt;</span>. </dd>
+        <dd>
+<span class="refAuthor">Yun, C.</span>, <span class="refAuthor">Wood, C. A.</span>, and <span class="refAuthor">A. F. Faz-Hernandez</span>, <span class="refTitle">"Privacy Pass Issuance Protocol for Anonymous Rate-Limited Credentials"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-privacypass-arc-protocol-01</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-arc-protocol-01">https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-arc-protocol-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="ARCHITECTURE">[ARCHITECTURE]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Davidson, A.</span>, <span class="refAuthor">Iyengar, J.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"The Privacy Pass Architecture"</span>, <span class="seriesInfo">RFC 9576</span>, <span class="seriesInfo">DOI 10.17487/RFC9576</span>, <time datetime="2024-06" class="refDate">June 2024</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9576">https://www.rfc-editor.org/rfc/rfc9576</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="ARC_PP">[ARC_PP]</dt>
-      <dd>
-<span class="refAuthor">Yun, C.</span> and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Anonymous Rate-Limited Credentials"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-yun-cfrg-arc-01</span>, <time datetime="2025-08-06" class="refDate">6 August 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-01">https://datatracker.ietf.org/doc/html/draft-yun-cfrg-arc-01</a>&gt;</span>. </dd>
+        <dd>
+<span class="refAuthor">Yun, C.</span>, <span class="refAuthor">Wood, C. A.</span>, and <span class="refAuthor">A. F. Faz-Hernandez</span>, <span class="refTitle">"Anonymous Rate-Limited Credentials Cryptography"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-privacypass-arc-crypto-01</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-arc-crypto-01">https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-arc-crypto-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="AUTHSCHEME">[AUTHSCHEME]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Pauly, T.</span>, <span class="refAuthor">Valdez, S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"The Privacy Pass HTTP Authentication Scheme"</span>, <span class="seriesInfo">RFC 9577</span>, <span class="seriesInfo">DOI 10.17487/RFC9577</span>, <time datetime="2024-06" class="refDate">June 2024</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9577">https://www.rfc-editor.org/rfc/rfc9577</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="ISSUANCE">[ISSUANCE]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Celi, S.</span>, <span class="refAuthor">Davidson, A.</span>, <span class="refAuthor">Valdez, S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Privacy Pass Issuance Protocols"</span>, <span class="seriesInfo">RFC 9578</span>, <span class="seriesInfo">DOI 10.17487/RFC9578</span>, <time datetime="2024-06" class="refDate">June 2024</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9578">https://www.rfc-editor.org/rfc/rfc9578</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="TLS13">[TLS13]</dt>
-    <dd>
+      <dd>
 <span class="refAuthor">Rescorla, E.</span>, <span class="refTitle">"The Transport Layer Security (TLS) Protocol Version 1.3"</span>, <span class="seriesInfo">RFC 8446</span>, <span class="seriesInfo">DOI 10.17487/RFC8446</span>, <time datetime="2018-08" class="refDate">August 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8446">https://www.rfc-editor.org/rfc/rfc8446</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-12.2">
+        <h3 id="name-informative-references">
+<a href="#section-12.2" class="section-number selfRef">12.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="REVERSE-FLOW">[REVERSE-FLOW]</dt>
+      <dd>
+<span class="refAuthor">Meunier, T.</span>, <span class="refTitle">"Privacy Pass Reverse Flow"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-meunier-privacypass-reverse-flow-06</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-meunier-privacypass-reverse-flow-06">https://datatracker.ietf.org/doc/html/draft-meunier-privacypass-reverse-flow-06</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
 </section>
 </div>
 <div id="acknowledgments">
