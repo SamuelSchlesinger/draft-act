@@ -1069,7 +1069,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger, et al.</td>
-<td class="center">Expires 11 January 2027</td>
+<td class="center">Expires 12 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1082,12 +1082,12 @@ svg {
 <dd class="internet-draft">draft-schlesinger-cfrg-act-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-07-10" class="published">10 July 2026</time>
+<time datetime="2026-07-11" class="published">11 July 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-01-11">11 January 2027</time></dd>
+<dd class="expires"><time datetime="2027-01-12">12 January 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1165,7 +1165,7 @@ in the IRTF.<a href="#section-abstract-4" class="pilcrow">¶</a></p>
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 11 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 12 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1512,10 +1512,11 @@ balance and receive anonymous change without revealing their
 previous or current balance, enabling flexible spending.<a href="#section-1.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-1.1-2.3">
-            <p id="section-1.1-2.3.1"><strong>Balance Adjustments</strong>: A spend can carry an issuer-authorized
-top-up that adds credits to the returned token, and the issuer
-can return part of the spent amount when issuing the refund,
-without learning the resulting balance in either case.<a href="#section-1.1-2.3.1" class="pilcrow">¶</a></p>
+            <p id="section-1.1-2.3.1"><strong>Balance Adjustments</strong>: Each spend returns a token with an
+updated balance. The client can include an issuer-authorized
+top-up in the spend itself, and the issuer can return part of
+the spent amount when issuing the refund; in neither case does
+the issuer learn anything about the original or updated balance.<a href="#section-1.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-1.1-2.4">
             <p id="section-1.1-2.4.1"><strong>Double-Spend Prevention</strong>: Cryptographic nullifiers ensure each
@@ -1591,8 +1592,8 @@ nullifier having sufficient balance. The issuer verifies the
 proof, checks the nullifier hasn't been used before, and issues a
 new token (which remains hidden from the issuer) for any remaining
 balance. The new token's balance may additionally include a
-client-requested top-up bound into the spend proof, as well as a
-partial refund of the spent amount chosen by the issuer.<a href="#section-1.3-2.3.1" class="pilcrow">¶</a></p>
+client-requested top-up, as well as a partial refund of the
+spent amount chosen by the issuer.<a href="#section-1.3-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 </section>
@@ -1793,37 +1794,49 @@ append_dleq(statement, P, Q, X, Y):
 digit is in {0, 1, 2}. Base 3 minimizes proof size among digit
 decompositions in this framework (see <a href="#radix" class="auto internal xref">Section 5.6.2</a>).<a href="#section-2.2.3-1" class="pilcrow">¶</a></p>
 <p id="section-2.2.3-2">For each digit <code>j</code>, the prover sends a digit commitment <code>Com[j]</code>
-and an auxiliary commitment <code>T[j]</code>, and three linear equations
-enforce that <code>d[j] in {0, 1, 2}</code>:<a href="#section-2.2.3-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-2.2.3-3.1">
+and an auxiliary commitment <code>T[j]</code>. The verifier checks a proof
+of knowledge of scalars <code>d[j]</code>, <code>s[j]</code>, <code>rho[j]</code>, and <code>w[j]</code>
+(plus <code>kstar</code> and <code>k3</code> for digit 0, which carries the new
+nullifier) satisfying three linear equations per digit:<a href="#section-2.2.3-2" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-2.2.3-3">
+<li id="section-2.2.3-3.1">
               <p id="section-2.2.3-3.1.1"><strong>Opening</strong>: <code>Com[j] = d[j]*H1 + s[j]*H3</code> (for <code>j &gt;= 1</code>), or
-<code>Com[0] = d[0]*H1 + kstar*H2 + s[0]*H3</code> (for digit 0, which
-carries the new nullifier).<a href="#section-2.2.3-3.1.1" class="pilcrow">¶</a></p>
+<code>Com[0] = d[0]*H1 + kstar*H2 + s[0]*H3</code> (for digit 0).<a href="#section-2.2.3-3.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-2.2.3-3.2">
-              <p id="section-2.2.3-3.2.1"><strong>Auxiliary opening</strong>: <code>T[j] + Com[j] = d[j]*Com[j] + rho[j]*H3</code>,
-which forces <code>T[j] = (d[j]-1)*Com[j] + rho[j]*H3</code>, so the
-<code>H1</code>-component of <code>T[j]</code> is <code>d[j]*(d[j]-1)</code>.<a href="#section-2.2.3-3.2.1" class="pilcrow">¶</a></p>
+            <li id="section-2.2.3-3.2">
+              <p id="section-2.2.3-3.2.1"><strong>Auxiliary opening</strong>: <code>T[j] + Com[j] = d[j]*Com[j] + rho[j]*H3</code>.<a href="#section-2.2.3-3.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-2.2.3-3.3">
+            <li id="section-2.2.3-3.3">
               <p id="section-2.2.3-3.3.1"><strong>Zero constraint</strong>: <code>T[j]*2 = d[j]*T[j] + w[j]*H3</code>
 (for <code>j &gt;= 1</code>), or
-<code>T[0]*2 = d[0]*T[0] + k3*H2 + w[0]*H3</code> (for digit 0),
-where <code>w[j] = (2-d[j])*((d[j]-1)*s[j] + rho[j])</code> and
-<code>k3 = (2-d[0])*(d[0]-1)*kstar</code>.<a href="#section-2.2.3-3.3.1" class="pilcrow">¶</a></p>
+<code>T[0]*2 = d[0]*T[0] + k3*H2 + w[0]*H3</code> (for digit 0).<a href="#section-2.2.3-3.3.1" class="pilcrow">¶</a></p>
 </li>
-          </ul>
-<p id="section-2.2.3-4">The zero constraint states that <code>(d[j]-2)*T[j]</code> has no
-<code>H1</code>-component, so the three equations together enforce
-<code>d[j]*(d[j]-1)*(d[j]-2) = 0</code>, i.e., <code>d[j] in {0, 1, 2}</code>, because
-satisfying them with any other digit value would require knowing a
-discrete-logarithm relation between <code>H1</code> and <code>H2</code> or <code>H3</code>.<a href="#section-2.2.3-4" class="pilcrow">¶</a></p>
-<p id="section-2.2.3-5">The <a href="#append_range_proof" class="internal xref">append_range_proof</a> function appends linear
-relations to the statement to instantiate a range proof.<a href="#section-2.2.3-5" class="pilcrow">¶</a></p>
+          </ol>
+<p id="section-2.2.3-4">An honest prover assigns the digit <code>d[j]</code>, samples the blinding
+scalars <code>s[j]</code> and <code>rho[j]</code>, computes
+<code>T[j] = (d[j]-1)*Com[j] + rho[j]*H3</code>, and sets the derived
+witnesses <code>w[j] = (2-d[j])*((d[j]-1)*s[j] + rho[j])</code> and
+<code>k3 = (2-d[0])*(d[0]-1)*kstar</code>.<a href="#section-2.2.3-4" class="pilcrow">¶</a></p>
+<p id="section-2.2.3-5">Verifying these equations forces <code>d[j] in {0, 1, 2}</code>, as follows.
+Equation 1 opens <code>Com[j]</code> to the digit <code>d[j]</code>, so the
+<code>H1</code>-component of <code>Com[j]</code> is <code>d[j]</code>. Equation 2, rearranged,
+states <code>T[j] = (d[j]-1)*Com[j] + rho[j]*H3</code>, so the
+<code>H1</code>-component of <code>T[j]</code> is <code>d[j]*(d[j]-1)</code>. Equation 3,
+rearranged, states that <code>(d[j]-2)*T[j]</code> has no <code>H1</code>-component.
+Together they imply <code>d[j]*(d[j]-1)*(d[j]-2) = 0</code> in the scalar
+field, which holds exactly when <code>d[j] in {0, 1, 2}</code>; satisfying
+the equations with any other digit value would require knowing a
+discrete-logarithm relation between <code>H1</code> and <code>H2</code> or <code>H3</code>.<a href="#section-2.2.3-5" class="pilcrow">¶</a></p>
+<p id="section-2.2.3-6">This construction is a linear-relation encoding of a three-way OR
+proof that each committed digit is 0, 1, or 2. A disjunctive (OR)
+presentation would have the same proof size (see <a href="#radix" class="auto internal xref">Section 5.6.2</a>) but
+requires composition beyond the linear framework of <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> on
+which this document builds.<a href="#section-2.2.3-6" class="pilcrow">¶</a></p>
+<p id="section-2.2.3-7">The <a href="#append_range_proof" class="internal xref">append_range_proof</a> function appends linear
+relations to the statement to instantiate a range proof.<a href="#section-2.2.3-7" class="pilcrow">¶</a></p>
 <div id="append_range_proof">
 <figure id="figure-3">
-            <div class="breakable lang-pseudocode sourcecode" id="section-2.2.3-6.1">
+            <div class="breakable lang-pseudocode sourcecode" id="section-2.2.3-8.1">
 <pre>
 append_range_proof(statement, H1, H2, H3, Com, T, D):
   Input:
@@ -1902,13 +1915,13 @@ append_range_proof(statement, H1, H2, H3, Com, T, D):
 </div>
 <figcaption><a href="#figure-3" class="selfRef">Figure 3</a></figcaption></figure>
 </div>
-<p id="section-2.2.3-7">Implementations of the LinearRelation interface may require that each
+<p id="section-2.2.3-9">Implementations of the LinearRelation interface may require that each
 group element value is assigned to at most one element variable, since
 element variables are deduplicated or checked when the statement is
 put into canonical form. The pseudocode in this document therefore
 reuses the element variables returned by
 <a href="#append_range_proof" class="internal xref">append_range_proof</a> instead of assigning the same
-value to a second variable.<a href="#section-2.2.3-7" class="pilcrow">¶</a></p>
+value to a second variable.<a href="#section-2.2.3-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2197,9 +2210,8 @@ VerifyIssuance(pk, response, ctx, state):
 <p id="section-3.4-1">The spending protocol allows a client to spend <code>s</code> credits from a
 token containing <code>c</code> credits, optionally adding an issuer-authorized
 top-up of <code>a</code> credits in the same operation. The new balance
-<code>v = c - s + a</code> must lie in <code>[0, 3^D)</code>; in particular, <code>s</code> may
-exceed <code>c</code> when the top-up covers the difference. Plain spends set
-<code>a = 0</code>.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+<code>v = c - s + a</code> must lie in <code>[0, 3^D)</code>; in particular, <code>s</code> may be
+as large as <code>c + a</code>. Plain spends set <code>a = 0</code>.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 <p id="section-3.4-2">The top-up amount <code>a</code> is a public input bound by the spend proof: a
 proof generated for one value of <code>a</code> fails to verify under any
 other, so an issuer authorizes a top-up by verifying the spend proof
@@ -2207,6 +2219,14 @@ with that value. How the client obtains authorization for a top-up
 (e.g., an out-of-band payment) is application-defined and <span class="bcp14">SHOULD</span> be
 bound to the request context <code>ctx</code>. Issuers that do not support
 top-ups <span class="bcp14">MUST</span> reject spend proofs with <code>a != 0</code>.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
+<p id="section-3.4-3">The top-up is distinct from the partial refund <code>t</code> of
+<a href="#refund-issuance" class="auto internal xref">Section 3.4.3</a>. A top-up is covered by the range proof, which
+shows that the new balance <code>v</code> remains in <code>[0, 3^D)</code>, so an
+addition of any size can be authorized. A refund is added
+homomorphically after verification, without a range proof, and is
+therefore bounded by <code>t &lt;= max(0, s - a)</code>: the issuer returns at
+most the net amount removed by the spend, so the resulting balance
+<code>v + t</code> is at most <code>max(c, v)</code> and remains below <code>3^D</code>.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
 <div id="client-spend-proof-generation">
 <section id="section-3.4.1">
           <h4 id="name-client-spend-proof-generati">
@@ -2217,7 +2237,7 @@ top-ups <span class="bcp14">MUST</span> reject spend proofs with <code>a != 0</c
 ProveSpend(token, s, a, rng):
   Input:
     - token: Credit token (A, e, k, r, c, ctx)
-    - s: Amount to spend (0 &lt;= s &lt; 3^D)
+    - s: Amount to spend (0 &lt;= s &lt; 3^D and s &lt;= c + a)
     - a: Top-up amount (0 &lt;= a &lt; 3^D); 0 for a plain spend
     - rng: PRNG.
   Output:
@@ -3127,6 +3147,12 @@ proof is approximately 5% smaller than the equivalent binary one.
 This specification therefore uses base-3 digits. See
 <a href="#ternary-decomposition" class="auto internal xref">Section 3.5.2</a> for a constant-time decomposition
 algorithm.<a href="#section-5.6.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.6.2-2">A compact B-way OR proof of the digit relation has the same
+marginal cost: one instance element plus <code>2*B - 1</code> proof scalars
+per digit, or <code>32 + 32*(2*B - 1) = 64*B</code> bytes. The choice between
+the linear encoding used here and a disjunctive presentation
+therefore does not affect proof size, and base 3 remains optimal
+under either.<a href="#section-5.6.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
