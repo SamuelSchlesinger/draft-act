@@ -19,6 +19,7 @@
 Gemfile.lock
 archive.json
 draft-schlesinger-cfrg-act.xml
+draft-schlesinger-privacypass-act.xml
 package-lock.json
 report.xml
 !requirements.txt
