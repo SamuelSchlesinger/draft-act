@@ -112,9 +112,11 @@ The protocol provides the following properties:
 
 3. **Balance Adjustments**: Each spend returns a token with an
    updated balance. The client can include an issuer-authorized
-   top-up in the spend itself, and the issuer can return part of
-   the spent amount when issuing the refund; in neither case does
-   the issuer learn anything about the original or updated balance.
+   top-up in the spend itself, and at refund time the issuer can
+   move the final balance anywhere between the post-spend balance
+   and the topped-up balance, granting the top-up, clawing it back,
+   or refunding part of the spent amount; the issuer never learns
+   the original or updated balance.
 
 4. **Double-Spend Prevention**: Cryptographic nullifiers ensure each
    token is used only once, without linking it to issuance.
@@ -161,9 +163,9 @@ interaction follows three main phases:
    nullifier having sufficient balance. The issuer verifies the
    proof, checks the nullifier hasn't been used before, and issues a
    new token (which remains hidden from the issuer) for any remaining
-   balance. The new token's balance may additionally include a
-   client-requested top-up, as well as a partial refund of the
-   spent amount chosen by the issuer.
+   balance. The new token's balance also reflects an issuer-chosen
+   return amount, which can grant a client-requested top-up, claw
+   it back, or refund part of the spent amount.
 
 ## Relation to Existing Work
 
@@ -305,21 +307,16 @@ decompositions in this framework (see {{radix}}).
 For each digit `j`, the prover sends a digit commitment `Com[j]`
 and an auxiliary commitment `T[j]`. The verifier checks a proof
 of knowledge of scalars `d[j]`, `s[j]`, `rho[j]`, and `w[j]`
-(plus `kstar` and `k3` for digit 0, which carries the new
-nullifier) satisfying three linear equations per digit:
+satisfying three linear equations per digit:
 
-1. **Opening**: `Com[j] = d[j]*H1 + s[j]*H3` (for `j >= 1`), or
-   `Com[0] = d[0]*H1 + kstar*H2 + s[0]*H3` (for digit 0).
+1. **Opening**: `Com[j] = d[j]*H1 + s[j]*H3`.
 2. **Auxiliary opening**: `T[j] + Com[j] = d[j]*Com[j] + rho[j]*H3`.
-3. **Zero constraint**: `T[j]*2 = d[j]*T[j] + w[j]*H3`
-   (for `j >= 1`), or
-   `T[0]*2 = d[0]*T[0] + k3*H2 + w[0]*H3` (for digit 0).
+3. **Zero constraint**: `T[j]*2 = d[j]*T[j] + w[j]*H3`.
 
 An honest prover assigns the digit `d[j]`, samples the blinding
 scalars `s[j]` and `rho[j]`, computes
 `T[j] = (d[j]-1)*Com[j] + rho[j]*H3`, and sets the derived
-witnesses `w[j] = (2-d[j])*((d[j]-1)*s[j] + rho[j])` and
-`k3 = (2-d[0])*(d[0]-1)*kstar`.
+witness `w[j] = (2-d[j])*((d[j]-1)*s[j] + rho[j])`.
 
 Verifying these equations forces `d[j] in {0, 1, 2}`, as follows.
 Equation 1 opens `Com[j]` to the digit `d[j]`, so the
@@ -330,7 +327,7 @@ rearranged, states that `(d[j]-2)*T[j]` has no `H1`-component.
 Together they imply `d[j]*(d[j]-1)*(d[j]-2) = 0` in the scalar
 field, which holds exactly when `d[j] in {0, 1, 2}`; satisfying
 the equations with any other digit value would require knowing a
-discrete-logarithm relation between `H1` and `H2` or `H3`.
+discrete-logarithm relation between `H1` and `H3`.
 
 This construction is a linear-relation encoding of a three-way OR
 proof that each committed digit is 0, 1, or 2. A disjunctive (OR)
@@ -338,16 +335,21 @@ presentation would have the same proof size (see {{radix}}) but
 requires composition beyond the linear framework of {{SIGMA}} on
 which this document builds.
 
+The digit equations carry no other witnesses: in particular, the
+new token's nullifier is committed separately (see
+{{token-spending}}), so all D digits are treated uniformly.
+
 The {{append_range_proof}}{:format="title"} function appends linear
-relations to the statement to instantiate a range proof.
+relations to the statement to instantiate a range proof. The caller
+supplies the element variables holding `H1` and `H3`, so that
+repeated invocations against the same statement share them.
 
 ~~~ pseudocode
-append_range_proof(statement, H1, H2, H3, Com, T, D):
+append_range_proof(statement, H1_var, H3_var, Com, T, D):
   Input:
     - statement: LinearRelation.
-    - H1: Group Element.
-    - H2: Group Element.
-    - H3: Group Element.
+    - H1_var: Element variable handle assigned the value H1.
+    - H3_var: Element variable handle assigned the value H3.
     - Com: Array of D Group Elements (digit commitments).
     - T: Array of D Group Elements (auxiliary commitments).
     - D: Integer (digit count).
@@ -356,11 +358,6 @@ append_range_proof(statement, H1, H2, H3, Com, T, D):
     - s_vars: Array of D scalar variable handles.
     - rho_vars: Array of D scalar variable handles.
     - w_vars: Array of D scalar variable handles.
-    - kstar_var: Scalar variable handle.
-    - k3_var: Scalar variable handle.
-    - H1_var, H2_var, H3_var: Element variable handles, returned so
-      that callers reuse them; each group element value MUST be
-      assigned to at most one element variable.
 
   Steps:
     // Allocate scalar variables
@@ -368,53 +365,32 @@ append_range_proof(statement, H1, H2, H3, Com, T, D):
     2. s_vars = statement.allocate_scalars(D)
     3. rho_vars = statement.allocate_scalars(D)
     4. w_vars = statement.allocate_scalars(D)
-    5. kstar_var, k3_var = statement.allocate_scalars(2)
 
     // Allocate element variables
-    6. H1_var, H2_var, H3_var = statement.allocate_elements(3)
-    7. Com_vars = statement.allocate_elements(D)
-    8. T_vars = statement.allocate_elements(D)
-    9. TC_vars = statement.allocate_elements(D)  // T[j] + Com[j]
-   10. T2_vars = statement.allocate_elements(D)  // T[j] * 2
+    5. Com_vars = statement.allocate_elements(D)
+    6. T_vars = statement.allocate_elements(D)
+    7. TC_vars = statement.allocate_elements(D)  // T[j] + Com[j]
+    8. T2_vars = statement.allocate_elements(D)  // T[j] * 2
 
     // Set element values
-   11. statement.set_elements([(H1_var, H1), (H2_var, H2),
-         (H3_var, H3)])
-   12. For j = 0 to D-1:
-   13.     statement.set_elements([(Com_vars[j], Com[j]),
+    9. For j = 0 to D-1:
+   10.     statement.set_elements([(Com_vars[j], Com[j]),
              (T_vars[j], T[j]), (TC_vars[j], T[j] + Com[j]),
              (T2_vars[j], T[j] * 2)])
 
-    // Digit 0: opening equation (carries the new nullifier)
-    // Com[0] = d[0]*H1 + kstar*H2 + s[0]*H3
-   14. statement.append_equation(Com_vars[0],
-         [(d_vars[0], H1_var), (kstar_var, H2_var), (s_vars[0], H3_var)])
-
-    // Digit 0: auxiliary opening equation
-    // T[0] + Com[0] = d[0]*Com[0] + rho[0]*H3
-   15. statement.append_equation(TC_vars[0],
-         [(d_vars[0], Com_vars[0]), (rho_vars[0], H3_var)])
-
-    // Digit 0: zero constraint equation
-    // T[0]*2 = d[0]*T[0] + k3*H2 + w[0]*H3
-   16. statement.append_equation(T2_vars[0],
-         [(d_vars[0], T_vars[0]), (k3_var, H2_var),
-          (w_vars[0], H3_var)])
-
-    // Digits 1 to D-1
-   17. For j = 1 to D-1:
+    // Per-digit equations
+   11. For j = 0 to D-1:
          // Opening equation: Com[j] = d[j]*H1 + s[j]*H3
-   18.     statement.append_equation(Com_vars[j],
+   12.     statement.append_equation(Com_vars[j],
              [(d_vars[j], H1_var), (s_vars[j], H3_var)])
          // Auxiliary opening: T[j] + Com[j] = d[j]*Com[j] + rho[j]*H3
-   19.     statement.append_equation(TC_vars[j],
+   13.     statement.append_equation(TC_vars[j],
              [(d_vars[j], Com_vars[j]), (rho_vars[j], H3_var)])
          // Zero constraint: T[j]*2 = d[j]*T[j] + w[j]*H3
-   20.     statement.append_equation(T2_vars[j],
+   14.     statement.append_equation(T2_vars[j],
              [(d_vars[j], T_vars[j]), (w_vars[j], H3_var)])
 
-   21. return (d_vars, s_vars, rho_vars, w_vars, kstar_var, k3_var,
-         H1_var, H2_var, H3_var)
+   15. return (d_vars, s_vars, rho_vars, w_vars)
 ~~~
 {: #append_range_proof }
 
@@ -422,9 +398,9 @@ Implementations of the LinearRelation interface may require that each
 group element value is assigned to at most one element variable, since
 element variables are deduplicated or checked when the statement is
 put into canonical form. The pseudocode in this document therefore
-reuses the element variables returned by
-{{append_range_proof}}{:format="title"} instead of assigning the same
-value to a second variable.
+allocates the element variables for `H1`, `H2`, `H3`, and the shared
+`3^j` coefficient elements once per statement and passes or reuses
+the handles instead of assigning the same value to a second variable.
 
 # Protocol Specification
 
@@ -637,13 +613,23 @@ VerifyIssuance(pk, response, ctx, state):
    12. return token
 ~~~
 
-## Token Spending
+## Token Spending {#token-spending}
 
 The spending protocol allows a client to spend `s` credits from a
-token containing `c` credits, optionally adding an issuer-authorized
-top-up of `a` credits in the same operation. The new balance
-`v = c - s + a` must lie in `[0, 3^D)`; in particular, `s` may be
-as large as `c + a`. Plain spends set `a = 0`.
+token containing `c` credits (`0 <= s <= c`), optionally adding an
+issuer-authorized top-up of `a` credits in the same operation
+(`c + a < 3^D`). The spend proof carries two range proofs over the
+hidden balance:
+
+- the post-spend balance `v1 = c - s` lies in `[0, 3^D)`, so the
+  token covers the spend on its own, and
+- the topped-up balance `v2 = c + a` lies in `[0, 3^D)`, so the
+  top-up fits under the credit ceiling.
+
+The new balance is `v = c - s + a`. Plain spends set `a = 0`. The
+new token's nullifier is carried in a dedicated commitment `K_n`
+rather than inside a digit commitment, so the two range proofs stay
+uniform.
 
 The top-up amount `a` is a public input bound by the spend proof: a
 proof generated for one value of `a` fails to verify under any
@@ -653,14 +639,19 @@ with that value. How the client obtains authorization for a top-up
 bound to the request context `ctx`. Issuers that do not support
 top-ups MUST reject spend proofs with `a != 0`.
 
-The top-up is distinct from the partial refund `t` of
-{{refund-issuance}}. A top-up is covered by the range proof, which
-shows that the new balance `v` remains in `[0, 3^D)`, so an
-addition of any size can be authorized. A refund is added
-homomorphically after verification, without a range proof, and is
-therefore bounded by `t <= max(0, s - a)`: the issuer returns at
-most the net amount removed by the spend, so the resulting balance
-`v + t` is at most `max(c, v)` and remains below `3^D`.
+The top-up is distinct from the return amount `t` of
+{{refund-issuance}}. A top-up is covered by the second range proof,
+so the issuer can authorize an addition of any size that fits under
+the ceiling. The return amount is added homomorphically to the
+post-spend balance `v1` after verification, without a range proof,
+and is therefore bounded by `0 <= t <= s + a`: the two range proofs
+certify exactly the endpoints of this window, since `t = 0` leaves
+the balance at `v1 = c - s >= 0` and `t = s + a` raises it to
+`c + a < 3^D`. The issuer thus retains full discretion at refund
+time to land the final balance `c - s + t` anywhere in
+`[c - s, c + a]`: `t = a` grants exactly the authorized top-up,
+`t < a` claws back part or all of it, and `t > a` also refunds
+part of the spent amount.
 
 ### Client: Spend Proof Generation
 
@@ -668,118 +659,155 @@ most the net amount removed by the spend, so the resulting balance
 ProveSpend(token, s, a, rng):
   Input:
     - token: Credit token (A, e, k, r, c, ctx)
-    - s: Amount to spend (0 <= s < 3^D and s <= c + a)
-    - a: Top-up amount (0 <= a < 3^D); 0 for a plain spend
+    - s: Amount to spend (0 <= s <= c)
+    - a: Top-up amount (c + a < 3^D); 0 for a plain spend
     - rng: PRNG.
   Output:
     - proof: Spend proof
     - state: Client state for receiving change
   Exceptions:
-    - InvalidAmount: raised when s or a is not in [0, 3^D), or when
-      the new balance c - s + a is not in [0, 3^D)
+    - InvalidAmount: raised when s or a is not in [0, 3^D), when
+      s > c, or when c + a >= 3^D
 
   Steps:
-    // Validate amounts and compute the new balance (as integers)
+    // Validate amounts and compute the proven values (as integers)
     1. if s >= 3^D or a >= 3^D:
     2.     raise InvalidAmount
-    3. v = c - s + a
-    4. if v < 0 or v >= 3^D:
+    3. v1 = c - s          // post-spend balance
+    4. if v1 < 0:
     5.     raise InvalidAmount
+    6. v2 = c + a          // topped-up balance
+    7. if v2 >= 3^D:
+    8.     raise InvalidAmount
 
     // Randomize the signature
-    6. r1, r2 <- Zq
-    7. B = G.Generator() + H1 * c + H2 * k + H3 * r + H4 * ctx
-    8. A' = A * (r1 * r2)
-    9. B_bar = B * r1
-   10. r3 = 1/r1
+    9. r1, r2 <- Zq
+   10. B = G.Generator() + H1 * c + H2 * k + H3 * r + H4 * ctx
+   11. A' = A * (r1 * r2)
+   12. B_bar = B * r1
+   13. r3 = 1/r1
 
-    // Decompose v into base-3 digits and create commitments
-   11. (d[0], ..., d[D-1]) = TritDecompose(v)
-   12. kstar <- Zq
-   13. s_com[0] <- Zq
-   14. Com[0] = H1 * d[0] + H2 * kstar + H3 * s_com[0]
-   15. For j = 1 to D-1:
-   16.     s_com[j] <- Zq
-   17.     Com[j] = H1 * d[j] + H3 * s_com[j]
+    // Decompose v1 and v2 into base-3 digits and create commitments
+   14. (d1[0], ..., d1[D-1]) = TritDecompose(v1)
+   15. (d2[0], ..., d2[D-1]) = TritDecompose(v2)
+   16. For j = 0 to D-1:
+   17.     s1[j] <- Zq
+   18.     Com1[j] = H1 * d1[j] + H3 * s1[j]
+   19.     s2[j] <- Zq
+   20.     Com2[j] = H1 * d2[j] + H3 * s2[j]
 
-    // Create auxiliary commitments for the range proof
-   18. For j = 0 to D-1:
-   19.     rho[j] <- Zq
-   20.     T[j] = Com[j] * (d[j] - 1) + H3 * rho[j]
+    // Create auxiliary commitments for the range proofs
+   21. For j = 0 to D-1:
+   22.     rho1[j] <- Zq
+   23.     T1[j] = Com1[j] * (d1[j] - 1) + H3 * rho1[j]
+   24.     rho2[j] <- Zq
+   25.     T2[j] = Com2[j] * (d2[j] - 1) + H3 * rho2[j]
+
+    // Commit to the new token's nullifier
+   26. kstar, rn <- Zq
+   27. K_n = H2 * kstar + H3 * rn
 
     // Compute derived public values
-   21. A_bar = B_bar * r2 - A' * e  // Equivalent to A' * sk
-   22. H1_prime = G.Generator() + H2 * k + H4 * ctx
+   28. A_bar = B_bar * r2 - A' * e  // Equivalent to A' * sk
+   29. H1_prime = G.Generator() + H2 * k + H4 * ctx
 
     // Build LinearRelation statement
-   23. statement = LinearRelation(group)
+   30. statement = LinearRelation(group)
 
     // Eq 1: A_bar = e*(-A') + r2*B_bar
     // (Rearranged BBS signature validity)
-   24. e_var, r2_var = statement.allocate_scalars(2)
-   25. negA_var, B_bar_var, A_bar_var = statement.allocate_elements(3)
-   26. statement.append_equation(A_bar_var,
+   31. e_var, r2_var = statement.allocate_scalars(2)
+   32. negA_var, B_bar_var, A_bar_var = statement.allocate_elements(3)
+   33. statement.append_equation(A_bar_var,
          [(e_var, negA_var), (r2_var, B_bar_var)])
-   27. statement.set_elements([(negA_var, -A'),
+   34. statement.set_elements([(negA_var, -A'),
          (B_bar_var, B_bar), (A_bar_var, A_bar)])
 
     // Eq 2: H1_prime = r3*B_bar + c*(-H1) + r*(-H3)
     // (Credential structure)
-   28. r3_var, c_var, r_var = statement.allocate_scalars(3)
-   29. negH1_var, negH3_var, H1p_var = statement.allocate_elements(3)
-   30. statement.append_equation(H1p_var,
+   35. r3_var, c_var, r_var = statement.allocate_scalars(3)
+   36. negH1_var, negH3_var, H1p_var = statement.allocate_elements(3)
+   37. statement.append_equation(H1p_var,
          [(r3_var, B_bar_var), (c_var, negH1_var), (r_var, negH3_var)])
-   31. statement.set_elements([(negH1_var, -H1),
+   38. statement.set_elements([(negH1_var, -H1),
          (negH3_var, -H3), (H1p_var, H1_prime)])
 
-    // Eqs 3..2+3D: Range proof (3D equations)
-   32. (d_vars, s_com_vars, rho_vars, w_vars, kstar_var, k3_var,
-         H1_var, H2_var, H3_var) =
-         append_range_proof(statement, H1, H2, H3, Com, T, D)
+    // Shared generator element variables
+   39. H1_var, H2_var, H3_var = statement.allocate_elements(3)
+   40. statement.set_elements([(H1_var, H1), (H2_var, H2),
+         (H3_var, H3)])
 
-    // Eq 3D+3: Commitment consistency
-    // Com_total = c*H1 + kstar*H2 + sum(s_com[j]*3^j*H3)
-    // Element variables from the range proof are reused; the
-    // 3^0 = 1 coefficient element for j = 0 is H3_var itself.
-   33. Com_total = H1 * (s - a) + Sum(Com[j] * 3^j for j in [D])
-   34. Com_total_var = statement.allocate_elements(1)
-   35. statement.set_elements([(Com_total_var, Com_total)])
-   36. terms = [(c_var, H1_var), (kstar_var, H2_var),
-         (s_com_vars[0], H3_var)]
-   37. For j = 1 to D-1:
-   38.     coeff_H3_var = statement.allocate_elements(1)
-   39.     statement.set_elements([(coeff_H3_var, H3 * (3^j))])
-   40.     terms.append((s_com_vars[j], coeff_H3_var))
-   41. statement.append_equation(Com_total_var, terms)
+    // Eqs 3..2+3D: Range proof over v1 (3D equations)
+   41. (d1_vars, s1_vars, rho1_vars, w1_vars) =
+         append_range_proof(statement, H1_var, H3_var, Com1, T1, D)
+
+    // Eqs 3+3D..2+6D: Range proof over v2 (3D equations)
+   42. (d2_vars, s2_vars, rho2_vars, w2_vars) =
+         append_range_proof(statement, H1_var, H3_var, Com2, T2, D)
+
+    // Eq 6D+3: Nullifier commitment opening
+    // K_n = kstar*H2 + rn*H3
+   43. kstar_var, rn_var = statement.allocate_scalars(2)
+   44. Kn_var = statement.allocate_elements(1)
+   45. statement.set_elements([(Kn_var, K_n)])
+   46. statement.append_equation(Kn_var,
+         [(kstar_var, H2_var), (rn_var, H3_var)])
+
+    // Eqs 6D+4, 6D+5: Commitment consistency, tying both
+    // decompositions to the same hidden balance c:
+    //   Com_total1 = c*H1 + sum(s1[j]*3^j*H3)   (v1 = c - s)
+    //   Com_total2 = c*H1 + sum(s2[j]*3^j*H3)   (v2 = c + a)
+    // The 3^j coefficient elements are shared between the two
+    // equations; the 3^0 = 1 coefficient element is H3_var itself.
+   47. Com_total1 = H1 * s + Sum(Com1[j] * 3^j for j in [D])
+   48. Com_total2 = H1 * (-a) + Sum(Com2[j] * 3^j for j in [D])
+   49. CT1_var, CT2_var = statement.allocate_elements(2)
+   50. statement.set_elements([(CT1_var, Com_total1),
+         (CT2_var, Com_total2)])
+   51. coeff_vars[0] = H3_var
+   52. For j = 1 to D-1:
+   53.     coeff_vars[j] = statement.allocate_elements(1)
+   54.     statement.set_elements([(coeff_vars[j], H3 * (3^j))])
+   55. statement.append_equation(CT1_var, [(c_var, H1_var)]
+         + [(s1_vars[j], coeff_vars[j]) for j in [D]])
+   56. statement.append_equation(CT2_var, [(c_var, H1_var)]
+         + [(s2_vars[j], coeff_vars[j]) for j in [D]])
 
     // Assemble witness (indexed by allocated scalar variables)
-   42. witness[e_var] = e
-   43. witness[r2_var] = r2
-   44. witness[r3_var] = r3
-   45. witness[c_var] = c
-   46. witness[r_var] = r
-   47. For j = 0 to D-1:
-   48.     witness[d_vars[j]] = d[j]
-   49.     witness[s_com_vars[j]] = s_com[j]
-   50.     witness[rho_vars[j]] = rho[j]
-   51.     witness[w_vars[j]] = (2 - d[j]) * ((d[j] - 1) * s_com[j] + rho[j])
-   52. witness[kstar_var] = kstar
-   53. witness[k3_var] = (2 - d[0]) * (d[0] - 1) * kstar
+   57. witness[e_var] = e
+   58. witness[r2_var] = r2
+   59. witness[r3_var] = r3
+   60. witness[c_var] = c
+   61. witness[r_var] = r
+   62. For j = 0 to D-1:
+   63.     witness[d1_vars[j]] = d1[j]
+   64.     witness[s1_vars[j]] = s1[j]
+   65.     witness[rho1_vars[j]] = rho1[j]
+   66.     witness[w1_vars[j]] = (2 - d1[j]) * ((d1[j] - 1) * s1[j] + rho1[j])
+   67. For j = 0 to D-1:
+   68.     witness[d2_vars[j]] = d2[j]
+   69.     witness[s2_vars[j]] = s2[j]
+   70.     witness[rho2_vars[j]] = rho2[j]
+   71.     witness[w2_vars[j]] = (2 - d2[j]) * ((d2[j] - 1) * s2[j] + rho2[j])
+   72. witness[kstar_var] = kstar
+   73. witness[rn_var] = rn
 
     // Generate non-interactive proof.
-    // The public amounts s and a are bound into the session identifier so
-    // that the proof authenticates them individually; the statement alone
-    // constrains only their difference s - a through Com_total.
-   54. session_id = domain_separator + "spend" + Encode(k) + Encode(s)
+    // The public amounts s and a are each constrained by their own
+    // consistency equation and also bound into the session
+    // identifier.
+   74. session_id = domain_separator + "spend" + Encode(k) + Encode(s)
          + Encode(a) + Encode(ctx)
-   55. prover = NISigmaProtocol(session_id, statement)
-   56. pok = prover.prove(witness, rng)
+   75. prover = NISigmaProtocol(session_id, statement)
+   76. pok = prover.prove(witness, rng)
 
-    // Construct output
-   57. r_star = sum(s_com[j] * 3^j for j in [D])
-   58. proof = (k, s, a, ctx, A', B_bar, Com, T, pok)
-   59. state = (kstar, r_star, v, ctx)
-   60. return (proof, state)
+    // Construct output. The state carries the post-spend balance
+    // v1; the return amount t added at refund time (which includes
+    // any top-up grant) completes the new balance v1 + t.
+   77. r_star = rn + sum(s1[j] * 3^j for j in [D])
+   78. proof = (k, s, a, ctx, A', B_bar, Com1, T1, Com2, T2, K_n, pok)
+   79. state = (kstar, r_star, v1, ctx)
+   80. return (proof, state)
 ~~~
 
 ### Issuer: Spend Verification and Refund
@@ -789,7 +817,9 @@ VerifyAndRefund(sk, proof, t, rng):
   Input:
     - sk: Issuer's private key
     - proof: Client's spend proof
-    - t: Partial refund amount (0 <= t <= max(0, s - a))
+    - t: Return amount (0 <= t <= s + a); t = a grants exactly the
+      authorized top-up, t < a claws part of it back, t > a also
+      refunds part of the spent amount
     - rng: PRNG.
   Output:
     - refund: Refund for remaining credits
@@ -801,7 +831,7 @@ VerifyAndRefund(sk, proof, t, rng):
       amount (see ScalarToCredit)
     - InvalidAmount: raised when s or a is not a valid credit amount
       in [0, 3^D)
-    - InvalidRefundAmount: raised when t > max(0, s - a)
+    - InvalidRefundAmount: raised when t > s + a
 
   Steps:
     1. Parse proof and extract nullifier k, spend amount s,
@@ -815,8 +845,8 @@ VerifyAndRefund(sk, proof, t, rng):
     4.     raise InvalidAmount
     // Apply application policy to authorize the top-up; issuers
     // that do not support top-ups MUST reject proofs with a != 0.
-    // Validate refund amount
-    5. if t > max(0, s - a):
+    // Validate the return amount
+    5. if t > s + a:
     6.     raise InvalidRefundAmount
     // The following steps (7-15) MUST be performed as a single
     // atomic transaction: the nullifier check, proof verification,
@@ -832,8 +862,8 @@ VerifyAndRefund(sk, proof, t, rng):
    10. VerifySpendProof(sk, proof)
    11. // Record nullifier
    12. used_nullifiers.add(k)
-   13. // Issue refund for remaining balance
-   14. K' = Sum(Com[j] * 3^j for j in [D])
+   13. // Issue refund for the post-spend balance plus the return
+   14. K' = K_n + Sum(Com1[j] * 3^j for j in [D])
    15. refund = IssueRefund(sk, K', t, ctx, rng)
    16. return refund
 ~~~
@@ -841,23 +871,25 @@ VerifyAndRefund(sk, proof, t, rng):
 ### Refund Issuance {#refund-issuance}
 
 After verifying a spend proof, the issuer creates a refund token for
-the remaining balance. The commitment `K'` already incorporates any
-top-up `a` (it commits to `v = c - s + a`), and the issuer adds the
-partial refund `t` homomorphically:
+the remaining balance. The commitment `K'` commits to the post-spend
+balance `v1 = c - s` and the new nullifier; the issuer adds the
+return amount `t` homomorphically. The addition is safe without a
+range proof over the result because `v1 + t <= c + a`, which the
+spend proof showed is below `3^D`:
 
 ~~~
 IssueRefund(sk, K', t, ctx, rng):
   Input:
     - sk: Issuer's private key
-    - K': Commitment to remaining balance and new nullifier
-    - t: Partial refund amount
+    - K': Commitment to the post-spend balance and new nullifier
+    - t: Return amount
     - ctx: Request context scalar
     - rng: PRNG.
   Output:
     - refund: Refund response
 
   Steps:
-    // Create new BBS signature on remaining balance
+    // Create new BBS signature on the new balance
     1. e <- Zq
     2. X_A = G.Generator() + K' + H1 * t + H4 * ctx
     3. A = X_A * (1/(e + sk))
@@ -884,30 +916,33 @@ ConstructRefundToken(pk, spend_proof, refund, state):
     - pk: Issuer's public key
     - spend_proof: The spend proof sent to issuer
     - refund: Issuer's refund response
-    - state: Client state (k*, r*, v, ctx)
+    - state: Client state (k*, r*, v1, ctx)
   Output:
     - token: New credit token or INVALID
   Exceptions:
     - InvalidRefundProof: When the refund proof verification fails
-    - InvalidRefundAmount: When t or v+t is not in [0, 3^D)
+    - InvalidRefundAmount: When t > s + a or v1 + t is not in
+      [0, 3^D)
 
   Steps:
     1. Parse refund as (A, e, t, pok)
-    2. Parse state as (k*, r*, v, ctx)
+    2. Parse state as (k*, r*, v1, ctx)
 
-    // Validate t is a valid credit amount
-    3. if t >= 3^D:
+    // Validate the return amount against the spend proof's public
+    // amounts
+    3. if t > spend_proof.s + spend_proof.a:
     4.     raise InvalidRefundAmount
 
     // Compute new balance
-    5. new_balance = v + t
+    5. new_balance = v1 + t
 
     // Validate new balance is a valid credit amount
     6. if new_balance >= 3^D:
     7.     raise InvalidRefundAmount
 
     // Reconstruct commitment
-    8. K' = Sum(spend_proof.Com[j] * 3^j for j in [D])
+    8. K' = spend_proof.K_n
+         + Sum(spend_proof.Com1[j] * 3^j for j in [D])
     9. X_A = G.Generator() + K' + H1 * t + H4 * ctx
    10. X_G = G.Generator() * e + pk
 
@@ -938,7 +973,8 @@ VerifySpendProof(sk, proof):
     - InvalidClientSpendProof: raised when the proof verification fails
 
   Steps:
-    1. Parse proof as (k, s, a, ctx, A', B_bar, Com, T, pok)
+    1. Parse proof as (k, s, a, ctx, A', B_bar, Com1, T1, Com2, T2,
+       K_n, pok)
 
     // Check A' is not identity
     2. if A' == Identity:
@@ -947,51 +983,69 @@ VerifySpendProof(sk, proof):
     // Compute issuer's view
     4. A_bar = A' * sk
     5. H1_prime = G.Generator() + H2 * k + H4 * ctx
-    6. Com_total = H1 * (s - a) + Sum(Com[j] * 3^j for j in [D])
+    6. Com_total1 = H1 * s + Sum(Com1[j] * 3^j for j in [D])
+    7. Com_total2 = H1 * (-a) + Sum(Com2[j] * 3^j for j in [D])
 
     // Build the same LinearRelation as ProveSpend
-    7. statement = LinearRelation(group)
+    8. statement = LinearRelation(group)
 
     // Eq 1: A_bar = e*(-A') + r2*B_bar
-    8. e_var, r2_var = statement.allocate_scalars(2)
-    9. negA_var, B_bar_var, A_bar_var = statement.allocate_elements(3)
-   10. statement.append_equation(A_bar_var,
+    9. e_var, r2_var = statement.allocate_scalars(2)
+   10. negA_var, B_bar_var, A_bar_var = statement.allocate_elements(3)
+   11. statement.append_equation(A_bar_var,
          [(e_var, negA_var), (r2_var, B_bar_var)])
-   11. statement.set_elements([(negA_var, -A'),
+   12. statement.set_elements([(negA_var, -A'),
          (B_bar_var, B_bar), (A_bar_var, A_bar)])
 
     // Eq 2: H1_prime = r3*B_bar + c*(-H1) + r*(-H3)
-   12. r3_var, c_var, r_var = statement.allocate_scalars(3)
-   13. negH1_var, negH3_var, H1p_var = statement.allocate_elements(3)
-   14. statement.append_equation(H1p_var,
+   13. r3_var, c_var, r_var = statement.allocate_scalars(3)
+   14. negH1_var, negH3_var, H1p_var = statement.allocate_elements(3)
+   15. statement.append_equation(H1p_var,
          [(r3_var, B_bar_var), (c_var, negH1_var), (r_var, negH3_var)])
-   15. statement.set_elements([(negH1_var, -H1),
+   16. statement.set_elements([(negH1_var, -H1),
          (negH3_var, -H3), (H1p_var, H1_prime)])
 
-    // Eqs 3..2+3D: Range proof (3D equations)
-   16. (d_vars, s_com_vars, rho_vars, w_vars, kstar_var, k3_var,
-         H1_var, H2_var, H3_var) =
-         append_range_proof(statement, H1, H2, H3, Com, T, D)
+    // Shared generator element variables
+   17. H1_var, H2_var, H3_var = statement.allocate_elements(3)
+   18. statement.set_elements([(H1_var, H1), (H2_var, H2),
+         (H3_var, H3)])
 
-    // Eq 3D+3: Commitment consistency
-    // Element variables from the range proof are reused; the
-    // 3^0 = 1 coefficient element for j = 0 is H3_var itself.
-   17. Com_total_var = statement.allocate_elements(1)
-   18. statement.set_elements([(Com_total_var, Com_total)])
-   19. terms = [(c_var, H1_var), (kstar_var, H2_var),
-         (s_com_vars[0], H3_var)]
-   20. For j = 1 to D-1:
-   21.     coeff_H3_var = statement.allocate_elements(1)
-   22.     statement.set_elements([(coeff_H3_var, H3 * (3^j))])
-   23.     terms.append((s_com_vars[j], coeff_H3_var))
-   24. statement.append_equation(Com_total_var, terms)
+    // Eqs 3..2+3D: Range proof over v1 (3D equations)
+   19. (d1_vars, s1_vars, rho1_vars, w1_vars) =
+         append_range_proof(statement, H1_var, H3_var, Com1, T1, D)
+
+    // Eqs 3+3D..2+6D: Range proof over v2 (3D equations)
+   20. (d2_vars, s2_vars, rho2_vars, w2_vars) =
+         append_range_proof(statement, H1_var, H3_var, Com2, T2, D)
+
+    // Eq 6D+3: Nullifier commitment opening
+   21. kstar_var, rn_var = statement.allocate_scalars(2)
+   22. Kn_var = statement.allocate_elements(1)
+   23. statement.set_elements([(Kn_var, K_n)])
+   24. statement.append_equation(Kn_var,
+         [(kstar_var, H2_var), (rn_var, H3_var)])
+
+    // Eqs 6D+4, 6D+5: Commitment consistency
+    // The 3^j coefficient elements are shared between the two
+    // equations; the 3^0 = 1 coefficient element is H3_var itself.
+   25. CT1_var, CT2_var = statement.allocate_elements(2)
+   26. statement.set_elements([(CT1_var, Com_total1),
+         (CT2_var, Com_total2)])
+   27. coeff_vars[0] = H3_var
+   28. For j = 1 to D-1:
+   29.     coeff_vars[j] = statement.allocate_elements(1)
+   30.     statement.set_elements([(coeff_vars[j], H3 * (3^j))])
+   31. statement.append_equation(CT1_var, [(c_var, H1_var)]
+         + [(s1_vars[j], coeff_vars[j]) for j in [D]])
+   32. statement.append_equation(CT2_var, [(c_var, H1_var)]
+         + [(s2_vars[j], coeff_vars[j]) for j in [D]])
 
     // Verify non-interactive proof
-   25. session_id = domain_separator + "spend" + Encode(k) + Encode(s)
+   33. session_id = domain_separator + "spend" + Encode(k) + Encode(s)
          + Encode(a) + Encode(ctx)
-   26. verifier = NISigmaProtocol(session_id, statement)
-   27. if not verifier.verify(pok):
-   28.     raise InvalidClientSpendProof
+   34. verifier = NISigmaProtocol(session_id, statement)
+   35. if not verifier.verify(pok):
+   36.     raise InvalidClientSpendProof
 ~~~
 
 
@@ -1141,8 +1195,11 @@ struct {
     opaque ctx[Ns];         /* Request context scalar, Ns bytes */
     opaque A_prime[Ne];     /* Compressed Ristretto point, Ne bytes */
     opaque B_bar[Ne];       /* Compressed Ristretto point, Ne bytes */
-    opaque Com[D][Ne];      /* D compressed Ristretto points, D*Ne bytes */
-    opaque T[D][Ne];        /* D compressed Ristretto points, D*Ne bytes */
+    opaque Com1[D][Ne];     /* D compressed Ristretto points, D*Ne bytes */
+    opaque T1[D][Ne];       /* D compressed Ristretto points, D*Ne bytes */
+    opaque Com2[D][Ne];     /* D compressed Ristretto points, D*Ne bytes */
+    opaque T2[D][Ne];       /* D compressed Ristretto points, D*Ne bytes */
+    opaque K_n[Ne];         /* Compressed Ristretto point, Ne bytes */
     opaque pok<1..2^16-1>; /* NISigmaProtocol proof */
 } SpendProofMsg;
 ~~~
@@ -1153,7 +1210,7 @@ struct {
 struct {
     opaque A_star[Ne];    /* Compressed Ristretto point, Ne bytes */
     opaque e_star[Ns];    /* Scalar, Ns bytes */
-    opaque t[Ns];         /* Partial refund amount scalar, Ns bytes */
+    opaque t[Ns];         /* Return amount scalar, Ns bytes */
     opaque pok<1..2^16-1>; /* NISigmaProtocol proof */
 } RefundMsg;
 ~~~
@@ -1211,16 +1268,19 @@ Consider an API service that sells credits in bundles of 1000:
    - Each new token has a fresh nullifier
    - The service cannot link Alice's calls together
 
-4. **Top-Up**: Alice's balance runs low, so she buys 500 more credits
+4. **Top-Up**: Alice's balance is down to 60, so she buys 500 more
+   credits
    - Alice pays out-of-band; the purchase is bound to the request
      context ctx
    - Her next spend proof declares a top-up amount a = 500 alongside
-     the spend amount s = 50
+     the spend amount s = 50 (which her balance of 60 covers)
    - The service authorizes the top-up by verifying the proof with
-     a = 500
+     a = 500 and setting the return amount t = 500
    - The refund token contains her previous balance plus 450 credits
      (500 purchased minus 50 spent); the service does not learn the
-     resulting balance
+     resulting balance. Had the out-of-band payment failed, the
+     service could instead have set any t down to 0, clawing back
+     the top-up while keeping the charge
 
 This example demonstrates how the protocol maintains privacy while preventing double-spending and enabling flexible partial payments.
 
@@ -1279,7 +1339,8 @@ All implementations MUST validate points at these locations:
 - When receiving `K` in issuance request
 - When receiving `A` in issuance response
 - When receiving `A'` and `B_bar` in spend proof
-- When receiving `Com[j]` and `T[j]` commitments in spend proof
+- When receiving `Com1[j]`, `T1[j]`, `Com2[j]`, `T2[j]`, and `K_n`
+  commitments in spend proof
 - When receiving `A*` in refund response
 
 ## Error Handling
@@ -1308,8 +1369,8 @@ values but increases proof size and verification time linearly.
 
 ### Performance Characteristics
 
-The spending proof uses a single `LinearRelation` with `3D + 3` equations
-and a witness of `4D + 7` scalars. The `NISigmaProtocol` interface
+The spending proof uses a single `LinearRelation` with `6D + 5` equations
+and a witness of `8D + 7` scalars. The `NISigmaProtocol` interface
 handles all proof generation and verification.
 
 - **Sizes**:
@@ -1318,7 +1379,7 @@ handles all proof generation and verification.
 |-----------|------|-------------------------|
 | Issuance request | Ne + 3\*Ns + 2 | 130 bytes |
 | Issuance response | Ne + 4\*Ns + 2 | 162 bytes |
-| Spend proof | (2D+2)\*Ne + (4D+12)\*Ns + 2 | 192D + 450 bytes |
+| Spend proof | (4D+3)\*Ne + (8D+12)\*Ns + 2 | 384D + 482 bytes |
 | Refund | Ne + 4\*Ns + 2 | 162 bytes |
 | Token (client storage) | Ne + 5\*Ns | 192 bytes |
 | Nullifier (server storage) | Ns | 32 bytes |
@@ -1327,7 +1388,7 @@ Each `pok` field encodes a challenge scalar and the response scalars
 from `NISigmaProtocol`, prefixed by a 2-byte length field.
 The issuance request proof has 2 witness scalars (3\*Ns),
 the issuance response and refund proofs have 1 witness scalar (2\*Ns),
-and the spend proof has `4D + 7` witness scalars ((4D+8)\*Ns).
+and the spend proof has `8D + 7` witness scalars ((8D+8)\*Ns).
 
 ### Choice of Radix {#radix}
 
@@ -1466,31 +1527,38 @@ Security relies on:
 
 ## Amount Validation and Modular Wraparound {#wraparound}
 
-The spend proof constrains the new balance `v = c - s + a` only
-modulo the group order q: the range proof shows that v, interpreted
-as an integer, lies in `[0, 3^D)`, but the relation among c, s, a,
-and v holds in the scalar field. If the issuer accepted arbitrary
-scalars as the public amounts s or a, a malicious client could
-exploit wraparound to inflate its balance. For example, with
-`s = q - 1` (that is, `s = -1 mod q`), a token holding c credits
-yields a "remainder" of `c + 1` that passes the range proof.
+The spend proof constrains the proven values `v1 = c - s` and
+`v2 = c + a` only modulo the group order q: the range proofs show
+that each value, interpreted as an integer, lies in `[0, 3^D)`, but
+the relations among c, s, a, v1, and v2 hold in the scalar field.
+If the issuer accepted arbitrary scalars as the public amounts s or
+a, a malicious client could exploit wraparound to inflate its
+balance. For example, with `s = q - 1` (that is, `s = -1 mod q`), a
+token holding c credits yields a "post-spend balance" of `c + 1`
+that passes the first range proof.
 
 Issuers MUST therefore validate the public amounts before verifying
-a spend proof: both s and a MUST decode successfully via
-ScalarToCredit and MUST be less than `3^D`, as specified in
-VerifyAndRefund. In addition, suites MUST choose MAX_DIGITS such
-that:
+a spend proof: s and a MUST decode successfully via ScalarToCredit
+and MUST be less than `3^D`, and the return amount MUST satisfy
+`t <= s + a`, as specified in VerifyAndRefund. In addition, suites
+MUST choose MAX_DIGITS such that:
 
 ~~~
 3^MAX_DIGITS + 2^128 <= Order()
 ~~~
 
 where `2^128` is the upper bound enforced by ScalarToCredit. Under
-these checks, wraparound is impossible: token balances satisfy
-`c < 3^D` by induction (issuance amounts, top-ups, and refunds are
-all validated against `3^D`), so any claimed `s > c + a` forces the
-reduced value `v = c + a - s + q >= q - 2^128 >= 3^D`, which the
-range proof rejects.
+these checks, wraparound is impossible. Token balances satisfy
+`c < 3^D` by induction: issuance amounts are validated against
+`3^D`, and each refund produces a balance
+`v1 + t <= v1 + s + a = c + a`, which the second range proof shows
+is below `3^D`. Given `c < 3^D` and a validated `s < 3^D`, the
+field value `c - s` either equals the integer `c - s` or, when
+`s > c`, wraps to `c - s + q >= q - 3^D > 3^D`, which the first
+range proof rejects; the proof therefore enforces `s <= c` over
+the integers. The field value `c + a` is at most `2*3^D - 2 < q`
+and cannot wrap, so the second range proof enforces `c + a < 3^D`
+over the integers.
 
 Parameterizations whose range bound approaches the group order
 violate this condition. For example, a 252-bit range with amounts
@@ -1606,9 +1674,9 @@ The protocol does NOT provide:
 **Prevention**: Atomic nullifier checking and recording as described in the nullifier database and concurrency mitigations above.
 
 ### 2. Balance Inflation Attack
-**Scenario**: An attacker attempts to create a proof claiming to have more credits than actually issued by manipulating the range proof, or by submitting spend or top-up amounts that wrap around the group order.
+**Scenario**: An attacker attempts to create a proof claiming to have more credits than actually issued by manipulating the range proofs, or by submitting spend or top-up amounts that wrap around the group order.
 
-**Prevention**: The cryptographic soundness of the range proof, combined with the mandatory amount validation described in {{wraparound}}, prevents this attack.
+**Prevention**: The cryptographic soundness of the range proofs, combined with the mandatory amount validation described in {{wraparound}}, prevents this attack.
 
 ### 3. Token Linking Attack
 **Scenario**: An issuer attempts to link transactions by analyzing patterns in nullifiers, amounts, or timing.
@@ -1743,7 +1811,7 @@ This glossary provides quick definitions of key terms used throughout this docum
 
 **Blind Signature**: A cryptographic signature where the signer signs a message without seeing its content.
 
-**Refund**: The refund issued for the remaining balance after a spend, including any issuer-chosen partial refund of the spent amount.
+**Refund**: The response issued for the remaining balance after a spend, including the issuer-chosen return amount added to the post-spend balance.
 
 **Credit**: A numerical unit of authorization that can be spent by clients.
 
